@@ -92,7 +92,7 @@ func ReadConfigs(ReInit bool) error {
 //bool ProcessConfig ( const string& ConfigName )
 func ProcessConfig( configFilePath string) error{
 
-	Config := new(server.FG_CONFIG)
+	Config := server.NewFG_CONFIG()
 	//var Val string
 	//var E int
 
