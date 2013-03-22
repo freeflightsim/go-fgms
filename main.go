@@ -5,11 +5,13 @@ package main
 // source = http://gitorious.org/fgms/fgms-0-x/blobs/master/src/server/main.cxx
 import(
 	"fmt"
+	"strconv"
 )
 import(
 	"github.com/fgx/go-fgms/server"
 )
 
+// Main instance of FG_SERVER
 var Servant *server.FG_SERVER
 
 //////////////////////////////////////////////////////////////////////
@@ -20,7 +22,7 @@ var Servant *server.FG_SERVER
 
 func main(){
 
-
+	// Initialize the beest
 	Servant = server.NewFG_SERVER()
 	//int     I;
 	//#if defined ENABLE_DEBUG
@@ -87,18 +89,12 @@ func ReadConfigs(ReInit bool) error {
 } // ReadConfigs ()
 
 
-/**
- * @brief Read a config file and set internal variables accordingly
- * @param ConfigName Path of config file to load
- * @retval int  -- todo--
- */
-//bool ProcessConfig ( const string& ConfigName )
+// Read a config file and set internal variables accordingly.
+// Returns an error or nil
 func ProcessConfig( configFilePath string) error{
 
 	Config := server.NewFG_CONFIG()
-	//var Val string
-	//var E int
-
+	
 	//if (bHadConfig)	// we already have a config, so ignore
 	//	return (true);
 	err := Config.Read (configFilePath)
@@ -109,41 +105,48 @@ func ProcessConfig( configFilePath string) error{
 	}
 	//SG_ALERT (SG_SYSTEMS, SG_ALERT, "processing " << ConfigName);
 	//var Val server.VarValue
-	Val := Config.Get ("server.name");
-	fmt.Println("server.name", Val);
+	
+	// Server Name
+	Val := Config.Get("server.name")
+	fmt.Println("server.name", Val)
 	if Val != "" {
-	//{
-		Servant.ServerName = Val
-	//	bHadConfig = true; // got a serve name - minimum 
+		Servant.SetServerName(Val)
+		//	bHadConfig = true; // got a serve name - minimum 
 	}
-	/*Val = Config.Get ("server.address");
-	if (Val != "")
-	{
-		Servant.SetBindAddress (Val);
+	
+	// Address
+	Val = Config.Get("server.address")
+	fmt.Println("server.address", Val)
+	if Val != "" {
+		Servant.SetBindAddress(Val)
 	}
-	Val = Config.Get ("server.port");
-	if (Val != "")
-	{
-		Servant.SetDataPort (StrToNum<int> (Val.c_str (), E));
-		if (E)
-		{
-			SG_ALERT (SG_SYSTEMS, SG_ALERT, "invalid value for DataPort: '" << optarg << "'");
-			exit (1);
-		}
+	
+	// UDP Port No
+	Val = Config.Get("server.port")
+	fmt.Println("server.port", Val)
+	if Val != "" {
+		port, err := strconv.ParseInt(Val, 10, 0)
+		if err != nil {
+			fmt.Println("Error", "invalid value for DataPort")
+			return err
+		} 
+		Servant.SetDataPort(int(port))
 	}
+	
+	// Telnet Port
 	Val = Config.Get ("server.telnet_port");
-	if (Val != "")
-	{
-		Servant.SetTelnetPort (StrToNum<int> (Val.c_str (), E));
-		if (E)
-		{
-			SG_ALERT (SG_SYSTEMS, SG_ALERT, "invalid value for TelnetPort: '" << optarg << "'");
-			exit (1);
-		}
+	if Val != "" {
+		telnetport, err := strconv.ParseInt(Val, 10, 0)
+		if err != nil {
+			fmt.Println("Error", "invalid value for Telnet")
+			return err
+		} 
+		Servant.SetTelnetPort(int(telnetport))
 	}
+	
+	// Outta Reach
 	Val = Config.Get("server.out_of_reach");
-	if (Val != "")
-	{
+	if Val != "" {
 		Servant.SetOutOfReach (StrToNum<int> (Val.c_str (), E));
 		if (E)
 		{

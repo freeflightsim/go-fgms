@@ -92,6 +92,42 @@ func NewFG_SERVER() *FG_SERVER {
 	return ob
 }
 
+func (me *FG_SERVER) SetServerName(name string){
+	me.ServerName = name
+}
+func (me *FG_SERVER) SetBindAddress(addr string){
+	me.BindAddress = addr
+}
+
+func (me *FG_SERVER) SetDataPort(port int){
+	me.ListenPort = port
+	me.ReinitData = true
+}
+
+func (me *FG_SERVER) SetTelnetPort(port int){
+	me.TelnetPort = port
+	me.ReinitTelnet = true
+}
+
+
+
+// Set nautical miles two players must be apart to be out of reach
+func (me *FG_SERVER) SetOutOfReach(nm int){(
+  PlayerIsOutOfReach = nm
+}
+
+//  Set time in seconds. if no packet arrives from a client
+//  within this time, the connection is dropped.  
+func (me *FG_SERVER) SetPlayerExpires(int Seconds){
+  PlayerExpires = Seconds;
+}
+
+
+
+
+
+
+
 
 //////////////////////////////////////////////////
 // mT_Relay - Type of list of relays
