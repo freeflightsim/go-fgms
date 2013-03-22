@@ -6,6 +6,7 @@ package server
 import(
 	"fmt"
 	"io/ioutil"
+	"strings"
 )
 
 type FG_CONFIG struct {
@@ -47,11 +48,17 @@ func (me *FG_CONFIG) Read(configFile string) error {
 	//int             LineNumber;
 
 	//ConfigFile.open (ConfigName.c_str ());
-	 data, err := ioutil.ReadFile(configFile)
+	// Get file contents, return on error
+	 contents, err := ioutil.ReadFile(configFile)
 	 if err != nil {
 	 	return err
 	 }
-	 fmt.Println("read", string(data), err)
+	 fmt.Println("read", string(contents), err)
+	 
+	 // Split cotnents into lines
+	 lines := strings.Split(string(contents), "\n")
+	 fmt.Println("lines=", len(lines))
+	 
 	//if (!ConfigFile)
 	//{
 	//	return (1);
