@@ -1,5 +1,12 @@
 
-package server
+package fgms
+
+import(
+	"fmt"
+)
+import(
+	
+)
 
 
 const SUCCESS                 = 0
@@ -51,6 +58,8 @@ type FG_SERVER struct {
   IsParent bool
   MaxClientID int
 
+	LogFileName string
+	
   //tmp                   = (converter*) (& PROTO_VER);
   //ProtoMinorVersion   = tmp->High;
   //ProtoMajorVersion   = tmp->Low;
@@ -58,8 +67,10 @@ type FG_SERVER struct {
   //wp                  = fopen("wp.txt", "w");
   //BlackList           = map<uint32_t, bool>();
   //RelayMap            = map<uint32_t, string>();
+  
   IsTracked bool
-  Tracker int
+  Tracker *FG_TRACKER
+  
   //UpdateSecs          = DEF_UPDATE_SECS;
   // clear stats - should show what type of packet was received
   PacketsReceived int
@@ -134,14 +145,92 @@ func (me *FG_SERVER) SetHub(am_hub bool){
 }
 
 
+// Set the logfile
+func (me *FG_SERVER) SetLogfile( log_file_name string){
+	
+	me.LogFileName = log_file_name
+	
+	/*TODO after research
+  if (m_LogFile)
+  {
+    m_LogFile.close ();
+  }
+  m_LogFileName = LogfileName;
+  m_LogFile.open (m_LogFileName.c_str(), ios::out|ios::app);
+  sglog().enable_with_date (true);
+  sglog().set_output (m_LogFile);
+  */
+} // FG_SERVER::SetLogfile ( const std::string &LogfileName )
+
+
+
+// Insert a new relay server into internal list 
+func (me *FG_SERVER) AddRelay(server string, port int) {
+  //mT_Relay        NewRelay;
+  //unsigned int    IP;
+	NewRelay := NewMT_Relay(server, port)	
+  	//NewRelay.Name = server
+  	//NewRelay.Address.set ((char*) Server.c_str(), Port);
+  	IP := NewRelay.Address.GetIP()
+  	fmt.Println("ip=", IP)
+  	/*
+  	if IP != INADDR_ANY && IP != INADDR_NONE {
+    	m_RelayList.push_back (NewRelay);
+    	string S; unsigned I;
+   	 I = NewRelay.Name.find (".");
+    if (I != string::npos)
+    {
+      S = NewRelay.Name.substr (0, I);
+    }
+    else
+    {
+      S = NewRelay.Name;
+    }
+    m_RelayMap[NewRelay.Address.getIP()] = S;
+  	*/
+} // FG_SERVER::AddRelay()
 
 
 
 
-//////////////////////////////////////////////////
-// mT_Relay - Type of list of relays
-type MT_Relay struct {
-	Name string
-	Address string // TODO = netAddress  Address
-}
+//////////////////////////////////////////////////////////////////////
+/**
+ * @brief Add a tracking server
+ * @param Server String with server
+ * @param Port The port number
+ * @param IsTracked Is Stracked
+ * @retval int -1 for fail or SUCCESS
+ */
+func (me *FG_SERVER) AddTracker(host string, port int, isTracked bool){
+	me.IsTracked = isTracked
+	me.Tracker = NewFG_TRACKER(host, port, 0)
+	
+	/* TODO
+#ifndef NO_TRACKER_PORT
+#ifdef USE_TRACKER_PORT
+  if ( m_Tracker )
+  {
+    delete m_Tracker;
+  }
+  m_Tracker = new FG_TRACKER(Port,Server,0);
+#else // !#ifdef USE_TRACKER_PORT
+  if ( m_Tracker )
+  {
+    msgctl(m_ipcid,IPC_RMID,NULL);
+    delete m_Tracker;
+    m_Tracker = 0; // just deleted
+  }
+  printf("Establishing IPC\n");
+  m_ipcid         = msgget(IPC_PRIVATE,IPCPERMS);
+  if (m_ipcid <= 0)
+  {
+    perror("msgget getting ipc id failed");
+    return -1;
+  }
+  m_Tracker = new FG_TRACKER(Port,Server,m_ipcid);
+#endif // #ifdef USE_TRACKER_PORT y/n
+#endif // NO_TRACKER_PORT
+  return (SUCCESS);
+  */
+} // FG_SERVER::AddTracker()
 

@@ -8,11 +8,11 @@ import(
 	"strconv"
 )
 import(
-	"github.com/fgx/go-fgms/server"
+	"github.com/fgx/go-fgms/fgms"
 )
 
 // Main instance of FG_SERVER
-var Servant *server.FG_SERVER
+var Servant *fgms.FG_SERVER
 
 //////////////////////////////////////////////////////////////////////
 /// MAIN routine 
@@ -23,7 +23,7 @@ var Servant *server.FG_SERVER
 func main(){
 
 	// Initialize the beest
-	Servant = server.NewFG_SERVER()
+	Servant = fgms.NewFG_SERVER()
 	//int     I;
 	//#if defined ENABLE_DEBUG
 	//  logbuf::set_log_classes(SG_GENERAL);
@@ -93,7 +93,7 @@ func ReadConfigs(ReInit bool) error {
 // Returns an error or nil
 func ProcessConfig( configFilePath string) error{
 
-	Config := server.NewFG_CONFIG()
+	Config := fgms.NewFG_CONFIG()
 	
 	//if (bHadConfig)	// we already have a config, so ignore
 	//	return (true);
@@ -152,7 +152,7 @@ func ProcessConfig( configFilePath string) error{
 			fmt.Println("Error", "invalid value for OutOfReach", Val)
 			return err
 		} 
-		Servant.SetOutOfReach(nm)
+		Servant.SetOutOfReach( int(nm) )
 	}
 
 	// Player Expires	
@@ -163,8 +163,22 @@ func ProcessConfig( configFilePath string) error{
 			fmt.Println("Error", "invalid value for exp_secs", Val)
 			return err
 		} 
-		Servant.SetPlayerExpires(exp_secs)
+		Servant.SetPlayerExpires( int(exp_secs) )
 	}
+	
+	// Server is hub
+	Val = Config.Get("server.is_hub")
+	if Val != "" {
+		is_hub, err := strconv.ParseBool(Val)
+		if err != nil {
+			fmt.Println("Error", "server.is_hub", Val)
+			return err
+		}
+		Servant.SetHub( is_hub ) 
+	}
+	
+	
+	
 	// Log File
 	Val = Config.Get("server.logfile")
 	if Val != "" {
@@ -174,37 +188,24 @@ func ProcessConfig( configFilePath string) error{
 	// Tracked
 	Val = Config.Get ("server.tracked")
 	if Val != "" {
-		tracked, err := strconv.ParseBool(Val)
-		if err != nil {
-			fmt.Println("Error", "invalid value for tracking_port: ", Val)
-			return err
-		}
+		tracked, _ := strconv.ParseBool(Val)
 		if tracked {
-			trkServer = Config.Get ("server.tracking_server")
-			trkPortS = Config.Get ("server.tracking_port")
-			tekPortI, err := strconv.ParseInt(tPortS)
+			trkServer := Config.Get("server.tracking_server")
+			trkPorts := Config.Get("server.tracking_port")
+			trkPorti, err := strconv.ParseInt(trkPorts, 10, 0)
 			if err != nil{
 				fmt.Println("Error", "invalid value for tracking_port: ", Val)
 				return err
 			}
-			foo := Servant.AddTracker(trkServer, trkPortI, tracked)
+			pii := int(trkPorti)
+			fmt.Println("addd", trkServer, pii, tracked)
+			Servant.AddTracker(trkServer, pii, tracked)
+			
 		} 
 	}
 	
+	
 
-    //if ( tracked && ( Servant.AddTracker (Server, Port, tracked) != FG_SERVER::SUCCESS ) ) // set master m_IsTracked
-    //{
-			//SG_ALERT (SG_SYSTEMS, SG_ALERT, "Failed to get IPC msg queue ID! error " << errno );
-			//exit (1); // do NOT continue if a requested 'tracker' FAILED
-    //}
-	//}
-	
-	
-	Val = Config.Get ("server.is_hub");
-	if Val != "" {
-		is_hub, _ := strconv.ParseBool(Val)
-		Servant.SetHub(is_hub)
-	}
 	
 	//////////////////////////////////////////////////
 	//      read the list of relays

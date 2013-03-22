@@ -1,4 +1,4 @@
-package server
+package fgms
 
 // http://gitorious.org/fgms/fgms-0-x/blobs/master/src/server/fg_config.hxx
 // http://gitorious.org/fgms/fgms-0-x/blobs/master/src/server/fg_config.cxx
@@ -7,6 +7,7 @@ import(
 	"fmt"
 	"io/ioutil"
 	"strings"
+	//"strconv"
 )
 
 type VarValue struct {
@@ -82,8 +83,17 @@ func(me *FG_CONFIG) ParseLine(ConfigLine string) error{
 	}
 	return ""
 }
-
-
+// Find a variable with name 'VarName' in the internal list and return bool value
+/*
+ func (me *FG_CONFIG) GetBool(VarName string) (bool error) {
+	for _, ele := range me.mT_VarList {
+		if ele.Key == VarName {
+			return strconv.ParseBool(ele.Val)			
+		}
+	}
+	return nil, nil
+}
+*/
 
 // Construct and return a new instance if FG_CONFIG
 func NewFG_CONFIG() *FG_CONFIG {
