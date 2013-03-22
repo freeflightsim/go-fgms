@@ -3,6 +3,13 @@
 package main
 
 // source = http://gitorious.org/fgms/fgms-0-x/blobs/master/src/server/main.cxx
+import(
+	"fmt"
+)
+import(
+	"github.com/fgx/go-fgms/server"
+)
+
 
 //////////////////////////////////////////////////////////////////////
 /// MAIN routine 
@@ -11,14 +18,14 @@ package main
 //int main ( int argc, char* argv[] )
 
 func main(){
-{
+
 	//int     I;
 	//#if defined ENABLE_DEBUG
 	//  logbuf::set_log_classes(SG_GENERAL);
 	//#endif
 	
 	//ParseParams (argc, argv);
-	//ReadConfigs ();
+	ReadConfigs(false)
 	//if ( !bHadConfig )
 	//{
 	//	SG_ALERT (SG_SYSTEMS, SG_ALERT, "No configuration file '" << DEF_CONF_FILE << "' found!");
@@ -58,7 +65,7 @@ func main(){
 /// (re)Read config files - ReInit True to reinitialize
 //int ReadConfigs ( bool ReInit = false )
 
-func ReadConfigs(ReInit bool) ok int {
+func ReadConfigs(ReInit bool) error {
 	
 	var Path string
 	Path = "/home/gogo/src/github.com/fgx/go-fgms/fgms_example.conf"
@@ -66,12 +73,14 @@ func ReadConfigs(ReInit bool) ok int {
 	//if (Path != "")
 	//{
 	//	Path += "/" DEF_CONF_FILE;
-	if (ProcessConfig (Path)){
-		return 1
+	err := ProcessConfig (Path)
+	if err != nil {
+		fmt.Println("error=", err)
+		return err
 	}
 	//if (ProcessConfig (DEF_CONF_FILE))
 	//	return 1;
-	return 0
+	return nil
 } // ReadConfigs ()
 
 
@@ -81,25 +90,27 @@ func ReadConfigs(ReInit bool) ok int {
  * @retval int  -- todo--
  */
 //bool ProcessConfig ( const string& ConfigName )
-func ProcessConfig( configFilePath string) bool{
+func ProcessConfig( configFilePath string) error{
 
-	config := new(FG_CONFIG)
-	Val string
-	E int
+	Config := new(server.FG_CONFIG)
+	//var Val string
+	//var E int
 
 	//if (bHadConfig)	// we already have a config, so ignore
 	//	return (true);
-	
-	if (Config.Read (ConfigName)){
-		return false)
+	err := Config.Read (configFilePath)
+	//if (ok){
+	//fmt.Println("err=", err);
+	if err != nil {
+		return err
 	}
 	//SG_ALERT (SG_SYSTEMS, SG_ALERT, "processing " << ConfigName);
-	Val = Config.Get ("server.name");
-	if (Val != "")
-	{
-		Servant.SetServerName (Val);
-		bHadConfig = true; // got a serve name - minimum 
-	}
+	//Val = Config.Get ("server.name");
+	//if (Val != "")
+	//{
+	//	Servant.SetServerName (Val);
+	//	bHadConfig = true; // got a serve name - minimum 
+	//}
 	/*Val = Config.Get ("server.address");
 	if (Val != "")
 	{
@@ -311,6 +322,6 @@ func ProcessConfig( configFilePath string) bool{
 		}
 	}*/
 	//////////////////////////////////////////////////
-	return true
+	return nil
 } // ProcessConfig ( const string& ConfigName )
 

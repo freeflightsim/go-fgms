@@ -66,10 +66,7 @@ struct T_ChatMsg {
 }
 
 
-/** 
- * @struct T_PositionMsg
- * @brief Position Message
- */
+// T_PositionMsg - Position Message
 struct T_PositionMsg {
 	
 	/** @brief  Name of the aircraft model */
