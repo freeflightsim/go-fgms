@@ -145,89 +145,71 @@ func ProcessConfig( configFilePath string) error{
 	}
 	
 	// Outta Reach
-	Val = Config.Get("server.out_of_reach");
+	Val = Config.Get("server.out_of_reach")
 	if Val != "" {
-		Servant.SetOutOfReach (StrToNum<int> (Val.c_str (), E));
-		if (E)
-		{
-			SG_ALERT (SG_SYSTEMS, SG_ALERT, "invalid value for OutOfReach: '" << optarg << "'");
-			exit (1);
-		}
+		nm, err := strconv.ParseInt(Val, 10, 0)
+		if err != nil {
+			fmt.Println("Error", "invalid value for OutOfReach", Val)
+			return err
+		} 
+		Servant.SetOutOfReach(nm)
 	}
-	Val = Config.Get("server.playerexpires");
-	if (Val != "")
-	{
-		Servant.SetPlayerExpires (StrToNum<int> (Val.c_str (), E));
-		if (E)
-		{
-			SG_ALERT (SG_SYSTEMS, SG_ALERT, "invalid value for Expire: '" << optarg << "'");
-			exit (1);
-		}
+
+	// Player Expires	
+	Val = Config.Get("server.playerexpires")
+	if Val != "" {
+		exp_secs, err := strconv.ParseInt(Val, 10, 0)
+		if err != nil {
+			fmt.Println("Error", "invalid value for exp_secs", Val)
+			return err
+		} 
+		Servant.SetPlayerExpires(exp_secs)
 	}
-	Val = Config.Get ("server.logfile");
-	if (Val != "")
-	{
-		Servant.SetLogfile (Val);
+	// Log File
+	Val = Config.Get("server.logfile")
+	if Val != "" {
+		Servant.SetLogfile(Val);
 	}
-	Val = Config.Get ("server.daemon");
-	if (Val != "")
-	{
-		if ((Val == "on") || (Val == "true"))
-		{
-			RunAsDaemon = true;
+	
+	// Tracked
+	Val = Config.Get ("server.tracked")
+	if Val != "" {
+		tracked, err := strconv.ParseBool(Val)
+		if err != nil {
+			fmt.Println("Error", "invalid value for tracking_port: ", Val)
+			return err
 		}
-		else if ((Val == "off") || (Val == "false"))
-		{
-			RunAsDaemon = false;
-		}
-		else
-		{
-			SG_ALERT (SG_SYSTEMS, SG_ALERT, "unknown value for 'server.daemon'!" << " in file " << ConfigName);
-		}
+		if tracked {
+			trkServer = Config.Get ("server.tracking_server")
+			trkPortS = Config.Get ("server.tracking_port")
+			tekPortI, err := strconv.ParseInt(tPortS)
+			if err != nil{
+				fmt.Println("Error", "invalid value for tracking_port: ", Val)
+				return err
+			}
+			foo := Servant.AddTracker(trkServer, trkPortI, tracked)
+		} 
 	}
-	Val = Config.Get ("server.tracked");
-	if (Val != "")
-	{
-		string  Server;
-		int     Port;
-		bool    tracked;
-		if (Val == "true")
-		{
-			tracked = true;
-		}
-		else
-		{
-			tracked = false;
-		}
-		Server = Config.Get ("server.tracking_server");
-		Val = Config.Get ("server.tracking_port");
-		Port = StrToNum<int> (Val.c_str (), E);
-		if (E)
-		{
-			SG_ALERT (SG_SYSTEMS, SG_ALERT, "invalid value for tracking_port: '" << Val << "'");
-			exit (1);
-		}
-    if ( tracked && ( Servant.AddTracker (Server, Port, tracked) != FG_SERVER::SUCCESS ) ) // set master m_IsTracked
-    {
-			SG_ALERT (SG_SYSTEMS, SG_ALERT, "Failed to get IPC msg queue ID! error " << errno );
-			exit (1); // do NOT continue if a requested 'tracker' FAILED
-    }
-	}
+	
+
+    //if ( tracked && ( Servant.AddTracker (Server, Port, tracked) != FG_SERVER::SUCCESS ) ) // set master m_IsTracked
+    //{
+			//SG_ALERT (SG_SYSTEMS, SG_ALERT, "Failed to get IPC msg queue ID! error " << errno );
+			//exit (1); // do NOT continue if a requested 'tracker' FAILED
+    //}
+	//}
+	
+	
 	Val = Config.Get ("server.is_hub");
-	if (Val != "")
-	{
-		if (Val == "true")
-		{
-			Servant.SetHub (true);
-		}
-		else
-		{
-			Servant.SetHub (false);
-		}
+	if Val != "" {
+		is_hub, _ := strconv.ParseBool(Val)
+		Servant.SetHub(is_hub)
 	}
+	
 	//////////////////////////////////////////////////
 	//      read the list of relays
 	//////////////////////////////////////////////////
+	/*
 	bool    MoreToRead  = true;
 	string  Section = "relay";
 	string  Var;
@@ -265,9 +247,11 @@ func ProcessConfig( configFilePath string) error{
 			MoreToRead = false;
 		}
 	}
+	*/
 	//////////////////////////////////////////////////
 	//      read the list of crossfeeds
 	//////////////////////////////////////////////////
+	/*
 	MoreToRead  = true;
 	Section = "crossfeed";
 	Var    = "";
@@ -305,9 +289,11 @@ func ProcessConfig( configFilePath string) error{
 			MoreToRead = false;
 		}
 	}
+	*/
 	//////////////////////////////////////////////////
 	//      read the list of blacklisted IPs
 	//////////////////////////////////////////////////
+	/*
 	MoreToRead  = true;
 	Section = "blacklist";
 	Var    = "";

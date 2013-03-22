@@ -32,9 +32,16 @@ type FG_SERVER struct {
   Initialized bool
   ReinitData bool
   ReinitTelnet bool
-  ListenPort int
-  PlayerExpires int
   Listening bool
+  
+  ServerName  string
+  BindAddress string
+  ListenPort int
+  
+  PlayerExpires int
+  
+  IamHUB bool
+ 
   //Loglevel            = SG_INFO;
   DataSocket int
   TelnetPort int
@@ -43,8 +50,7 @@ type FG_SERVER struct {
   NumCurrentClients int
   IsParent bool
   MaxClientID int
-  ServerName  string
-  BindAddress string
+
   //tmp                   = (converter*) (& PROTO_VER);
   //ProtoMinorVersion   = tmp->High;
   //ProtoMajorVersion   = tmp->Low;
@@ -112,17 +118,20 @@ func (me *FG_SERVER) SetTelnetPort(port int){
 
 
 // Set nautical miles two players must be apart to be out of reach
-func (me *FG_SERVER) SetOutOfReach(nm int){(
-  PlayerIsOutOfReach = nm
+func (me *FG_SERVER) SetOutOfReach(nm int){
+	me.PlayerIsOutOfReach = nm
 }
 
 //  Set time in seconds. if no packet arrives from a client
 //  within this time, the connection is dropped.  
-func (me *FG_SERVER) SetPlayerExpires(int Seconds){
-  PlayerExpires = Seconds;
+func (me *FG_SERVER) SetPlayerExpires(secs int){
+	me.PlayerExpires = secs
 }
 
-
+// Set if we are running as a Hubserver
+func (me *FG_SERVER) SetHub(am_hub bool){
+	me.IamHUB = am_hub
+}
 
 
 
