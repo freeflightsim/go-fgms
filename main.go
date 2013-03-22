@@ -10,6 +10,7 @@ import(
 	"github.com/fgx/go-fgms/server"
 )
 
+var Servant *server.FG_SERVER
 
 //////////////////////////////////////////////////////////////////////
 /// MAIN routine 
@@ -19,6 +20,8 @@ import(
 
 func main(){
 
+
+	Servant = server.NewFG_SERVER()
 	//int     I;
 	//#if defined ENABLE_DEBUG
 	//  logbuf::set_log_classes(SG_GENERAL);
@@ -105,12 +108,14 @@ func ProcessConfig( configFilePath string) error{
 		return err
 	}
 	//SG_ALERT (SG_SYSTEMS, SG_ALERT, "processing " << ConfigName);
-	//Val = Config.Get ("server.name");
-	//if (Val != "")
+	//var Val server.VarValue
+	Val := Config.Get ("server.name");
+	fmt.Println("server.name", Val);
+	if Val != "" {
 	//{
-	//	Servant.SetServerName (Val);
+		Servant.ServerName = Val
 	//	bHadConfig = true; // got a serve name - minimum 
-	//}
+	}
 	/*Val = Config.Get ("server.address");
 	if (Val != "")
 	{

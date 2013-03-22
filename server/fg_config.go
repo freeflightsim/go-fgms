@@ -10,8 +10,8 @@ import(
 )
 
 type VarValue struct {
-	key string
-	val string
+	Key string
+	Val string
 }
 
 type FG_CONFIG struct {
@@ -39,6 +39,12 @@ type FG_CONFIG struct {
 	//std::string           m_CurrentSection;
 }
 
+// Constructs a new isntance
+func NewFG_CONFIG() *FG_CONFIG {
+	ob := new(FG_CONFIG)
+	ob.mT_VarList =  make([]*VarValue,0)
+	return ob 
+}
 
 //////////////////////////////////////////////////////////////////////
 /**
@@ -49,60 +55,29 @@ type FG_CONFIG struct {
 func (me *FG_CONFIG) Read(configFile string) error {
 
 	fmt.Println("READ", configFile )
-	//std::ifstream   ConfigFile;
-	//std::string     ConfigLine;
-	//int             LineNumber;
-
-	//ConfigFile.open (ConfigName.c_str ());
 	// Get file contents, return on error
-	 contents, err := ioutil.ReadFile(configFile)
-	 if err != nil {
-	 	return err
-	 }
-	 //fmt.Println("read", string(contents), err)
+	contents, err := ioutil.ReadFile(configFile)
+	if err != nil {
+		return err
+	}
 	 
 	 // Split cotnents into lines
-	 lines := strings.Split(string(contents), "\n")
-	 fmt.Println("lines=", len(lines))
-	 
-	//if (!ConfigFile)
-	//{
-	//	return (1);
-	//}
-	//LineNumber = 0;
+	lines := strings.Split(string(contents), "\n")
+	
+	// loops the lines and parse into list 
 	for idx, line := range lines{
-	///while (ConfigFile)
-		//fmt.Println(idx, line)
-		//getline (ConfigFile, ConfigLine);
-		///LineNumber++;
 		err := me.ParseLine(line)
 		if err != nil {
 			fmt.Println("Error in line", idx, line)
 		}
-		//if (ParseLine (ConfigLine))
-		//{
-		//	std::cout << "error in line " << LineNumber
-		//		<< " in file " << ConfigName
-		//		<< std::endl;
-		//}
-	
 	}
-	//fmt.Println("REad", me.mT_VarList)
-	//ConfigFile.close ();
-	//m_CurrentVar = m_VarList.begin ();
-	//return (0);
-	//*/
 	return nil
 } // FG_CONFIG::Read ()
 
 
 //////////////////////////////////////////////////////////////////////
-/**
- * @brief Parse the given line, split it into name/value pairs
- *        and put in the internal list
- * @param ConfigLine The line to parse
- * @retval int
- */
+// Parse the given line, split it into name/value pairs
+// and put in the internal list
 func(me *FG_CONFIG) ParseLine(ConfigLine string) error{
 
 	// Strips whitespace 
@@ -125,17 +100,33 @@ func(me *FG_CONFIG) ParseLine(ConfigLine string) error{
 	val := strings.TrimSpace( ConfigLine[eqPos +1 :] )
 	
 	// Add to out list
-	me.mT_VarList = append( me.mT_VarList,  &VarValue{key: ki, val: val}  )
+	me.mT_VarList = append( me.mT_VarList,  &VarValue{Key: ki, Val: val}  )
 
 	return nil
 } // FG_SERVER::ParseLine ()
 
 
 
-// Constructs a new isntance
-func NewFG_CONFIG() *FG_CONFIG {
-	ob := new(FG_CONFIG)
-	ob.mT_VarList =  make([]*VarValue,0)
-	return ob 
-}
 
+
+
+// Find a variable with name 'VarName' in the internal list and return
+ 
+func (me *FG_CONFIG) Get(VarName string) string {
+	for _, ele := range me.mT_VarList {
+		if ele.Key == VarName {
+			return ele.Val
+		}
+	}
+	return ""
+	/* m_CurrentVar = m_VarList.begin();
+	while (m_CurrentVar != m_VarList.end())
+	{
+		if (m_CurrentVar->first == VarName)
+		{
+			return (m_CurrentVar->second);
+		}
+		m_CurrentVar++;
+	}
+	return (""); */
+} // FG_SERVER::Get ()
