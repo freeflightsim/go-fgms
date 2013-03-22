@@ -53,7 +53,7 @@ func (me *FG_CONFIG) Read(configFile string) error {
 	 if err != nil {
 	 	return err
 	 }
-	 fmt.Println("read", string(contents), err)
+	 //fmt.Println("read", string(contents), err)
 	 
 	 // Split cotnents into lines
 	 lines := strings.Split(string(contents), "\n")
@@ -64,21 +64,75 @@ func (me *FG_CONFIG) Read(configFile string) error {
 	//	return (1);
 	//}
 	//LineNumber = 0;
-	/*while (ConfigFile)
-	{
-		getline (ConfigFile, ConfigLine);
-		LineNumber++;
-		if (ParseLine (ConfigLine))
-		{
-			std::cout << "error in line " << LineNumber
-				<< " in file " << ConfigName
-				<< std::endl;
+	for idx, line := range lines{
+	///while (ConfigFile)
+		//fmt.Println(idx, line)
+		//getline (ConfigFile, ConfigLine);
+		///LineNumber++;
+		err := me.ParseLine(line)
+		if err != nil {
+			fmt.Println("Error in line", idx, line)
 		}
+		//if (ParseLine (ConfigLine))
+		//{
+		//	std::cout << "error in line " << LineNumber
+		//		<< " in file " << ConfigName
+		//		<< std::endl;
+		//}
+	
 	}
-	ConfigFile.close ();
-	m_CurrentVar = m_VarList.begin ();
-	return (0);
-	*/
+	//ConfigFile.close ();
+	//m_CurrentVar = m_VarList.begin ();
+	//return (0);
+	//*/
 	return nil
 } // FG_CONFIG::Read ()
 
+
+//////////////////////////////////////////////////////////////////////
+/**
+ * @brief Parse the given line, split it into name/value pairs
+ *        and put in the internal list
+ * @param ConfigLine The line to parse
+ * @retval int
+ */
+func(me *FG_CONFIG) ParseLine(ConfigLine string) error{
+
+	//size_t          nVarNameStart, nVarNameEnd;
+	//size_t          nVarValueStart, nVarValueEnd;
+	//mT_VarValue     NewVar;
+	ConfigLine = strings.TrimSpace(ConfigLine)
+	//fmt.Println(" > clean line=", ConfigLine)
+	if len(ConfigLine) == 0 {
+		//fmt.Println("    - blank =", ConfigLine)
+		return nil
+	}
+	if ConfigLine[0] == '#' {
+		//fmt.Println("    - comment =", ConfigLine)
+		return nil
+	}
+	
+	//nVarNameStart = ConfigLine.find_first_not_of (" \t\n");
+	//nVarNameEnd = ConfigLine.find ('=');
+	//if ((nVarNameStart == std::string::npos)
+	//||  (nVarNameEnd == std::string::npos))
+	//{
+	//	return (1);
+	//}
+	//nVarValueStart = ConfigLine.find_first_not_of (" \t\n", nVarNameEnd+1);
+	//nVarValueEnd = ConfigLine.size();
+	//while (isspace (ConfigLine[nVarNameEnd-1]))
+	//{
+	//	nVarNameEnd--;
+	//}
+	//while (isspace (ConfigLine[nVarValueEnd-1]))
+	//{
+	//	nVarValueEnd--;
+	//}
+	//NewVar.first = ConfigLine.substr
+	//	(nVarNameStart, nVarNameEnd - nVarNameStart);
+	//NewVar.second = ConfigLine.substr
+	//	(nVarValueStart, nVarValueEnd - nVarValueStart);
+	//m_VarList.push_back (NewVar);
+	return nil
+} // FG_SERVER::ParseLine ()
