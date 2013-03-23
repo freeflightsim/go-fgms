@@ -10,14 +10,24 @@ import(
 	//"strconv"
 )
 
+// A key/val pair
 type VarValue struct {
 	Key string
 	Val string
 }
 
+// The Config
 type FG_CONFIG struct {
 	mT_VarList []*VarValue
 }
+
+// Construct and return a new instance if FG_CONFIG
+func NewFG_CONFIG() *FG_CONFIG {
+	ob := new(FG_CONFIG)
+	ob.mT_VarList =  make([]*VarValue,0)
+	return ob 
+}
+
 
 
 // Read, parse and load a config file
@@ -83,6 +93,10 @@ func(me *FG_CONFIG) ParseLine(ConfigLine string) error{
 	}
 	return ""
 }
+
+
+
+
 // Find a variable with name 'VarName' in the internal list and return bool value
 /*
  func (me *FG_CONFIG) GetBool(VarName string) (bool error) {
@@ -95,9 +109,30 @@ func(me *FG_CONFIG) ParseLine(ConfigLine string) error{
 }
 */
 
-// Construct and return a new instance if FG_CONFIG
-func NewFG_CONFIG() *FG_CONFIG {
-	ob := new(FG_CONFIG)
-	ob.mT_VarList =  make([]*VarValue,0)
-	return ob 
+
+// Return a list of the matching to section. 
+/* 
+   Example input line
+		relay.host = mpserver01.flightgear.org
+		relay.port = 5000
+	GetSection("relay")
+	returns map str/str
+	   relay.host =  mpserver01.flightgear.org
+	   relay.port = 500
+*/
+ func (me *FG_CONFIG) GetSection(sec_name string) (map[string]string, error) {
+
+	// Section name stats with foo eg foo.
+ 	sec_name += "." 
+ 	lenny := len(sec_name) // length which we use to slice
+ 	ret := make(map[string]string)
+	for _, ele := range me.mT_VarList {
+		ki := ele.Key[:lenny] // try and find foo.
+		if ki == sec_name { 
+			val := me.Get(ele.Key)
+			ret[ele.Key] = val
+			fmt.Println(">", sec_name, lenny, ki, val)
+		}
+	}
+	return ret
 }

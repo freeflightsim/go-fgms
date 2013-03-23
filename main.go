@@ -210,16 +210,25 @@ func ProcessConfig( configFilePath string) error{
 	//////////////////////////////////////////////////
 	//      read the list of relays
 	//////////////////////////////////////////////////
-	/*
-	bool    MoreToRead  = true;
-	string  Section = "relay";
-	string  Var;
-	string  Server = "";
-	int     Port   = 0;
-	if (! Config.SetSection (Section))
-	{
-		MoreToRead = false;
+	
+	//bool    MoreToRead  = true;
+	//Section := "relay"
+	//string  Var;
+	//string  Server = "";
+	//int     Port   = 0;
+	//if (! Config.SetSection (Section))
+	//{
+	//	MoreToRead = false;
+	//}
+	vals, err := Config.GetSection("relay")
+	if err != nil {
+		fmt.Println("section not found")
+		return err
 	}
+	if len(vals) > 0 {
+		fmt.Println("section=", vals)
+	}
+	/*
 	while (MoreToRead)
 	{
 		Var = Config.GetName ();
