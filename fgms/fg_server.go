@@ -5,7 +5,7 @@ import(
 	"fmt"
 )
 import(
-	
+	"github.com/fgx/go-fgms/tracker"
 )
 
 
@@ -69,7 +69,7 @@ type FG_SERVER struct {
   //RelayMap            = map<uint32_t, string>();
   
   IsTracked bool
-  Tracker *FG_TRACKER
+  Tracker *tracker.FG_TRACKER
   
   //UpdateSecs          = DEF_UPDATE_SECS;
   // clear stats - should show what type of packet was received
@@ -133,8 +133,8 @@ func (me *FG_SERVER) SetOutOfReach(nm int){
 	me.PlayerIsOutOfReach = nm
 }
 
-//  Set time in seconds. if no packet arrives from a client
-//  within this time, the connection is dropped.  
+// Set time in seconds. if no packet arrives from a client
+// within this time, the connection is dropped.  
 func (me *FG_SERVER) SetPlayerExpires(secs int){
 	me.PlayerExpires = secs
 }
@@ -203,7 +203,7 @@ func (me *FG_SERVER) AddRelay(server string, port int) {
  */
 func (me *FG_SERVER) AddTracker(host string, port int, isTracked bool){
 	me.IsTracked = isTracked
-	me.Tracker = NewFG_TRACKER(host, port, 0)
+	me.Tracker = tracker.NewFG_TRACKER(host, port, 0)
 	
 	/* TODO
 #ifndef NO_TRACKER_PORT

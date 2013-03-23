@@ -9,6 +9,7 @@ import(
 )
 import(
 	"github.com/fgx/go-fgms/fgms"
+
 )
 
 // Main instance of FG_SERVER
@@ -62,14 +63,11 @@ func main(){
 	return (0);
 	*/
 }  // main()
-//////////////////////////////////////////////////////////////////////
 
 
 
-/////////////////////////////////////////////////////////////////////
-/// (re)Read config files - ReInit True to reinitialize
-//int ReadConfigs ( bool ReInit = false )
 
+// (re)Read config files - ReInit True to reinitialize
 func ReadConfigs(ReInit bool) error {
 	
 	var Path string

@@ -15,11 +15,12 @@ Package main - FlightGear MulitPlyer in go
 	- main
 	- fg_config
 	- fg_tracker
-	- et all from here
+	- et all from there
 	
 	There are a few changes
 	- isDeamon is gone, instead we expect this app to run with init.d supervisor, upstart or alike
-	
+	- tracker is in its own directory
+	- simgear - might be a different project altogether
     
 */
 package main
