@@ -4,12 +4,12 @@ Package main - FlightGear MulitPlyer in go
 	go-fgms
 	------------------------------------------------------
 	This is an experiment and silly idea of implementing the 
-	FlightGear Multiplayer server in golang.
+	FlightGear Multiplayer Server (fgms) in golang.
 
 	There are a few challenges and the idea is to copy code line by line from c++ code to golang
 	for fun.
-	however there are major difference and thats the fun ;-)!!!
-	U can skin a cat in may ways < olde english phrase 
+	There are major difference and thats the fun ;-)!!! 
+	"U can skin a cat in may ways"
 	
 	Currently is a step by step process, starting with
 	- main
