@@ -116,7 +116,7 @@ func(me *FG_CONFIG) ParseLine(ConfigLine string) error{
 		relay.host = mpserver01.flightgear.org
 		relay.port = 5000
 	GetSection("relay")
-	returns map str/str
+	returns map string/string
 	   relay.host =  mpserver01.flightgear.org
 	   relay.port = 500
 */
@@ -136,3 +136,4 @@ func(me *FG_CONFIG) ParseLine(ConfigLine string) error{
 	}
 	return ret
 }
+
