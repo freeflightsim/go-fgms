@@ -7,7 +7,8 @@ import(
 	"fmt"
 	"io/ioutil"
 	"strings"
-	//"strconv"
+	"strconv"
+	"errors"
 )
 
 // A key/val pair
@@ -84,8 +85,8 @@ func(me *FG_CONFIG) ParseLine(ConfigLine string) error{
 
 
 
-// Find a variable with name 'VarName' in the internal list and return its value
- func (me *FG_CONFIG) Get(VarName string) string {
+// Find a variable with name 'VarName' in the internal list and return its string value
+func (me *FG_CONFIG) Get(VarName string) string {
 	for _, ele := range me.mT_VarList {
 		if ele.Key == VarName {
 			return ele.Val
@@ -94,8 +95,28 @@ func(me *FG_CONFIG) ParseLine(ConfigLine string) error{
 	return ""
 }
 
+// Find a variable with name 'VarName' in the internal list and return its int value
+func (me *FG_CONFIG) GetInt(VarName string) (int, error) {
+	for _, ele := range me.mT_VarList {
+		if ele.Key == VarName {
+			i, err := strconv.ParseInt(ele.Val, 10, 0)
+			return int(i), err
+		}
+	}
+	return 0, errors.New("Cant find Var")
+}
 
-
+// Find a variable with name 'VarName' in the internal list and return its int value
+func (me *FG_CONFIG) GetList(VarName string) ([]string, error) {
+	lst := make([]string, 0)
+	for _, ele := range me.mT_VarList {
+		if ele.Key == VarName {
+			lst = append(lst, ele.Val)
+			
+		}
+	}
+	return lst, nil
+}
 
 // Find a variable with name 'VarName' in the internal list and return bool value
 /*
@@ -134,6 +155,6 @@ func(me *FG_CONFIG) ParseLine(ConfigLine string) error{
 			fmt.Println(">", sec_name, lenny, ki, val)
 		}
 	}
-	return ret
+	return ret, nil
 }
 

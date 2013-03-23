@@ -20,7 +20,6 @@ var Servant *fgms.FG_SERVER
 //* @param argc
 // @param argv*[]
 //int main ( int argc, char* argv[] )
-
 func main(){
 
 	// Initialize the beest
@@ -143,26 +142,20 @@ func ProcessConfig( configFilePath string) error{
 	}
 	
 	// Outta Reach
-	Val = Config.Get("server.out_of_reach")
-	if Val != "" {
-		nm, err := strconv.ParseInt(Val, 10, 0)
-		if err != nil {
-			fmt.Println("Error", "invalid value for OutOfReach", Val)
-			return err
-		} 
-		Servant.SetOutOfReach( int(nm) )
+	nm, err := Config.GetInt("server.out_of_reach")
+	if err != nil {
+		fmt.Println("Error", "invalid value for `server.out_of_reach`", Val)
+		return err	
 	}
+	Servant.SetOutOfReach( nm )
 
 	// Player Expires	
-	Val = Config.Get("server.playerexpires")
-	if Val != "" {
-		exp_secs, err := strconv.ParseInt(Val, 10, 0)
-		if err != nil {
-			fmt.Println("Error", "invalid value for exp_secs", Val)
-			return err
-		} 
-		Servant.SetPlayerExpires( int(exp_secs) )
+	exp_secs, err := Config.GetInt("server.playerexpires")
+	if err != nil {
+		fmt.Println("Error", "invalid value for `server.playerexpires`", err, Val)
+		return err	
 	}
+	Servant.SetPlayerExpires( exp_secs )
 	
 	// Server is hub
 	Val = Config.Get("server.is_hub")
@@ -218,13 +211,22 @@ func ProcessConfig( configFilePath string) error{
 	//{
 	//	MoreToRead = false;
 	//}
+	//= not sure how this works in relay
 	vals, err := Config.GetSection("relay")
 	if err != nil {
 		fmt.Println("section not found")
 		return err
 	}
+	
 	if len(vals) > 0 {
 		fmt.Println("section=", vals)
+		server := vals["relay.host"]
+		port, err := Config.GetInt("relay.port") 
+		if err != nil{
+			fmt.Println("Error:", err)
+			return err
+		}
+		Servant.AddRelay(server, port);
 	}
 	/*
 	while (MoreToRead)
@@ -301,6 +303,13 @@ func ProcessConfig( configFilePath string) error{
 	//////////////////////////////////////////////////
 	//      read the list of blacklisted IPs
 	//////////////////////////////////////////////////
+	blacklist, err := Config.GetList("blacklist")
+	fmt.Println(blacklist, err)
+	if len(blacklist) > 0 {
+		for _, bl := range blacklist {
+			Servant.AddBlacklist(bl)
+		}
+	}
 	/*
 	MoreToRead  = true;
 	Section = "blacklist";

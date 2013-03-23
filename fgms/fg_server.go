@@ -65,7 +65,7 @@ type FG_SERVER struct {
   //ProtoMajorVersion   = tmp->Low;
   //LogFileName         = DEF_SERVER_LOG; // "fg_server.log";
   //wp                  = fopen("wp.txt", "w");
-  //BlackList           = map<uint32_t, bool>();
+  BlackList map[string]bool
   //RelayMap            = map<uint32_t, string>();
   
   IsTracked bool
@@ -105,6 +105,7 @@ type FG_SERVER struct {
 // Consruct and return pointer to new FG_SERVER instance
 func NewFG_SERVER() *FG_SERVER {
 	ob := new(FG_SERVER)
+	ob.BlackList = make(map[string]bool)
 	// set other defaults here
 	return ob
 }
@@ -172,7 +173,7 @@ func (me *FG_SERVER) AddRelay(server string, port int) {
   	//NewRelay.Name = server
   	//NewRelay.Address.set ((char*) Server.c_str(), Port);
   	IP := NewRelay.Address.GetIP()
-  	fmt.Println("ip=", IP)
+  	fmt.Println("New RELAY IP=", IP)
   	/*
   	if IP != INADDR_ANY && IP != INADDR_NONE {
     	m_RelayList.push_back (NewRelay);
@@ -234,3 +235,12 @@ func (me *FG_SERVER) AddTracker(host string, port int, isTracked bool){
   */
 } // FG_SERVER::AddTracker()
 
+
+
+// Add an IP to the blacklist
+func (me *FG_SERVER) AddBlacklist(FourDottedIP string) {
+  	//SG_ALERT (SG_SYSTEMS, SG_ALERT, "Adding to blacklist: " << FourDottedIP);
+  	//m_BlackList[netAddress(FourDottedIP.c_str(), 0).getIP()] = true;
+  	fmt.Println("Added to blacklist=", FourDottedIP)
+  	me.BlackList[FourDottedIP] = true
+} // FG_SERVER::AddBlacklist()
