@@ -478,19 +478,12 @@ func (me *FG_SERVER) HandleTelnet(conn net.Conn){
   Message += "\n"
   Message += "# FlightGear Multiplayer Server version: " + me.ServerVersion.Str()
   Message += "\n"
-  Message += "# using protocol version v"
-  //Message += NumToStr (me.ProtoMajorVersion, 0)
-  //Message += "." + NumToStr (me.ProtoMinorVersion, 0)
+  Message += "# using protocol version: "
+  Message += me.ProtocolVersion.Str()
   Message += " (LazyRelay enabled)"
   Message += "\n"
   //buf.Add
-   var buffer bytes.Buffer
-   buffer.WriteString( Message )
-  	_, err := conn.Write( buffer.Bytes() )
-  	if err != nil {
-  		log.Println("error", err)
-  	}
-  	conn.Close()
+   
   	// print conn.RemoteAddr()
   /* if ( m_IsTracked )
   {
@@ -581,7 +574,14 @@ func (me *FG_SERVER) HandleTelnet(conn net.Conn){
       return (0);
     }
   }*/
- // NewTelnet.close ();
-  //return (0);
+ 	// NewTelnet.close ();
+	var buffer bytes.Buffer
+	buffer.WriteString( Message )
+  	_, err := conn.Write( buffer.Bytes() )
+  	if err != nil {
+  		log.Println("error", err)
+  	}
+  	conn.Close()
+  	//return (0);
 } // FG_SERVER::HandleTelnet ()
 
