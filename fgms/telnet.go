@@ -30,26 +30,30 @@ func NewTelnetServer() *TelnetServer {
 type TelnetClient  struct {
 	conn net.Conn
 	nickname string
+	message string
 	ch chan string
 }
 
 
-func (c TelnetClient) ReadLinesInto(ch chan<- string) {
+func (c TelnetClient) ReadLinesInto(ch chan TelnetClient) {
 	bufc := bufio.NewReader(c.conn)
 	for {
 		line, err := bufc.ReadString('\n')
 		if err != nil {
 			break
 		}
-		ch <- fmt.Sprintf("%s: %s", c.nickname, line)
+		c.message = fmt.Sprintf("%s", line)
+		ch <- c
+		
 	}
 }
 
-func (c TelnetClient) WriteLinesFrom(ch <-chan string) {
+func (c TelnetClient) WriteLinesFrom(ch chan TelnetClient) {
 	for msg := range ch {
-		_, err := io.WriteString(c.conn, msg)
+		_, err := io.WriteString(c.conn, c.message)
 		if err != nil {
 			return
 		}
+		fmt.Println("Write", msg)
 	}
 }

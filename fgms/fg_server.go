@@ -79,7 +79,10 @@ MaxClientID int
 //ProtoMajorVersion   = tmp->Low;
 //LogFileName         = DEF_SERVER_LOG; // "fg_server.log";
 //wp                  = fopen("wp.txt", "w");
+
+	//= maybe this could be a list
 	BlackList map[string]bool
+	BlackListRejected uint64
 
 	RelayMap map[string]string//           = map<uint32_t, string>();
 	RelayList []*MT_Relay
@@ -260,6 +263,7 @@ return (SUCCESS);
 } // FG_SERVER::AddTracker()
 
 
+// --------------------------------------------------------
 
 // Add an IP to the blacklist
 func (me *FG_SERVER) AddBlacklist(FourDottedIP string) {
@@ -267,9 +271,16 @@ func (me *FG_SERVER) AddBlacklist(FourDottedIP string) {
 	//m_BlackList[netAddress(FourDottedIP.c_str(), 0).getIP()] = true; // TODO lookup ip ?
 	me.BlackList[FourDottedIP] = true
 	log.Println("Added to blacklist: ", FourDottedIP)
-} // FG_SERVER::AddBlacklist()
+} 
 
-
+// Check if the user is black listed. true if blacklisted
+ func (me *FG_SERVER) IsBlackListed(SenderAddress *NetAddress) bool {
+	_, ok :=  me.BlackList[SenderAddress.Ip]
+	if ok {
+		return true
+	}
+	return false
+} 
 
 //////////////////////////////////////////////////////////////////////
 /**
@@ -369,11 +380,11 @@ if me.Telnet.Reinit {
 			log.Fatal("Cannot create telnet socket for admin", erra)
 			return erra
 		}
-		ta_msgChan := make(chan string)
+		ta_msgChan := make(chan TelnetClient)
 		ta_addChan := make(chan TelnetClient)
 		ta_rmChan := make(chan TelnetClient)
 		
-		go me.HandleMessages( ta_msgChan, ta_addChan, ta_rmChan )
+		go me.H_TelnetAdminMessages( ta_msgChan, ta_addChan, ta_rmChan )
 		
 		//msgchan := make(chan string)
 		
@@ -627,8 +638,8 @@ for (;;)
 } // FG_SERVER::HandleTelnet ()
 
 func PromptNick(c net.Conn, bufc *bufio.Reader) string {
-	io.WriteString(c, "\033[1;30;41mWelcome fgms admin!\033[0m\n")
-	io.WriteString(c, "The password:")
+	io.WriteString(c, "Welcome to fgms admin\n")
+	io.WriteString(c, "fgms needs password > ")
 	nick, _, _ := bufc.ReadLine()
 	return string(nick)
 }
@@ -637,7 +648,8 @@ func PromptNick(c net.Conn, bufc *bufio.Reader) string {
 *  Handle a telnet session. if a telnet connection is opened, this 
 *  method outputs a list  of all known clients.
 */
-func (me *FG_SERVER) HandleAdminTelnet(c net.Conn, msgchan chan<- string, addchan chan<- TelnetClient, rmchan chan<- TelnetClient){
+func (me *FG_SERVER) HandleAdminTelnet(c net.Conn, msgchan chan TelnetClient, 
+										addchan chan<- TelnetClient, rmchan chan<- TelnetClient){
 	log.Println("HandleAdminTelnet", c)
 	bufc := bufio.NewReader(c)
 	
@@ -655,41 +667,286 @@ func (me *FG_SERVER) HandleAdminTelnet(c net.Conn, msgchan chan<- string, addcha
 	// Register user
 	addchan <- client
 	defer func() {
-		msgchan <- fmt.Sprintf("User %s left the chat room.\n", client.nickname)
+		//msgchan <- client //fmt.Sprintf("User %s left the chat room.\n", client.nickname)
 		log.Printf("Connection from %v closed.\n", c.RemoteAddr())
 		rmchan <- client
 	}()
 	io.WriteString(c, fmt.Sprintf("Welcome, %s!\n\n", client.nickname))
-	msgchan <- fmt.Sprintf("New user %s has joined the chat room.\n", client.nickname)
+	//msgchan <- fmt.Sprintf("New user %s has joined the chat room.\n", client.nickname)
 
 	io.WriteString(c, "show | help | set var = value\n > ")
 	// I/O
 	go client.ReadLinesInto(msgchan)
-	client.WriteLinesFrom(client.ch)
+	client.WriteLinesFrom(msgchan)
 }
 
 
 
-func (me *FG_SERVER) HandleTelnetAdminMessages(msgChan <-chan string, addChan <-chan TelnetClient, rmChan <-chan TelnetClient) {
+func (me *FG_SERVER) H_TelnetAdminMessages(msgChan <-chan TelnetClient, addChan <-chan TelnetClient, rmChan <-chan TelnetClient) {
 
-	clients := make(map[net.Conn]chan<- string)    
+	//clients := make(map[net.Conn]chan<- string)    
     for {
     	select {
     	
-    		case msg := <-msgChan:
-    			log.Println("New Telnet Data request", msg)
-    			msgChan <- "YES"
+    		case client := <-msgChan:
+    			log.Println("New Telnet Data request", client)
+    			fmt.Println(">>", client.message)
+    			m := strings.TrimSpace(client.message)
+    			if m == "help" {
+    					io.WriteString(client.conn, "HELP\n\n")
+    				
+    			}else if m == "show"{
+					io.WriteString(client.conn, "SHOW\n\n")
+    			}
+    			//for _, ch := range clients {
+				//	go func(mch chan<- string) { mch <- "\033[1;33;40m" + msg + "\033[m" }(ch)
+				//}
     		
     		case client := <-addChan:
     			//log.Println("New Telnet Admin request", client)
     			log.Printf("New client: %v\n", client.conn)
-				clients[client.conn] = client.ch
+				//clients[client.conn] = client.ch
 				
 			case client := <-rmChan:
 				log.Printf("Client disconnects: %v\n", client.conn)
-				delete(clients, client.conn)
+				//delete(clients, client.conn)
 				
     	}
     }
   
 }
+
+
+
+
+//////////////////////////////////////////////////////////////////////
+/**
+ * @brief Handle client connections
+ * @param Msg
+ * @param Bytes
+ * @param SenderAddress
+ */
+func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *NetAddress){
+  //T_MsgHdr*       MsgHdr;
+  //T_PositionMsg*  PosMsg;
+  //uint32_t        MsgId;
+  //uint32_t        MsgMagic;
+  //time_t          Timestamp;
+  //Point3D         SenderPosition;
+  //Point3D         SenderOrientation;
+  //Point3D         PlayerPosGeod;
+  //mT_PlayerListIt CurrentPlayer;
+  //mT_PlayerListIt SendingPlayer;
+  //unsigned int    PktsForwarded = 0;
+
+  //Timestamp = time(0);
+  //MsgHdr    = (T_MsgHdr *) Msg;
+  //MsgMagic  = XDR_decode<uint32_t> (MsgHdr->Magic);
+  //MsgId     = XDR_decode<uint32_t> (MsgHdr->MsgId);
+  //////////////////////////////////////////////////
+  //
+  //  First of all, send packet to all
+  //  crossfeed servers.
+  //
+  //////////////////////////////////////////////////
+  //SendToCrossfeed (Msg, Bytes, SenderAddress);
+  
+  //////////////////////////////////////////////////
+  //
+  //  Now do the local processing
+  //
+  //////////////////////////////////////////////////
+  if me.IsBlackListed(SenderAddress) {
+    me.BlackListRejected++
+    return
+  }
+  /* if (! PacketIsValid (Bytes, MsgHdr, SenderAddress))
+  {
+    m_PacketsInvalid++;
+    return;
+  } */
+  /* if (MsgMagic == RELAY_MAGIC) // not a local client
+  {
+    if (! IsKnownRelay (SenderAddress))
+    {
+      m_UnknownRelay++;
+      return;
+    }
+    else
+    {
+      m_RelayMagic++; // bump relay magic packet
+    }
+  } */
+  
+  //////////////////////////////////////////////////
+  //
+  //    Store senders position
+  //
+  //////////////////////////////////////////////////
+  /* if (MsgId == POS_DATA_ID)
+  {
+    m_PositionData++;
+    PosMsg = (T_PositionMsg *) (Msg + sizeof(T_MsgHdr));
+    double x = XDR_decode64<double> (PosMsg->position[X]);
+    double y = XDR_decode64<double> (PosMsg->position[Y]);
+    double z = XDR_decode64<double> (PosMsg->position[Z]);
+    if ( (x == 0.0) || (y == 0.0) || (z == 0.0) )
+    { // ignore while position is not settled
+      return;
+    }
+    SenderPosition.Set (x, y, z);
+    SenderOrientation.Set (
+      XDR_decode<float> (PosMsg->orientation[X]),
+      XDR_decode<float> (PosMsg->orientation[Y]),
+      XDR_decode<float> (PosMsg->orientation[Z])
+    );
+  }
+  else
+  {
+    m_NotPosData++;
+  } */
+  //////////////////////////////////////////////////
+  //
+  //    Add Client to list if its not known
+  //
+  //////////////////////////////////////////////////
+  /* int ClientInList = SenderIsKnown (MsgHdr->Callsign, SenderAddress);
+  if (ClientInList == 0)
+  { // unknown, add to the list
+    if (MsgId != POS_DATA_ID)
+    { // ignore clients until we have a valid position
+      return;
+    }
+    AddClient (SenderAddress, Msg);
+  }
+  else if (ClientInList == 2)
+  { // known, but different IP => ignore
+    return;
+  }*/
+  //////////////////////////////////////////
+  //
+  //      send the packet to all clients.
+  //      since we are walking through the list,
+  //      we look for the sending client, too. if it
+  //      is not already there, add it to the list
+  //
+  //////////////////////////////////////////////////
+  /* MsgHdr->Magic = XDR_encode<uint32_t> (MSG_MAGIC);
+  SendingPlayer = m_PlayerList.end();
+  CurrentPlayer = m_PlayerList.begin();
+  while (CurrentPlayer != m_PlayerList.end())
+  { */
+    //////////////////////////////////////////////////
+    //
+    //      ignore clients with errors
+    //
+    //////////////////////////////////////////////////
+    //if (CurrentPlayer->HasErrors)
+    //{
+     // CurrentPlayer++;
+      //continue;
+    //}
+    //////////////////////////////////////////////////
+    //        Sender == CurrentPlayer?
+    //////////////////////////////////////////////////
+    //  FIXME: if Sender is a Relay,
+    //         CurrentPlayer->Address will be
+    //         address of Relay and not the client's!
+    //         so use a clientID instead
+    /* if (CurrentPlayer->Callsign == MsgHdr->Callsign)
+    {
+      if (MsgId == POS_DATA_ID)
+      {
+        CurrentPlayer->LastPos         = SenderPosition;
+        CurrentPlayer->LastOrientation = SenderOrientation;
+      }
+      else
+      {
+        SenderPosition    = CurrentPlayer->LastPos;
+        SenderOrientation = CurrentPlayer->LastOrientation;
+      }
+      SendingPlayer = CurrentPlayer;
+      CurrentPlayer->Timestamp = Timestamp;
+      CurrentPlayer->PktsReceivedFrom++;
+      CurrentPlayer++;
+      continue; // don't send packet back to sender
+    }*/
+    //////////////////////////////////////////////////
+    //      do not send packets to clients if the
+    //      origin is an observer, but do send
+    //      chat messages anyway
+    //      FIXME: MAGIC = SFGF!
+    //////////////////////////////////////////////////
+    /* if ((strncasecmp(MsgHdr->Callsign, "obs", 3) == 0)
+    &&  (MsgId != CHAT_MSG_ID))
+    {
+      return;
+    } */
+    //////////////////////////////////////////////////
+    //
+    //      do not send packet to clients which
+    //      are out of reach.
+    //
+    //////////////////////////////////////////////////
+    /* if ((Distance (SenderPosition, CurrentPlayer->LastPos) > m_PlayerIsOutOfReach)
+    &&  (CurrentPlayer->Callsign.compare (0, 3, "obs", 3) != 0))
+    {
+      CurrentPlayer++;
+      continue;
+    } */
+    //////////////////////////////////////////////////
+    //
+    //  only send packet to local clients
+    //
+    //////////////////////////////////////////////////
+    /* if (CurrentPlayer->IsLocal)
+    {
+      SendChatMessages (CurrentPlayer);
+      m_DataSocket->sendto (Msg, Bytes, 0, &CurrentPlayer->Address);
+      CurrentPlayer->PktsSentTo++;
+      PktsForwarded++;
+    }
+    CurrentPlayer++;
+  } */
+  /* 
+  if (SendingPlayer == m_PlayerList.end())
+  { // player not yet in our list
+    // should not happen, but test just in case
+    SG_LOG (SG_SYSTEMS, SG_ALERT, "## BAD => "
+      << MsgHdr->Callsign << ":" << SenderAddress.getHost()
+      << " : " << SenderIsKnown (MsgHdr->Callsign, SenderAddress)
+    );
+    return;
+  }
+  DeleteMessageQueue ();
+  SendToRelays (Msg, Bytes, SendingPlayer);
+  */
+} // FG_SERVER::HandlePacket ( char* sMsg[MAX_PACKET_SIZE] )
+
+
+
+//////////////////////////////////////////////////////////////////////
+/**
+ * @brief Send any message in m_MessageList to client
+ * @param CurrentPlayer Player to send message to
+ */
+func (me *FG_SERVER) SendChatMessages() {
+  
+  //mT_MessageIt  CurrentMessage;
+	/*
+  if ((CurrentPlayer->IsLocal) && (m_MessageList.size()))
+  {
+    CurrentMessage = m_MessageList.begin();
+    while (CurrentMessage != m_MessageList.end())
+    {
+      if ((CurrentMessage->Target == 0)
+      ||  (CurrentMessage->Target == CurrentPlayer->ClientID))
+      {
+        int len = sizeof(T_MsgHdr) + sizeof(T_ChatMsg);
+        m_DataSocket->sendto (CurrentMessage->Msg, len, 0,
+          &CurrentPlayer->Address);
+      }
+      CurrentMessage++;
+    }
+  } */
+} // FG_SERVER::SendChatMessages ()
