@@ -204,7 +204,7 @@ func (me *FG_SERVER) AddRelay(server string, port int) {
 		return 
 	}
 	me.RelayMap[NewRelay.Name] = NewRelay.Address.Ip
-	
+	log.Println("Added relay server: ", server, NewRelay.Address.Ip)
 } // FG_SERVER::AddRelay()
 
 
@@ -254,9 +254,9 @@ return (SUCCESS);
 // Add an IP to the blacklist
 func (me *FG_SERVER) AddBlacklist(FourDottedIP string) {
 	//SG_ALERT (SG_SYSTEMS, SG_ALERT, "Adding to blacklist: " << FourDottedIP);
-	//m_BlackList[netAddress(FourDottedIP.c_str(), 0).getIP()] = true;
-	fmt.Println("Added to blacklist=", FourDottedIP)
+	//m_BlackList[netAddress(FourDottedIP.c_str(), 0).getIP()] = true; // TODO lookup ip ?
 	me.BlackList[FourDottedIP] = true
+	log.Println("Added to blacklist: ", FourDottedIP)
 } // FG_SERVER::AddBlacklist()
 
 
@@ -297,33 +297,34 @@ if (m_Initialized == true)
 //{
 //  netInit ();
 //}
-/*
-if (m_ReinitData)
-{
-	if (m_DataSocket)
-	{
-	delete m_DataSocket;
-	m_DataSocket = 0;
+
+if ReinitData {
+	if m_DataSocket {
+		//delete m_DataSocket;
+		//m_DataSocket = 0;
 	}
-	m_DataSocket = new netSocket();
-	if (m_DataSocket->open (false) == 0)    // UDP-Socket
-	{
-	SG_ALERT (SG_SYSTEMS, SG_ALERT, "FG_SERVER::Init() - "
-		<< "failed to create listener socket");
-	return (ERROR_CREATE_SOCKET);
-	}
-	m_DataSocket->setBlocking (false);
-	m_DataSocket->setSockOpt (SO_REUSEADDR, true);
-	if (m_DataSocket->bind (m_BindAddress.c_str(), m_ListenPort) != 0)
-	{
-	SG_ALERT (SG_SYSTEMS, SG_ALERT, "FG_SERVER::Init() - "
-		<< "failed to bind to port " << m_ListenPort);
-	SG_ALERT (SG_SYSTEMS, SG_ALERT, "already in use?");
-	return (ERROR_COULDNT_BIND);
-	}
-	m_ReinitData = false;
+	//m_DataSocket = new netSocket()
+	//if (m_DataSocket->open (false) == 0)    // UDP-Socket
+	//{
+	//SG_ALERT (SG_SYSTEMS, SG_ALERT, "FG_SERVER::Init() - "
+	//	<< "failed to create listener socket");
+	//return (ERROR_CREATE_SOCKET);
+	//	}
+	s := fmt.Sprintf(":%d", me.Telnet.Port )
+	ln, err := net.Listen("udp", s)
+
+	//m_DataSocket->setBlocking (false);
+	//m_DataSocket->setSockOpt (SO_REUSEADDR, true);
+	//if (m_DataSocket->bind (m_BindAddress.c_str(), m_ListenPort) != 0)
+	//{
+	//SG_ALERT (SG_SYSTEMS, SG_ALERT, "FG_SERVER::Init() - "
+	//	<< "failed to bind to port " << m_ListenPort);
+	//SG_ALERT (SG_SYSTEMS, SG_ALERT, "already in use?");
+	//return (ERROR_COULDNT_BIND);
+	//}
+	ReinitData = false
 }
-*/
+
 if me.Telnet.Reinit {
 	//if (m_TelnetSocket)
 	//{

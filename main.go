@@ -214,7 +214,7 @@ func ProcessConfig( configFilePath string) error{
 	//= not sure how this works in relay
 	vals, err := Config.GetSection("relay")
 	if err != nil {
-		fmt.Println("section not found")
+		//fmt.Println("section not found")
 		return err
 	}
 	
@@ -222,41 +222,12 @@ func ProcessConfig( configFilePath string) error{
 		server := vals["relay.host"]
 		port, err := Config.GetInt("relay.port") 
 		if err != nil{
-			fmt.Println("Error:", err)
+			//fmt.Println("Error:", err)
 			return err
 		}
 		Servant.AddRelay(server, port);
 	}
-	/*
-	while (MoreToRead)
-	{
-		Var = Config.GetName ();
-		Val = Config.GetValue();
-		if (Var == "relay.host")
-		{ 
-			Server = Val;
-		}
-		if (Var == "relay.port")
-		{ 
-			Port = StrToNum<int> (Val.c_str(), E);
-			if (E)
-			{ 
-				SG_ALERT (SG_SYSTEMS, SG_ALERT, "invalid value for RelayPort: '" << Val << "'");
-				exit (1);
-			}
-		}
-		if ((Server != "") && (Port != 0))
-		{ 
-			Servant.AddRelay (Server, Port);
-			Server = "";
-			Port   = 0;
-		}
-		if (Config.SecNext () == 0)
-		{ 
-			MoreToRead = false;
-		}
-	}
-	*/
+
 	//////////////////////////////////////////////////
 	//      read the list of crossfeeds
 	//////////////////////////////////////////////////
@@ -299,6 +270,7 @@ func ProcessConfig( configFilePath string) error{
 		}
 	}
 	*/
+	
 	//////////////////////////////////////////////////
 	//      read the list of blacklisted IPs
 	//////////////////////////////////////////////////
