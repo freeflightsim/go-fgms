@@ -21,6 +21,9 @@ Package main - FlightGear MulitPlyer in go
 	- isDeamon is gone, instead we expect this app to run with init.d supervisor, upstart or alike
 	- tracker is in its own directory
 	- simgear - might be a different project altogether
-    
+   
+   
+   Refs:
+		- http://synflood.at/tmp/golang-slides/mrmcd2012.html# 
 */
 package main

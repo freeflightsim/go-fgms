@@ -36,15 +36,15 @@ func main(){
 	//	SG_ALERT (SG_SYSTEMS, SG_ALERT, "No configuration file '" << DEF_CONF_FILE << "' found!");
 	//	exit(1);
 	//}
-	/*
-	sglog().setLogLevels( SG_ALL, SG_INFO );
-	sglog().enable_with_date (true);
-	I = Servant.Init ();
-	if (I != 0)
-	{
-		Servant.CloseTracker();
-		return (I);
+	
+	//sglog().setLogLevels( SG_ALL, SG_INFO );
+	//sglog().enable_with_date (true);
+	err := Servant.Init()
+	if err != nil {
+		//Servant.CloseTracker()
+		return
 	}
+	/*
 	#ifndef _MSC_VER
 	if (RunAsDaemon)
 	{
@@ -218,8 +218,7 @@ func ProcessConfig( configFilePath string) error{
 		return err
 	}
 	
-	if len(vals) > 0 {
-		fmt.Println("section=", vals)
+	if len(vals) > 0 {		
 		server := vals["relay.host"]
 		port, err := Config.GetInt("relay.port") 
 		if err != nil{
