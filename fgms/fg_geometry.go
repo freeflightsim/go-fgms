@@ -17,9 +17,9 @@ const SG_FEET_TO_METER    = 0.3048
  * operations).  These are specified to 81 bits of mantissa, which is
  * higher than any FPU known to me:
  */
-const double SQUASH  = 0.9966471893352525192801545;
-const double STRETCH = 1.0033640898209764189003079;
-const double POLRAD  = 6356752.3142451794975639668;
+const SQUASH  = 0.9966471893352525192801545;
+const STRETCH = 1.0033640898209764189003079;
+const POLRAD  = 6356752.3142451794975639668;
 
 // Radians To Nautical Miles 
 const SG_RAD_TO_NM  = 3437.7467707849392526

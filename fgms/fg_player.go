@@ -38,7 +38,7 @@ type FG_Player struct {
 	//void assign ( const FG_Player& P );
 } // FG_Player
 
-func NewFG_PLAYER() *FG_Player {
-	ob := new(FG_PLAYER)
+func NewFG_Player() *FG_Player {
+	ob := new(FG_Player)
 	return ob
 }
