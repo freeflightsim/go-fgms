@@ -1,0 +1,11 @@
+
+
+package fgms
+
+
+
+const SG_180 = 180.0
+const SG_PI 3.1415926535
+const SG_RADIANS_TO_DEGREES = (SG_180/SG_PI)
+const SG_DEGREES_TO_RADIANS = (SG_PI/SG_180)
+const SG_FEET_TO_METER    = 0.3048
