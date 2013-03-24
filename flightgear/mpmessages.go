@@ -3,8 +3,10 @@ package flightgear
 
 import (
 	"github.com/fgx/go-fgms/simgear"
+	//"github.com/davecgh/go-xdr/xdr"
 )
 
+// TODO:  XDR decoding should be here ?
 
 // magic value for messages 
 const MSG_MAGIC = 0x46474653  // "FGFS"
@@ -18,6 +20,13 @@ const CHAT_MSG_ID = 1
 const RESET_DATA_ID = 6
 const POS_DATA_ID = 7
 
+
+/** @brief Internal Constants */
+//enum FG_SERVER_CONSTANTS
+//{
+// return values
+
+	
 
 /* 
 XDR demands 4 byte alignment, but some compilers use8 byte alignment
@@ -125,7 +134,7 @@ type T_PositionMsg struct{
  * @struct T_PropertyMsg 
  *  @brief Property Message 
  */
-struct T_PropertyMsg {
+type T_PropertyMsg struct{
     //xdr_data_t id;
     //xdr_data_t value;
     id uint32
@@ -137,7 +146,7 @@ struct T_PropertyMsg {
  * @struct FGFloatPropertyData  
  * @brief Property Data 
  */
-struct FGFloatPropertyData {
+type FGFloatPropertyData struct{
   //unsigned id;
   id uint32
   //float value;
@@ -145,7 +154,7 @@ struct FGFloatPropertyData {
 }
 
 /** @brief Position Message */
-struct FGExternalMotionData {
+type FGExternalMotionData struct {
 	
   /** 
    * @brief Simulation time when this packet was generated 
@@ -153,41 +162,39 @@ struct FGExternalMotionData {
   //double time;
   time uint64
   
-  /** 
-   * @brief The artificial lag the client should stay behind the average
-   *        simulation time to arrival time diference
-   * @todo  should be some 'per model' instead of 'per packet' property  double lag;
-   *        Position wrt the earth centered frame  
-   */
-  //SGVec3d position;
-  position simgear.SGVec3d 
+  	/*
+   	The artificial lag the client should stay behind the average
+   	simulation time to arrival time diference
+   	
+	todo -  should be some 'per model' instead of 'per packet' property  double lag;
+   	Position wrt the earth centered frame  
+  	
+  	- SGVec3d position
+  	*/
+  	position simgear.SGVec3d 
   
-  /** @brief Orientation wrt the earth centered frame */
-  //SGQuatf orientation;
-  SGQuatf orientation;
+  	// Orientation wrt the earth centered frame 
+  	//SGQuatf orientation;
+	orientation simgear.SGQuatf
   
-  /**
-   * @brief Linear velocity wrt the earth centered frame measured in
-   *        the earth centered frame
-   */
-  //SGVec3f linearVel;
-  linearVel simgear.SGVec3f
+  	// Linear velocity wrt the earth centered frame measured in
+	//the earth centered frame
+	// - SGVec3f linearVel;
+  	linearVel simgear.SGVec3f
   
-  /** 
-   * @brief Angular velocity wrt the earth centered frame measured in the earth centered frame
-   */
-  //SGVec3f angularVel;
-  angularVel simgear.SGVec3f
+  	// Angular velocity wrt the earth centered frame measured in the earth centered frame
+  	// - SGVec3f angularVel;
+  	angularVel simgear.SGVec3f
   
-  /** @brief Linear acceleration wrt the earth centered frame measured in the earth centered frame */
-  //SGVec3f linearAccel;
-  linearAccel simgear.SGVec3f
+  	// Linear acceleration wrt the earth centered frame measured in the earth centered frame
+  	// - SGVec3f linearAccel;
+  	linearAccel simgear.SGVec3f
    
-  /** @brief Angular acceleration wrt the earth centered frame measured in the earth centered frame */
-  //SGVec3f angularAccel;
-  angularAccel simgear.SGVec3f
+  	// Angular acceleration wrt the earth centered frame measured in the earth centered frame 
+  	// - SGVec3f angularAccel;
+  	angularAccel simgear.SGVec3f
   
-  /** @brief The set of properties recieved for this timeslot */
-  //TODO std::vector<FGFloatPropertyData> properties;
+  	// The set of properties recieved for this timeslot 
+  	// TODO std::vector<FGFloatPropertyData> properties;
 }
 

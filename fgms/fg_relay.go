@@ -9,7 +9,7 @@ import(
 type NetAddress struct {
 	Host string
 	Port int
-	Ip	string
+	IpAddress	string
 	Family int
 	Broadcast bool
 }
@@ -19,7 +19,7 @@ func (me *NetAddress) LookupIP() error {
 	if err != nil {
 		return err
 	}
-	me.Ip = addrs[0]
+	me.IpAddress = addrs[0]
 	return nil
 }
 

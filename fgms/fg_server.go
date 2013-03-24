@@ -11,8 +11,12 @@ import(
 	"strings"
 )
 import(
+	"github.com/davecgh/go-xdr/xdr"
+
 	"github.com/fgx/go-fgms/tracker"
-	//"github.com/fgx/go-fgms/tracker"
+	"github.com/fgx/go-fgms/flightgear"
+	
+	
 )
 
 
@@ -55,6 +59,7 @@ Listening bool
 	ServerVersion *Version
 	ProtocolVersion *Version
 
+	PlayerList map[string]*FG_Player
 	PlayerExpires int
 
 	Telnet *TelnetServer
@@ -128,11 +133,13 @@ TrackerPostion int // Tracker messages queued
 
 //--------------------------------------------------------------------------
 
-// Consruct and return pointer to new FG_SERVER instance
+// Consrtruct and return pointer to new FG_SERVER instance
 func NewFG_SERVER() *FG_SERVER {
 	ob := new(FG_SERVER)
 	ob.ServerVersion = &Version{Major: 1, Minor: 1} // TODO
 	ob.ProtocolVersion = &Version{Major: 1, Minor: 1} // TODO
+	
+	ob.PlayerList = make(map[string]*FG_Player)
 	
 	ob.BlackList = make(map[string]bool)
 	
@@ -216,7 +223,7 @@ func (me *FG_SERVER) AddRelay(server string, port int) {
 		log.Fatalln("ERROR: No IP address for ", server, port)
 		return 
 	}
-	me.RelayMap[NewRelay.Name] = NewRelay.Address.Ip
+	me.RelayMap[NewRelay.Name] = NewRelay.Address.IpAddress
 	log.Println("Added relay server: ", server, NewRelay.Address.Ip)
 } // FG_SERVER::AddRelay()
 
@@ -731,7 +738,7 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *NetAddre
   //T_PositionMsg*  PosMsg;
   //uint32_t        MsgId;
   //uint32_t        MsgMagic;
-  //time_t          Timestamp;
+  //Timestamp time.Time
   //Point3D         SenderPosition;
   //Point3D         SenderOrientation;
   //Point3D         PlayerPosGeod;
@@ -739,32 +746,36 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *NetAddre
   //mT_PlayerListIt SendingPlayer;
   //unsigned int    PktsForwarded = 0;
 
-  //Timestamp = time(0);
+  //Timestamp = time.Now() //time(0);
   //MsgHdr    = (T_MsgHdr *) Msg;
-  //MsgMagic  = XDR_decode<uint32_t> (MsgHdr->Magic);
-  //MsgId     = XDR_decode<uint32_t> (MsgHdr->MsgId);
-  //////////////////////////////////////////////////
-  //
-  //  First of all, send packet to all
-  //  crossfeed servers.
-  //
-  //////////////////////////////////////////////////
-  //SendToCrossfeed (Msg, Bytes, SenderAddress);
+  	//MsgHdr :=  
+  	var MsgHdr flightgear.T_MsgHdr
+	remainingBytes, err := xdr.Unmarshal(Msg, &MsgHdr)
+	fmt.Println("got", remainingBytes, err)
+  	//MsgMagic  = XDR_decode<uint32_t> (MsgHdr->Magic);
+  	//MsgId     = XDR_decode<uint32_t> (MsgHdr->MsgId);
+  	fmt.Println( MsgHdr.Magic, MsgHdr.MsgId )
+  	
+  	//------------------------------------------------------
+  	// First of all, send packet to all crossfeed servers.
+  	//SendToCrossfeed (Msg, Bytes, SenderAddress);
+  	//me.SendToCrossfeed(Msg, Bytes, SenderAddress)
   
-  //////////////////////////////////////////////////
-  //
-  //  Now do the local processing
-  //
-  //////////////////////////////////////////////////
-  if me.IsBlackListed(SenderAddress) {
-    me.BlackListRejected++
-    return
-  }
-  /* if (! PacketIsValid (Bytes, MsgHdr, SenderAddress))
-  {
-    m_PacketsInvalid++;
-    return;
-  } */
+  
+  	//------------------------------------------------------
+	//=  Now do the local processing
+	if me.IsBlackListed(SenderAddress) {
+	    me.BlackListRejected++
+    	return
+  	}
+  	/*  WHY ??? passed by value
+  	if ! me.PacketIsValid(	Bytes, 
+  							MsgHdr, 
+  							SenderAddress) {
+    	me.PacketsInvalid++
+    	return
+  	} */
+  	
   /* if (MsgMagic == RELAY_MAGIC) // not a local client
   {
     if (! IsKnownRelay (SenderAddress))
@@ -777,6 +788,12 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *NetAddre
       m_RelayMagic++; // bump relay magic packet
     }
   } */
+  	if MsgHdr.Magic == RELAY_MAGIC {
+  		if me.IsKownRelay(SenderAddress) {
+  			return
+  		}
+  		me.RelayMagic++ // bump relay magic packet
+  }
   
   //////////////////////////////////////////////////
   //
@@ -922,6 +939,173 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *NetAddre
   SendToRelays (Msg, Bytes, SendingPlayer);
   */
 } // FG_SERVER::HandlePacket ( char* sMsg[MAX_PACKET_SIZE] )
+
+
+func (me *FG_SERVER) PacketIsValid(Bytes int, MsgHdr flightgear.T_MsgHdr, SenderAddress *NetAddress){
+
+  //uint32_t        MsgMagic;
+  //uint32_t        MsgLen;
+  //uint32_t        MsgId;
+  //string          ErrorMsg;
+  //string          Origin;
+  //typedef union
+  //{
+  //  uint32_t    complete;
+  //  int16_t     High;
+  //  int16_t     Low;
+  //} converter;
+  /* TODO	
+  Origin = SenderAddress.getHost();
+  MsgMagic = XDR_decode<uint32_t> (MsgHdr->Magic);
+  MsgId  = XDR_decode<uint32_t> (MsgHdr->MsgId);
+  MsgLen = XDR_decode<uint32_t> (MsgHdr->MsgLen);
+  if (Bytes < (int)sizeof(MsgHdr))
+  {
+    ErrorMsg  = SenderAddress.getHost();
+    ErrorMsg += " packet size is too small!";
+    AddBadClient (SenderAddress, ErrorMsg, true);
+    return (false);
+  }
+  */
+  
+  //= Check magic
+  /*
+  if ((MsgMagic != MSG_MAGIC) && (MsgMagic != RELAY_MAGIC))
+  {
+    char m[5];
+    memcpy (m, (char*) &MsgMagic, 4);
+    m[4] = 0;
+    ErrorMsg  = Origin;
+    ErrorMsg += " BAD magic number: ";
+    ErrorMsg += m;
+    AddBadClient (SenderAddress, ErrorMsg, true);
+    return (false);
+  }
+  */
+  	if MsgHdr.Magic != flightgear.MSG_MAGIC && MsgHdr.Magic != flightgear.RELAY_MAGIC {
+ 		
+  
+	}  
+	/*
+  if (XDR_decode<uint32_t> (MsgHdr->Version) != PROTO_VER)
+  {
+    MsgHdr->Version = XDR_decode<uint32_t> (MsgHdr->Version);
+    ErrorMsg  = Origin;
+    ErrorMsg += " BAD protocol version! Should be ";
+    converter*    tmp;
+    tmp = (converter*) (& PROTO_VER);
+    ErrorMsg += NumToStr (tmp->High, 0);
+    ErrorMsg += "." + NumToStr (tmp->Low, 0);
+    ErrorMsg += " but is ";
+    tmp = (converter*) (& MsgHdr->Version);
+    ErrorMsg += NumToStr (tmp->Low, 0);
+    ErrorMsg += "." + NumToStr (tmp->High, 0);
+    AddBadClient (SenderAddress, ErrorMsg, true);
+    return (false);
+  } */
+  /*
+  if (MsgId == POS_DATA_ID) 
+  {
+    if (MsgLen < sizeof(T_MsgHdr) + sizeof(T_PositionMsg))
+    {
+      ErrorMsg  = Origin;
+      ErrorMsg += " Client sends insufficient position data, ";
+      ErrorMsg += "should be ";
+      ErrorMsg += NumToStr (sizeof(T_MsgHdr)+sizeof(T_PositionMsg));
+      ErrorMsg += " is: " + NumToStr (MsgHdr->MsgLen);
+      AddBadClient (SenderAddress, ErrorMsg, true);
+      return false
+    }
+  }
+  */
+	return true
+} // FG_SERVER::PacketIsValid ()
+//////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////
+/**
+ * @brief  If we receive bad data from a client, we add the client to
+ *         the internal list anyway, but mark them as bad. But first 
+ *          we look if it isn't already there.
+ *          Send an error message to the bad client.
+ * @param Sender
+ * @param ErrorMsg
+ * @param IsLocal
+ */
+func (me *FG_SERVER) AddBadClient(Sender *NetAddress, ErrorMsg string, IsLocal bool){
+  
+  //string                  Message;
+  //FG_Player               NewPlayer;
+  //mT_PlayerListIt         CurrentPlayer;
+
+  //CurrentPlayer = m_PlayerList.begin();
+  //////////////////////////////////////////////////
+  //      see, if we already know the client
+  //////////////////////////////////////////////////
+  /* while (CurrentPlayer != m_PlayerList.end())
+  {
+    if (CurrentPlayer->Address.getIP() == Sender.getIP())
+    {
+      CurrentPlayer->Timestamp = time (0);
+      return;
+    }
+    CurrentPlayer++;
+  } */
+  //////////////////////////////////////////////////
+  //      new client, send an error message
+  //////////////////////////////////////////////////
+  me.MaxClientID++
+  NewPlayer = new(FG_Player)
+  NewPlayer.Callsign      = "* Bad Client *"
+  NewPlayer.ModelName     = "* unknown *"
+  //NewPlayer.Timestamp     = time(0);
+  NewPlayer.JoinTime      = NewPlayer.Timestamp;
+  NewPlayer.Origin        = Sender.Host //getHost ()
+  NewPlayer.Address       = Sender.Address
+  NewPlayer.IsLocal       = IsLocal
+  NewPlayer.HasErrors     = true
+  NewPlayer.Error         = ErrorMsg
+  NewPlayer.ClientID      = me.MaxClientID
+  NewPlayer.PktsReceivedFrom      = 0
+  NewPlayer.PktsSentTo            = 0
+  NewPlayer.PktsForwarded         = 0
+  NewPlayer.LastRelayedToInactive = 0
+  //SG_LOG (SG_SYSTEMS, SG_ALERT, "FG_SERVER::AddBadClient() - " << ErrorMsg);
+  //Message = "bad client connected: ";
+  //Message += Sender.getHost() + string(": ");
+  //Message += ErrorMsg;
+  //CreateChatMessage (NewPlayer.ClientID, Message);
+  //pthread_mutex_lock (& m_PlayerMutex);
+  //m_PlayerList.push_back (NewPlayer);
+  //m_NumCurrentClients++;
+  //pthread_mutex_unlock (& m_PlayerMutex);
+  //*/
+  me.PlayerList[Sender.Ip] = NewPlayer
+} // FG_SERVER::AddBadClient ()
+
+
+//////////////////////////////////////////////////////////////////////
+//  Check if the sender is a known relay, return true if known relay
+func (me *FG_SERVER) IsKnownRelay(SenderAddress *NetAddress){
+
+  mT_RelayListIt  CurrentRelay = m_RelayList.begin();
+  while (CurrentRelay != m_RelayList.end())
+  {
+    if (CurrentRelay->Address.getIP() == SenderAddress.getIP())
+    {
+      return (true);
+    }
+    CurrentRelay++;
+  }
+  string ErrorMsg;
+  ErrorMsg  = SenderAddress.getHost();
+  ErrorMsg += " is not a valid relay!";
+  AddBlacklist (SenderAddress.getHost());
+  SG_LOG (SG_SYSTEMS, SG_ALERT, "UNKNOWN RELAY: " << ErrorMsg);
+  return (false);
+} // FG_SERVER::IsKnownRelay ()
+
 
 
 
