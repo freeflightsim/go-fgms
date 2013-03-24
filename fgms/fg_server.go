@@ -6,6 +6,9 @@ import(
 	"log"
 	"net"
 	"bytes"
+	"bufio"
+	"io"
+	"strings"
 )
 import(
 	"github.com/fgx/go-fgms/tracker"
@@ -56,6 +59,9 @@ Listening bool
 
 	Telnet *TelnetServer
 	TelnetChan chan net.Conn
+	
+	TelnetAdmin *TelnetServer
+	TelnetAdminChan chan net.Conn
 
 //Loglevel            = SG_INFO;
 DataSocket net.Conn
@@ -131,6 +137,9 @@ func NewFG_SERVER() *FG_SERVER {
 	ob.RelayMap = make(map[string]string)
 	
 	ob.Telnet = NewTelnetServer()
+	//ob.TelnetChan = msgchan := make(chan string)
+	
+	ob.TelnetAdmin = NewTelnetServer()
 	
 		
 	// set other defaults here
@@ -345,30 +354,46 @@ if me.Telnet.Reinit {
 	//}
 	//m_TelnetSocket = 0;
 	if me.Telnet.Port != 0 {
-		s := fmt.Sprintf(":%d", me.Telnet.Port ) // TODO ip address = 0.0.0.0 ?
-		ln, err := net.Listen("tcp", s)
-		//fmt.Println(s, ln, err)
-		//if (m_TelnetSocket->open (true) == 0)   // TCP-Socket
-		//{
-		//  SG_ALERT (SG_SYSTEMS, SG_ALERT, "FG_SERVER::Init() - "
-		//    << "failed to create telnet socket");
-		//  return (ERROR_CREATE_SOCKET);
-		// }
-		if err != nil {
-			log.Fatal("Cannot create telnet socket")
-			return err
+		//s := fmt.Sprintf(":%d", me.Telnet.Port ) // TODO ip address = 0.0.0.0 ?
+		//ln, err := net.Listen("tcp", s)
+		//if err != nil {
+		//	log.Fatal("Cannot create telnet socket")
+		//	return err
+		//}
+		//telnetDataChan := make(chan TelnetClient)
+		
+		// admin
+		sa := fmt.Sprintf(":%d", 5005 ) 
+		lna, erra := net.Listen("tcp", sa)
+		if erra != nil {
+			log.Fatal("Cannot create telnet socket for admin", erra)
+			return erra
 		}
+		ta_msgChan := make(chan string)
+		ta_addChan := make(chan TelnetClient)
+		ta_rmChan := make(chan TelnetClient)
+		
+		go me.HandleMessages( ta_msgChan, ta_addChan, ta_rmChan )
 		
 		//msgchan := make(chan string)
 		
 		//go me.PrintMessages(msgchan)
 		for {
-			conn, err := ln.Accept() 
-			if err != nil {
-				log.Println(err)
+			//_, err := ln.Accept() 
+			//if err != nil {
+			//	log.Println(err)
+			//}
+			conna, erra := lna.Accept() 
+			if erra != nil {
+				log.Println(erra)
 			}
-			go me.HandleTelnet(conn)
+			
+			//go me.HandleTelnetData(conn, telnetDataChan)
+			go me.HandleAdminTelnet(conna,  ta_msgChan, ta_addChan, ta_rmChan )
+			
+			
 		}
+		
 	}
 	me.Telnet.Reinit = false
 	/*m_TelnetSocket->setBlocking (false);
@@ -463,11 +488,6 @@ return (SUCCESS);
 //---------------------------------------------------------------------------
 
 
-func (me *FG_SERVER) PrintMessages(msgchan <-chan string) {
-    for msg := range msgchan {
-        log.Printf(" >> New message: %s", msg)
-    }
-}
 
 //---------------------------------------------------------------------------
 
@@ -475,7 +495,7 @@ func (me *FG_SERVER) PrintMessages(msgchan <-chan string) {
 *  Handle a telnet session. if a telnet connection is opened, this 
 *  method outputs a list  of all known clients.
 */
-func (me *FG_SERVER) HandleTelnet(conn net.Conn){
+func (me *FG_SERVER) HandleTelnetData(conn net.Conn, telnetDataChan <-chan TelnetClient){
 
 	//var errno int = 0
 	var Message string  = ""
@@ -606,3 +626,70 @@ for (;;)
 	//return (0);
 } // FG_SERVER::HandleTelnet ()
 
+func PromptNick(c net.Conn, bufc *bufio.Reader) string {
+	io.WriteString(c, "\033[1;30;41mWelcome fgms admin!\033[0m\n")
+	io.WriteString(c, "The password:")
+	nick, _, _ := bufc.ReadLine()
+	return string(nick)
+}
+
+/**
+*  Handle a telnet session. if a telnet connection is opened, this 
+*  method outputs a list  of all known clients.
+*/
+func (me *FG_SERVER) HandleAdminTelnet(c net.Conn, msgchan chan<- string, addchan chan<- TelnetClient, rmchan chan<- TelnetClient){
+	log.Println("HandleAdminTelnet", c)
+	bufc := bufio.NewReader(c)
+	
+	defer c.Close()
+	client := TelnetClient{
+		conn:     c,
+		nickname: PromptNick(c, bufc),
+		ch:       make(chan string),
+	}
+	if strings.TrimSpace(client.nickname) != "s" {
+		io.WriteString(c, "Invalid Password\n")
+		return
+	}
+
+	// Register user
+	addchan <- client
+	defer func() {
+		msgchan <- fmt.Sprintf("User %s left the chat room.\n", client.nickname)
+		log.Printf("Connection from %v closed.\n", c.RemoteAddr())
+		rmchan <- client
+	}()
+	io.WriteString(c, fmt.Sprintf("Welcome, %s!\n\n", client.nickname))
+	msgchan <- fmt.Sprintf("New user %s has joined the chat room.\n", client.nickname)
+
+	io.WriteString(c, "show | help | set var = value\n > ")
+	// I/O
+	go client.ReadLinesInto(msgchan)
+	client.WriteLinesFrom(client.ch)
+}
+
+
+
+func (me *FG_SERVER) HandleTelnetAdminMessages(msgChan <-chan string, addChan <-chan TelnetClient, rmChan <-chan TelnetClient) {
+
+	clients := make(map[net.Conn]chan<- string)    
+    for {
+    	select {
+    	
+    		case msg := <-msgChan:
+    			log.Println("New Telnet Data request", msg)
+    			msgChan <- "YES"
+    		
+    		case client := <-addChan:
+    			//log.Println("New Telnet Admin request", client)
+    			log.Printf("New client: %v\n", client.conn)
+				clients[client.conn] = client.ch
+				
+			case client := <-rmChan:
+				log.Printf("Client disconnects: %v\n", client.conn)
+				delete(clients, client.conn)
+				
+    	}
+    }
+  
+}
