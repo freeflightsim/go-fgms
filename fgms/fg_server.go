@@ -5,6 +5,7 @@ import(
 	"fmt"
 	"log"
 	"net"
+	"bytes"
 )
 import(
 	"github.com/fgx/go-fgms/tracker"
@@ -341,9 +342,9 @@ func (me *FG_SERVER) Init() error {
     //}
     //m_TelnetSocket = 0;
     if me.Telnet.Port != 0 {
-    	s := fmt.Sprintf(":%s", me.Telnet.Port ) // TODO ip address = 0.0.0.0 ?
+    	s := fmt.Sprintf(":%d", me.Telnet.Port ) // TODO ip address = 0.0.0.0 ?
       	ln, err := net.Listen("tcp", s)
-      
+      	fmt.Println(s, ln, err)
       //if (m_TelnetSocket->open (true) == 0)   // TCP-Socket
       //{
       //  SG_ALERT (SG_SYSTEMS, SG_ALERT, "FG_SERVER::Init() - "
@@ -450,6 +451,10 @@ func (me *FG_SERVER) Init() error {
 	return nil
 } // FG_SERVER::Init()
 
+
+//---------------------------------------------------------------------------
+
+
 /**
  *  Handle a telnet session. if a telnet connection is opened, this 
  *  method outputs a list  of all known clients.
@@ -458,7 +463,8 @@ func (me *FG_SERVER) HandleTelnet(conn net.Conn){
 
 	//var errno int = 0
 	var Message string  = ""
-  
+  	//buf := make([]byte, 4096)
+
   	
   /** @brief  Geodetic Coordinates */
   //Point3D         PlayerPosGeod;  
@@ -482,6 +488,14 @@ func (me *FG_SERVER) HandleTelnet(conn net.Conn){
   //Message += "." + NumToStr (me.ProtoMinorVersion, 0)
   Message += " (LazyRelay enabled)"
   Message += "\n"
+  //buf.Add
+   var buffer bytes.Buffer
+   buffer.WriteString( Message )
+  	_, err := conn.Write( buffer.Bytes() )
+  	if err != nil {
+  		log.Println("error", err)
+  	}
+  	conn.Close()
   /* if ( m_IsTracked )
   {
     Message += "# This server is tracked: ";
