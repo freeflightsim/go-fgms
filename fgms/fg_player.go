@@ -42,3 +42,4 @@ func NewFG_Player() *FG_Player {
 	ob := new(FG_Player)
 	return ob
 }
+

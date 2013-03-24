@@ -36,6 +36,7 @@ Package main - FlightGear MulitPlyer in go
    			
    Useful Links:
 		- http://synflood.at/tmp/golang-slides/mrmcd2012.html# 
+		- http://jan.newmarch.name/go/
 */
 package main
 

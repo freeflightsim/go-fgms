@@ -40,7 +40,7 @@ converter*    tmp; */
 VERSION int
 Initialized bool
 ReinitData bool
-ReinitTelnet bool
+//ReinitTelnet bool
 Listening bool
 
 
@@ -55,9 +55,10 @@ Listening bool
 	PlayerExpires int
 
 	Telnet *TelnetServer
+	TelnetChan chan net.Conn
 
 //Loglevel            = SG_INFO;
-DataSocket int
+DataSocket net.Conn
 //TelnetPort int
 NumMaxClients int
 PlayerIsOutOfReach int // nautical miles
@@ -298,8 +299,8 @@ if (m_Initialized == true)
 //  netInit ();
 //}
 
-if ReinitData {
-	if m_DataSocket {
+if 1 == 0 { //me.ReinitData {
+	if me.DataSocket != nil {
 		//delete m_DataSocket;
 		//m_DataSocket = 0;
 	}
@@ -310,9 +311,20 @@ if ReinitData {
 	//	<< "failed to create listener socket");
 	//return (ERROR_CREATE_SOCKET);
 	//	}
-	s := fmt.Sprintf(":%d", 5000 )
-	ln, err := net.Listen("udp", s)
-
+	/* s := fmt.Sprintf(":%d", 5000 )
+	udp_ln, err := net.ListenUDP(s)
+	if err != nil {
+		log.Fatal("Cannot create UDP socket")
+		return err
+	}
+	for {
+			conn, err := udp_ln.ListenPacket() 
+			if err != nil {
+				log.Println(err)
+			}
+			log.Println(conn)
+			//go me.HandleUDP(conn)
+	}*/
 	//m_DataSocket->setBlocking (false);
 	//m_DataSocket->setSockOpt (SO_REUSEADDR, true);
 	//if (m_DataSocket->bind (m_BindAddress.c_str(), m_ListenPort) != 0)
@@ -322,7 +334,7 @@ if ReinitData {
 	//SG_ALERT (SG_SYSTEMS, SG_ALERT, "already in use?");
 	//return (ERROR_COULDNT_BIND);
 	//}
-	ReinitData = false
+	me.ReinitData = false
 }
 
 if me.Telnet.Reinit {
