@@ -26,11 +26,6 @@ const UPDATE_INACTIVE_PERIOD  = 1
 const MAX_TELNETS             = 5
 const RELAY_MAGIC             = 0x53464746    // GSGF
 
-
-type Version struct{
-	Minor int
-	Major int
-}
 		
 // http://gitorious.org/fgms/fgms-0-x/blobs/master/src/server/fg_server.cxx#line167
 type FG_SERVER struct {
@@ -479,9 +474,9 @@ func (me *FG_SERVER) HandleTelnet(conn net.Conn){
   //      header
   //
   //////////////////////////////////////////////////
-  Message  = "# This is " + me.ServerName
+  Message  = "# This is " + me.ServerName 
   Message += "\n"
-  //Message += "# FlightGear Multiplayer Server v" + string(Me.VERSION);
+  Message += "# FlightGear Multiplayer Server version: " + me.ServerVersion.Str()
   Message += "\n"
   Message += "# using protocol version v"
   //Message += NumToStr (me.ProtoMajorVersion, 0)
@@ -496,6 +491,7 @@ func (me *FG_SERVER) HandleTelnet(conn net.Conn){
   		log.Println("error", err)
   	}
   	conn.Close()
+  	// print conn.RemoteAddr()
   /* if ( m_IsTracked )
   {
     Message += "# This server is tracked: ";
