@@ -1,18 +1,26 @@
 
 package fgms
 
+import(
+	"net"
+	"strings"
+)
 
 type NetAddress struct {
-	host string
-	port int
-	ip	string
-	family int
-	broadcast bool
+	Host string
+	Port int
+	Ip	string
+	Family int
+	Broadcast bool
 }
 
-func (me *NetAddress) GetIP() string {
-
-	return "IPACCREDD"
+func (me *NetAddress) LookupIP() error {
+	addrs, err := net.LookupHost(me.Host)
+	if err != nil {
+		return err
+	}
+	me.Ip = addrs[0]
+	return nil
 }
 
 
@@ -20,12 +28,12 @@ func (me *NetAddress) GetIP() string {
 // mT_Relay - Type of list of relays
 type MT_Relay struct {
 	Name string
-	Address NetAddress // TODO = netAddress  Address
+	Address *NetAddress // TODO = netAddress  Address
 }
 
 func NewMT_Relay(host_name string, port int) *MT_Relay {
 	ob := new(MT_Relay)
-	ob.Name = host_name
-	
+	ob.Name = strings.Split(host_name, ".")[0]
+	ob.Address = &NetAddress{Host: host_name, Port: port}
 	return ob
 }

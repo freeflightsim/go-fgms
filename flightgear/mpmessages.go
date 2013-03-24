@@ -1,12 +1,9 @@
-package mpserver
+package flightgear
 
 
 import (
-
+	"github.com/fgx/go-fgms/simgear"
 )
-
-// This is ported from an for research 
-// http://gitorious.org/fgms/fgms-0-x/blobs/master/src/flightgear/MultiPlayer/mpmessages.hxx
 
 
 // magic value for messages 
@@ -21,6 +18,7 @@ const CHAT_MSG_ID = 1
 const RESET_DATA_ID = 6
 const POS_DATA_ID = 7
 
+
 /* 
 XDR demands 4 byte alignment, but some compilers use8 byte alignment
 so it's safe to let the overall size of a network message be a 
@@ -31,82 +29,96 @@ const MAX_CHAT_MSG_LEN   = 256
 const MAX_MODEL_NAME_LEN = 96
 const MAX_PROPERTY_LEN   = 52
 
+// External = http://godoc.org/github.com/davecgh/go-xdr/xdr
+
 
 // T_MsgHdr - Header for use with all messages sent 
- struct T_MsgHdr {
+// typedef uint32_t    xdr_data_t;      /* 4 Bytes */
+// typedef uint64_t    xdr_data2_t;     /* 8 Bytes */
+ type T_MsgHdr struct {
 	
 	// Magic Value
-    Magic xdr_data_t
+    Magic uint32 //xdr_data_t
     
     // Protocol version
-    Version xdr_data_t            
+    Version uint32 //xdr_data_t            
     
     // Message identifier 
-    MsgId xdr_data_t    
+    MsgId uint32 //xdr_data_t    
     
     // Absolute length of message
-    MsgLen xdr_data_t   
+    MsgLen uint32 //xdr_data_t   
     
     //  Player's receiver address 
-    ReplyAddress xdr_data_t   
+    ReplyAddress uint32 //xdr_data_t   
     
     // Player's receiver port
-    ReplyPort xdr_data_t   
+    ReplyPort uint32 //xdr_data_t   
     
     /// Callsign used by the player 
-    string Callsign //Callsign[MAX_CALLSIGN_LEN] 
+    Callsign [MAX_CALLSIGN_LEN]byte //Callsign[MAX_CALLSIGN_LEN] 
 }
 
 
 // T_ChatMsg - Chat message
-struct T_ChatMsg {
+type T_ChatMsg struct {
 	
 	// Text of chat message 
-    string Text //char Text[MAX_CHAT_MSG_LEN];  
+    //string Text //char Text[MAX_CHAT_MSG_LEN];  
+    Text [MAX_CALLSIGN_LEN]byte
 }
 
 
 // T_PositionMsg - Position Message
-struct T_PositionMsg {
+type T_PositionMsg struct{
 	
 	/** @brief  Name of the aircraft model */
-    char Model[MAX_MODEL_NAME_LEN]; 
+    //char Model[MAX_MODEL_NAME_LEN]; 
+    Model [MAX_MODEL_NAME_LEN]byte
 
     /** @brief Time when this packet was generated */
-    xdr_data2_t time;
+    //xdr_data2_t time;
+    time uint64
 	
 	/** @brief Time when this packet was generated */
-    xdr_data2_t lag;
+    //xdr_data2_t lag;
+    lag uint64
 
     /** @brief Position wrt the earth centered frame */
-    xdr_data2_t position[3];
+    //xdr_data2_t position[3];
+    position [3]uint64
 	
 	
     /** @brief Orientation wrt the earth centered frame, stored in the angle axis
      *         representation where the angle is coded into the axis length
 	 */
-    xdr_data_t orientation[3];
+    //xdr_data_t orientation[3];
+    orientation [3]uint32
 
 	/** @brief Linear velocity wrt the earth centered frame measured in
      *         the earth centered frame
 	 */
-    xdr_data_t linearVel[3];
+    //xdr_data_t linearVel[3];
+    linearVel [3]uint32
 	
     /** @brief Angular velocity wrt the earth centered frame measured in
      *          the earth centered frame
 	 */
-    xdr_data_t angularVel[3];
+    //xdr_data_t angularVel[3];
+    angularVel [3]uint32
 
 	/** @brief Linear acceleration wrt the earth centered frame measured in
      *         the earth centered frame
 	 */
-    xdr_data_t linearAccel[3];
+    //xdr_data_t linearAccel[3];
+    linearAccel [3]uint32
 	
     /** @brief Angular acceleration wrt the earth centered frame measured in
      *         the earth centered frame
 	 */
-    xdr_data_t angularAccel[3];
-};
+    //xdr_data_t angularAccel[3];
+    angularAccel [3]uint32
+}
 
 
 /** 
@@ -114,9 +126,11 @@ struct T_PositionMsg {
  *  @brief Property Message 
  */
 struct T_PropertyMsg {
-    xdr_data_t id;
-    xdr_data_t value;
-};
+    //xdr_data_t id;
+    //xdr_data_t value;
+    id uint32
+    value uint32
+}
 
 
 /**
@@ -124,9 +138,11 @@ struct T_PropertyMsg {
  * @brief Property Data 
  */
 struct FGFloatPropertyData {
-  unsigned id;
-  float value;
-};
+  //unsigned id;
+  id uint32
+  //float value;
+  value float32
+}
 
 /** @brief Position Message */
 struct FGExternalMotionData {
@@ -134,7 +150,8 @@ struct FGExternalMotionData {
   /** 
    * @brief Simulation time when this packet was generated 
    */
-  double time;
+  //double time;
+  time uint64
   
   /** 
    * @brief The artificial lag the client should stay behind the average
@@ -142,30 +159,35 @@ struct FGExternalMotionData {
    * @todo  should be some 'per model' instead of 'per packet' property  double lag;
    *        Position wrt the earth centered frame  
    */
-  SGVec3d position;
+  //SGVec3d position;
+  position simgear.SGVec3d 
   
   /** @brief Orientation wrt the earth centered frame */
+  //SGQuatf orientation;
   SGQuatf orientation;
   
   /**
    * @brief Linear velocity wrt the earth centered frame measured in
    *        the earth centered frame
    */
-  SGVec3f linearVel;
+  //SGVec3f linearVel;
+  linearVel simgear.SGVec3f
   
   /** 
    * @brief Angular velocity wrt the earth centered frame measured in the earth centered frame
    */
-  SGVec3f angularVel;
+  //SGVec3f angularVel;
+  angularVel simgear.SGVec3f
   
   /** @brief Linear acceleration wrt the earth centered frame measured in the earth centered frame */
-  SGVec3f linearAccel;
-  
+  //SGVec3f linearAccel;
+  linearAccel simgear.SGVec3f
+   
   /** @brief Angular acceleration wrt the earth centered frame measured in the earth centered frame */
-  SGVec3f angularAccel;
+  //SGVec3f angularAccel;
+  angularAccel simgear.SGVec3f
   
   /** @brief The set of properties recieved for this timeslot */
-  std::vector<FGFloatPropertyData> properties;
-};
+  //TODO std::vector<FGFloatPropertyData> properties;
+}
 
-#endif

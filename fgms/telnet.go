@@ -6,6 +6,7 @@ import(
 	"net"
 )
  
+// TelnetServer container
 type TelnetServer  struct {
 	Port int
 	Reinit bool
@@ -13,6 +14,7 @@ type TelnetServer  struct {
 	Conn *net.Conn
 }
 
+// Constructs and return TelnetServer
 func NewTelnetServer() *TelnetServer {
 	ob := new(TelnetServer)
 	return ob

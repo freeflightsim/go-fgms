@@ -30,8 +30,11 @@ Package main - FlightGear MulitPlyer in go
       
    TODO 
    		- Everything else
-   		
-   Refs:
+   	
+   Externals:
+   		- XDR http://godoc.org/github.com/davecgh/go-xdr/xdr	
+   			
+   Useful Links:
 		- http://synflood.at/tmp/golang-slides/mrmcd2012.html# 
 */
 package main

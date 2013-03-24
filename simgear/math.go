@@ -4,7 +4,6 @@ package simgear
 
 //= Origininal http://gitorious.org/fgms/fgms-0-x/blobs/master/src/simgear/math/SGMath.hxx
 
-
 //typedef float SGVec3f [ 3 ] ;
 type SGVec3f[]float 
 
