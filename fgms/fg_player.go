@@ -7,19 +7,19 @@ import (
 type FG_Player struct {
 	//public:
 	Origin string
-	Address *netAddress    
+	Address *NetAddress    
 	Callsign string
 	Passwd string
 	ModelName string
-	JoinTime time.Date
-	Timestamp time.Date
-	//Point3D       LastPos;
-	//Point3D       LastOrientation;
+	JoinTime time.Time
+	Timestamp time.Time
+	LastPos *Point3D
+	LastOrientation *Point3D
 	IsLocal bool
 	Error string //;    // in case of errors
 	HasErrors bool
 	ClientID int
-	LastRelayedToInactive time.Date
+	LastRelayedToInactive time.Time
 	
 	// Packets recieved from client 
 	PktsReceivedFrom uint  
@@ -38,4 +38,7 @@ type FG_Player struct {
 	//void assign ( const FG_Player& P );
 } // FG_Player
 
-
+func NewFG_PLAYER() *FG_Player {
+	ob := new(FG_PLAYER)
+	return ob
+}

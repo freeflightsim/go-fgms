@@ -7,7 +7,7 @@ type NetAddress struct {
 	port int
 	ip	string
 	family int
-	broadcase bool
+	broadcast bool
 }
 
 func (me *NetAddress) GetIP() string {
