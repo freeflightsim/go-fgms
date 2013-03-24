@@ -27,3 +27,11 @@ Package main - FlightGear MulitPlyer in go
 		- http://synflood.at/tmp/golang-slides/mrmcd2012.html# 
 */
 package main
+
+import(
+	"github.com/fgx/go-fgms/fgms"
+	"github.com/fgx/go-fgms/simgear"
+	"github.com/fgx/go-fgms/flightgear"
+	"github.com/fgx/go-fgms/tracker"
+	
+)
