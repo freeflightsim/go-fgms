@@ -310,7 +310,7 @@ if ReinitData {
 	//	<< "failed to create listener socket");
 	//return (ERROR_CREATE_SOCKET);
 	//	}
-	s := fmt.Sprintf(":%d", me.Telnet.Port )
+	s := fmt.Sprintf(":%d", 5000 )
 	ln, err := net.Listen("udp", s)
 
 	//m_DataSocket->setBlocking (false);
