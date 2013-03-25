@@ -1,7 +1,7 @@
 package fgms
 
 import (
-	"time"
+	//"time"
 )
 
 type FG_Player struct {
@@ -11,15 +11,15 @@ type FG_Player struct {
 	Callsign string
 	Passwd string
 	ModelName string
-	JoinTime time.Time
-	Timestamp time.Time
+	JoinTime int64 //time.Time
+	Timestamp int64 //time.Time
 	LastPos *Point3D
 	LastOrientation *Point3D
 	IsLocal bool
 	Error string //;    // in case of errors
 	HasErrors bool
 	ClientID int
-	LastRelayedToInactive time.Time
+	LastRelayedToInactive int64 //time.Time
 	
 	// Packets recieved from client 
 	PktsReceivedFrom uint  

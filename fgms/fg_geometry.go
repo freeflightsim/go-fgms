@@ -40,3 +40,10 @@ type Point3D struct {
 	y float32 
 	z float32 
 }
+
+func (me *Point3D) Clear(){
+	me.x = 0
+	me.y = 0
+	me.z = 0
+}
+

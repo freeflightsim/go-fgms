@@ -68,6 +68,19 @@ const MAX_PROPERTY_LEN   = 52
     Callsign [MAX_CALLSIGN_LEN]byte //Callsign[MAX_CALLSIGN_LEN] 
 }
 
+// TODO There has Got to be a better way
+func (me *T_MsgHdr) CallsignString() string{
+	cs := ""
+	for _, ele := range me.Callsign {
+		if ele == 0 {
+			return cs
+		}
+		cs += string(ele)
+	}
+	return cs   
+}
+
+
 
 // T_ChatMsg - Chat message
 type T_ChatMsg struct {

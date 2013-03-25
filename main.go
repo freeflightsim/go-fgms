@@ -163,12 +163,10 @@ func ReadLoadConfigs(Servant *fgms.FG_SERVER, reInit bool) error {
 	*/
 	
 	// read the list of blacklisted IPs
-
 	for _, blackList := range Config.Blacklists {
 		Servant.AddBlacklist(blackList)
 	}
 	
-
 	return nil
 }
 
