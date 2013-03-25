@@ -805,13 +805,9 @@ func (me *FG_SERVER) Loop() {
 
 
 
-//////////////////////////////////////////////////////////////////////
-/**
-* @brief Handle client connections
-* @param Msg
-* @param Bytes
-* @param SenderAddress
-*/
+//------------------------------------------------------------------------
+
+// Handle client connections
 func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPAddr){
 	//T_MsgHdr*       MsgHdr;
 	//T_PositionMsg*  PosMsg;
@@ -828,20 +824,22 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 	//Timestamp = time.Now() //time(0);
 	//MsgHdr    = (T_MsgHdr *) Msg;
 	//MsgHdr :=  
-	fmt.Println("MSG=", len(Msg))
+	
+	//fmt.Println("MSG=", len(Msg))
 	var MsgHdr flightgear.T_MsgHdr
 	remainingBytes, err := xdr.Unmarshal(Msg, &MsgHdr)
 	if err != nil{
-		fmt.Println("got", remainingBytes, err)
+		fmt.Println("XDR Decode Error", err)
+		return
 	}
 	fmt.Println("remain=", len(remainingBytes))
 	
 	//MsgMagic  = XDR_decode<uint32_t> (MsgHdr->Magic);
 	//MsgId     = XDR_decode<uint32_t> (MsgHdr->MsgId);
-	fmt.Println( "Magic/ID", MsgHdr.Magic, MsgHdr.Version, MsgHdr.MsgId, MsgHdr.Callsign, MsgHdr.ReplyAddress, MsgHdr.ReplyPort )
+	//fmt.Println( "Magic/ID", MsgHdr.Magic, MsgHdr.Version, MsgHdr.MsgId, MsgHdr.Callsign, MsgHdr.ReplyAddress, MsgHdr.ReplyPort )
 	
-	fmt.Println ("=magic=", flightgear.MSG_MAGIC == MsgHdr.Magic) //WORKS
-	fmt.Println ("=proto=", flightgear.PROTO_VER == MsgHdr.Version) //WORKS
+	//fmt.Println ("=magic=", flightgear.MSG_MAGIC == MsgHdr.Magic) //WORKS
+	//fmt.Println ("=proto=", flightgear.PROTO_VER == MsgHdr.Version) //WORKS
 	fmt.Println ("=ID=", MsgHdr.MsgId)
 	cs := "" //string(MsgHdr.Callsign[0]) + string(MsgHdr.Callsign[1]) + string(MsgHdr.Callsign[2]) + string(MsgHdr.Callsign[3]) + string(MsgHdr.Callsign[4]) + string(MsgHdr.Callsign[5]) + string(MsgHdr.Callsign[6]) + string(MsgHdr.Callsign[7])
 	for _, ele := range MsgHdr.Callsign{
