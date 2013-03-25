@@ -31,7 +31,7 @@ func main(){
 	
 	if err != nil {
 		//Servant.CloseTracker()
-		log.Println("DDDDDDDOOOOOOONEEEE", err)
+		log.Println("INIT Error", err)
 		return
 	}
 	Servant.Loop()

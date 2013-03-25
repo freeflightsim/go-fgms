@@ -66,10 +66,10 @@ type FG_SERVER struct {
 	PlayerExpires int
 
 	Telnet *TelnetServer
-	
+	DataSocket *net.UDPConn
 
-//Loglevel            = SG_INFO;
-DataSocket net.Conn
+	//Loglevel            = SG_INFO;
+	LogFileName string
 
 NumMaxClients int
 PlayerIsOutOfReach int // nautical miles
@@ -77,25 +77,20 @@ NumCurrentClients int
 IsParent bool
 MaxClientID int
 
-	LogFileName string
-	
-//tmp                   = (converter*) (& PROTO_VER);
-//ProtoMinorVersion   = tmp->High;
-//ProtoMajorVersion   = tmp->Low;
-//LogFileName         = DEF_SERVER_LOG; // "fg_server.log";
-//wp                  = fopen("wp.txt", "w");
 
-	//= maybe this could be a list
+	
+	//tmp                   = (converter*) (& PROTO_VER);
+	//ProtoMinorVersion   = tmp->High;
+	//ProtoMajorVersion   = tmp->Low;
+	//LogFileName         = DEF_SERVER_LOG; // "fg_server.log";
+	//wp                  = fopen("wp.txt", "w");
+
+	//= maybe this could be a slice
 	BlackList map[string]bool
 	BlackListRejected uint64
 
-	RelayMap map[string]string//           = map<uint32_t, string>();
+	RelayMap map[string]string
 	RelayList []*NetAddress
-
-//typedef std::list<mT_Relay>               mT_RelayList;
-//	typedef mT_RelayList::iterator            mT_RelayListIt;
-//typedef std::map<uint32_t,string>         mT_IP2RelayNames;	
-
 
 	IsTracked bool
 	Tracker *tracker.FG_TRACKER
@@ -148,8 +143,6 @@ func NewFG_SERVER() *FG_SERVER {
 		
 	ob.Telnet = NewTelnetServer()
 		
-		
-	// set other defaults here
 	return ob
 }
 
@@ -174,8 +167,6 @@ func (me *FG_SERVER) SetTelnetPort(port int){
 	me.Telnet.Reinit = true
 }
 
-
-
 // Set nautical miles two players must be apart to be out of reach
 func (me *FG_SERVER) SetOutOfReach(nm int){
 	log.Println("> SetOutOfReach=", nm, " nm")
@@ -194,7 +185,6 @@ func (me *FG_SERVER) SetHub(am_hub bool){
 	log.Println("> SetHub=", am_hub)
 	me.IamHUB = am_hub
 }
-
 
 // Set the logfile - TODO LOg FIle writing etc
 func (me *FG_SERVER) SetLogfile( log_file_name string){
@@ -296,19 +286,7 @@ func (me *FG_SERVER) IsBlackListed(SenderAddress *NetAddress) bool {
 	return false
 } 
 
-//////////////////////////////////////////////////////////////////////
-
-/*
-func (me *FG_SERVER) ListenAndServeUDP(addr string) error {
-	c, err := net.ListenPacket("udp", addr)
-	if err != nil {
-		return err
-	}
-	srv := &UdpSrv{addr}
-	srv.Serve(c)
-	return nil
-}
-*/
+// ---------------------------------------------------------------------------
 
 // Basic initialization. 
 // - TODO: If we are already initialized, close
@@ -340,41 +318,20 @@ func (me *FG_SERVER) Init() error {
 	//  netInit ();
 	//}
 
-	if 1 == 0 { //me.ReinitData {
+	if me.ReinitData {
 		if me.DataSocket != nil {
 			//delete m_DataSocket;
 			//m_DataSocket = 0;
 		}
-		//m_DataSocket = new netSocket()
-		//if (m_DataSocket->open (false) == 0)    // UDP-Socket
-		//{
-		//SG_ALERT (SG_SYSTEMS, SG_ALERT, "FG_SERVER::Init() - "
-		//	<< "failed to create listener socket");
-		//return (ERROR_CREATE_SOCKET);
-		//	}
-		/* s := fmt.Sprintf(":%d", 5000 )
-		udp_ln, err := net.ListenUDP(s)
-		if err != nil {
-			log.Fatal("Cannot create UDP socket")
+				
+		//=== UDP ===
+		addr, err := net.ResolveUDPAddr("udp", "127.0.0.1:5000")
+		var erru error
+		me.DataSocket, erru = net.ListenUDP("udp", addr)
+		if erru != nil {
+			log.Panicf("Fatal error starting UDP server: %s", erru)
 			return err
 		}
-		for {
-				conn, err := udp_ln.ListenPacket() 
-				if err != nil {
-					log.Println(err)
-				}
-				log.Println(conn)
-				//go me.HandleUDP(conn)
-		}*/
-		//m_DataSocket->setBlocking (false);
-		//m_DataSocket->setSockOpt (SO_REUSEADDR, true);
-		//if (m_DataSocket->bind (m_BindAddress.c_str(), m_ListenPort) != 0)
-		//{
-		//SG_ALERT (SG_SYSTEMS, SG_ALERT, "FG_SERVER::Init() - "
-		//	<< "failed to bind to port " << m_ListenPort);
-		//SG_ALERT (SG_SYSTEMS, SG_ALERT, "already in use?");
-		//return (ERROR_COULDNT_BIND);
-		//}
 		me.ReinitData = false
 	}
 
@@ -390,89 +347,77 @@ func (me *FG_SERVER) Init() error {
 			}
 			me.Telnet.Reinit = false
 		}
-
-		
-		
-		
-		//=== UDP ===
-		addr, err := net.ResolveUDPAddr("udp", "127.0.0.1:5000")
-		me.DataSocket, err := net.ListenUDP("udp", addr)
-		if err != nil {
-			log.Panicf("Fatal error starting UDP server: %s", err)
-			return err
-		}
-		
 	}
 	
 	
-	log.Fatal("HERE")
-/*
-SG_ALERT (SG_SYSTEMS, SG_ALERT, "# This is " << m_ServerName);
-SG_ALERT (SG_SYSTEMS, SG_ALERT, "# FlightGear Multiplayer Server v"
-	<< VERSION << " started");
-SG_ALERT (SG_SYSTEMS, SG_ALERT, "# using protocol version v"
-	<< m_ProtoMajorVersion << "." << m_ProtoMinorVersion
-	<< " (LazyRelay enabled)");
-if (m_BindAddress != "")
-{
-	SG_ALERT (SG_SYSTEMS, SG_ALERT,"# listening on " << m_BindAddress);
-}
-SG_ALERT (SG_SYSTEMS, SG_ALERT,"# listening to port " << m_ListenPort);
-SG_ALERT (SG_SYSTEMS, SG_ALERT,"# telnet port " << m_TelnetPort);
-SG_ALERT (SG_SYSTEMS, SG_ALERT,"# using logfile " << m_LogFileName);
-if (m_IamHUB)
-{
-	SG_ALERT (SG_SYSTEMS, SG_ALERT, "# I am a HUB Server");
-}
-*/
-/*
-if (m_IsTracked)
-{
-	if ( m_Tracker->InitTracker(&m_TrackerPID) )
+	//log.Fatal("HERE")
+	/*
+	SG_ALERT (SG_SYSTEMS, SG_ALERT, "# This is " << m_ServerName);
+	SG_ALERT (SG_SYSTEMS, SG_ALERT, "# FlightGear Multiplayer Server v"
+		<< VERSION << " started");
+	SG_ALERT (SG_SYSTEMS, SG_ALERT, "# using protocol version v"
+		<< m_ProtoMajorVersion << "." << m_ProtoMinorVersion
+		<< " (LazyRelay enabled)");
+	if (m_BindAddress != "")
 	{
-		SG_ALERT (SG_SYSTEMS, SG_ALERT, "# InitTracker FAILED! Disabling tracker!");
-			m_IsTracked = false;
+		SG_ALERT (SG_SYSTEMS, SG_ALERT,"# listening on " << m_BindAddress);
+	}
+	SG_ALERT (SG_SYSTEMS, SG_ALERT,"# listening to port " << m_ListenPort);
+	SG_ALERT (SG_SYSTEMS, SG_ALERT,"# telnet port " << m_TelnetPort);
+	SG_ALERT (SG_SYSTEMS, SG_ALERT,"# using logfile " << m_LogFileName);
+	if (m_IamHUB)
+	{
+		SG_ALERT (SG_SYSTEMS, SG_ALERT, "# I am a HUB Server");
+	}
+	*/
+	/*
+	if (m_IsTracked)
+	{
+		if ( m_Tracker->InitTracker(&m_TrackerPID) )
+		{
+			SG_ALERT (SG_SYSTEMS, SG_ALERT, "# InitTracker FAILED! Disabling tracker!");
+				m_IsTracked = false;
+		}
+		else
+		{
+	#ifdef USE_TRACKER_PORT
+		SG_ALERT (SG_SYSTEMS, SG_ALERT, "# tracked to "
+			<< m_Tracker->GetTrackerServer ()
+			<< ":" << m_Tracker->GetTrackerPort ()
+			<< ", using a thread." );
+	#else // #ifdef USE_TRACKER_PORT
+		SG_ALERT (SG_SYSTEMS, SG_ALERT, "# tracked to "
+			<< m_Tracker->GetTrackerServer ()
+			<< ":" << m_Tracker->GetTrackerPort ());
+	#endif // #ifdef USE_TRACKER_PORT y/n
+		}
 	}
 	else
 	{
-#ifdef USE_TRACKER_PORT
-	SG_ALERT (SG_SYSTEMS, SG_ALERT, "# tracked to "
-		<< m_Tracker->GetTrackerServer ()
-		<< ":" << m_Tracker->GetTrackerPort ()
-		<< ", using a thread." );
-#else // #ifdef USE_TRACKER_PORT
-	SG_ALERT (SG_SYSTEMS, SG_ALERT, "# tracked to "
-		<< m_Tracker->GetTrackerServer ()
-		<< ":" << m_Tracker->GetTrackerPort ());
-#endif // #ifdef USE_TRACKER_PORT y/n
+		SG_ALERT (SG_SYSTEMS, SG_ALERT, "# tracking is disabled.");
 	}
-}
-else
-{
-	SG_ALERT (SG_SYSTEMS, SG_ALERT, "# tracking is disabled.");
-}
-*/
-/*
-SG_ALERT (SG_SYSTEMS, SG_ALERT, "# I have " << m_RelayList.size() << " relays");
-mT_RelayListIt CurrentRelay = m_RelayList.begin();
-while (CurrentRelay != m_RelayList.end())
-{
-	SG_ALERT (SG_SYSTEMS, SG_ALERT, "# relay " << CurrentRelay->Name);
-	CurrentRelay++;
-}
-SG_ALERT (SG_SYSTEMS, SG_ALERT, "# I have " << m_CrossfeedList.size() << " crossfeeds");
-mT_RelayListIt CurrentCrossfeed = m_CrossfeedList.begin();
-while (CurrentCrossfeed != m_CrossfeedList.end())
-{
-	SG_ALERT (SG_SYSTEMS, SG_ALERT, "# crossfeed " << CurrentCrossfeed->Name
-	<< ":" << CurrentCrossfeed->Address.getPort());
-	CurrentCrossfeed++;
-}
-SG_ALERT (SG_SYSTEMS, SG_ALERT, "# I have " << m_BlackList.size() << " blacklisted IPs");
-SG_ALERT (SG_SYSTEMS, SG_ALERT, "# Files: exit=[" << exit_file << "] stat=[" << stat_file << "]");
-m_Listening = true;
-return (SUCCESS);
-*/
+	*/
+	/*
+	SG_ALERT (SG_SYSTEMS, SG_ALERT, "# I have " << m_RelayList.size() << " relays");
+	mT_RelayListIt CurrentRelay = m_RelayList.begin();
+	while (CurrentRelay != m_RelayList.end())
+	{
+		SG_ALERT (SG_SYSTEMS, SG_ALERT, "# relay " << CurrentRelay->Name);
+		CurrentRelay++;
+	}
+	SG_ALERT (SG_SYSTEMS, SG_ALERT, "# I have " << m_CrossfeedList.size() << " crossfeeds");
+	mT_RelayListIt CurrentCrossfeed = m_CrossfeedList.begin();
+	while (CurrentCrossfeed != m_CrossfeedList.end())
+	{
+		SG_ALERT (SG_SYSTEMS, SG_ALERT, "# crossfeed " << CurrentCrossfeed->Name
+		<< ":" << CurrentCrossfeed->Address.getPort());
+		CurrentCrossfeed++;
+	}
+	SG_ALERT (SG_SYSTEMS, SG_ALERT, "# I have " << m_BlackList.size() << " blacklisted IPs");
+	SG_ALERT (SG_SYSTEMS, SG_ALERT, "# Files: exit=[" << exit_file << "] stat=[" << stat_file << "]");
+	m_Listening = true;
+	return (SUCCESS);
+	*/
 	return nil
 } // FG_SERVER::Init()
 
@@ -1062,7 +1007,7 @@ func (me *FG_SERVER) Loop() {
 	count := 0
 	buf := make([]byte, MAX_PACKET_SIZE)
 	for {
-			length, _, err := connUDP.ReadFromUDP(buf)
+			length, _, err := me.DataSocket.ReadFromUDP(buf)
 			if err != nil {
 					log.Printf("ReadFrom: %v", err)
 					//break
@@ -1073,6 +1018,6 @@ func (me *FG_SERVER) Loop() {
 				//log.Println(buf[:length])
 			}
 	}
-	//fmt.Println("DROOOOOOOOOPED")
+	fmt.Println("DONE")
 		
 }
