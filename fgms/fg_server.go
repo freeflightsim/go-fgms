@@ -6,8 +6,8 @@ import(
 	"log"
 	"net"
 	"bytes"
-	"bufio"
-	"io"
+	//"bufio"
+	//"io"
 	//"strings"
 )
 import(
@@ -304,6 +304,8 @@ func (me *FG_SERVER) AddBlacklist(FourDottedIP string) {
 	}(FourDottedIP)
 } 
 
+
+
 // Check if the user is black listed. true if blacklisted
  func (me *FG_SERVER) IsBlackListed(SenderAddress *NetAddress) bool {
 	_, ok :=  me.BlackList[SenderAddress.IpAddress]
@@ -324,6 +326,15 @@ func (me *FG_SERVER) AddBlacklist(FourDottedIP string) {
 func (me *FG_SERVER) ListenAndServeTCP(l net.Listener) error {
 	srv := &TcpSrv{}
 	return srv.Serve(l)
+}
+func (me *FG_SERVER) ListenAndServeUDP(addr string) error {
+	c, err := net.ListenPacket("udp", addr)
+	if err != nil {
+		return err
+	}
+	srv := &UdpSrv{addr}
+	srv.Serve(c)
+	return nil
 }
 
 
@@ -418,10 +429,33 @@ if me.Telnet.Reinit {
 		if err != nil {
 			log.Panicf("Error Listening TCP: %s", err)
 		}
-		go me.ListenAndServeTCP(lisTel)
+		//go me.ListenAndServeTCP(lisTel)
+		go func(lisTel net.Listener){
+			for {
+				//_, err := ln.Accept() 
+				//if err != nil {
+				//	log.Println(err)
+				//}
+				conna, erra := lisTel.Accept() 
+				if erra != nil {
+					log.Println(erra)
+				}
+				log.Println("YES")
+				go me.HandleTelnetData(conna)
+				//go me.HandleAdminTelnet(conna,  ta_msgChan, ta_addChan, ta_rmChan )
+			
+			
+			}
+		}(lisTel)
 		log.Println(" >> Listening TCP: %s", tel_adr)
+		
 		 
 		
+		err = me.ListenAndServeUDP(":" + "5000")
+		if err != nil {
+			log.Panicf("Fatal error starting DHT server: %s", err)
+		}
+	
 		// admin
 		/*
 		sa := fmt.Sprintf(":%d", 5005 ) 
@@ -557,7 +591,7 @@ return (SUCCESS);
 *  Handle a telnet session. if a telnet connection is opened, this 
 *  method outputs a list  of all known clients.
 */
-func (me *FG_SERVER) HandleTelnetData(conn net.Conn, telnetDataChan <-chan TelnetClient){
+func (me *FG_SERVER) HandleTelnetData(conn net.Conn){
 
 	//var errno int = 0
 	var Message string  = ""
@@ -687,13 +721,6 @@ for (;;)
 	conn.Close()
 	//return (0);
 } // FG_SERVER::HandleTelnet ()
-
-func PromptNick(c net.Conn, bufc *bufio.Reader) string {
-	io.WriteString(c, "Welcome to fgms admin\n")
-	io.WriteString(c, "fgms needs password > ")
-	nick, _, _ := bufc.ReadLine()
-	return string(nick)
-}
 
 
 

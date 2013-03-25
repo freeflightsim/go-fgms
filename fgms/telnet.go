@@ -48,6 +48,30 @@ func (c *TcpConn) Serve() {
 	c.rwc.Write([]byte(helloString))
 }
 
+
+
+
+
+
+
+
+type UdpSrv struct {
+	Addr string
+}
+
+func (srv *UdpSrv) Serve(c net.PacketConn) error {
+	defer c.Close()
+	select {}
+	panic("not reached")
+}
+
+
+
+
+
+
+
+
  
 // TelnetServer container
 type TelnetServer  struct {
