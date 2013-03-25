@@ -51,7 +51,7 @@ type FG_SERVER struct {
 	Initialized bool
 	
 	ReinitData bool
-	//ReinitTelnet bool
+
 	Listening bool
 
 
@@ -66,14 +66,11 @@ type FG_SERVER struct {
 	PlayerExpires int
 
 	Telnet *TelnetServer
-	TelnetChan chan net.Conn
 	
-	TelnetAdmin *TelnetServer
-	TelnetAdminChan chan net.Conn
 
 //Loglevel            = SG_INFO;
 DataSocket net.Conn
-//TelnetPort int
+
 NumMaxClients int
 PlayerIsOutOfReach int // nautical miles
 NumCurrentClients int
@@ -98,7 +95,7 @@ MaxClientID int
 //typedef std::list<mT_Relay>               mT_RelayList;
 //	typedef mT_RelayList::iterator            mT_RelayListIt;
 //typedef std::map<uint32_t,string>         mT_IP2RelayNames;	
-//ReInitTelnet bool
+
 
 	IsTracked bool
 	Tracker *tracker.FG_TRACKER
@@ -143,17 +140,14 @@ func NewFG_SERVER() *FG_SERVER {
 	ob.ProtocolVersion = &Version{Major: 1, Minor: 1} // TODO
 	
 	ob.PlayerList = make(map[string]*FG_Player)
-	
-	ob.BlackList = make(map[string]bool)
-	
+		
 	ob.RelayList = make([]*NetAddress, 0)
 	ob.RelayMap = make(map[string]string)
 	
+	ob.BlackList = make(map[string]bool)
+		
 	ob.Telnet = NewTelnetServer()
-	//ob.TelnetChan = msgchan := make(chan string)
-	
-	ob.TelnetAdmin = NewTelnetServer()
-	
+		
 		
 	// set other defaults here
 	return ob
@@ -202,26 +196,16 @@ func (me *FG_SERVER) SetHub(am_hub bool){
 }
 
 
-// Set the logfile
+// Set the logfile - TODO LOg FIle writing etc
 func (me *FG_SERVER) SetLogfile( log_file_name string){
 	log.Println("> SetLogfile=", log_file_name)
 	me.LogFileName = log_file_name
-	
-	/*TODO after research
-if (m_LogFile)
-{
-	m_LogFile.close ();
+	//TODO after research of simgear
 }
-m_LogFileName = LogfileName;
-m_LogFile.open (m_LogFileName.c_str(), ios::out|ios::app);
-sglog().enable_with_date (true);
-sglog().set_output (m_LogFile);
-*/
-} // FG_SERVER::SetLogfile ( const std::string &LogfileName )
 
 
 
-// Insert a new relay server into internal list 
+// Insert a new relay server into internal list (does a DNS lookup)
 func (me *FG_SERVER) AddRelay(server string, port int) {
 	
 	// First create a relay object, which is a NetAddress
@@ -233,10 +217,11 @@ func (me *FG_SERVER) AddRelay(server string, port int) {
 		err := NewRelay.LookupIP()
 		if err != nil{
 			log.Fatalln("    < Relay FAIL < No IP address for Host ", addr.Host, addr.Port)
-			return 
+			//return 
+		}else{
+			me.RelayMap[NewRelay.Host] = NewRelay.IpAddress
+			log.Println("    < Relay Added < Lookup OK:  ", addr.Host, NewRelay.IpAddress)
 		}
-		me.RelayMap[NewRelay.Host] = NewRelay.IpAddress
-		log.Println("    < Relay Added < Lookup OK:  ", addr.Host, NewRelay.IpAddress)
 	}(NewRelay)	
 	
 } // FG_SERVER::AddRelay()
@@ -316,18 +301,8 @@ func (me *FG_SERVER) IsBlackListed(SenderAddress *NetAddress) bool {
 } 
 
 //////////////////////////////////////////////////////////////////////
-/**
-* @brief Basic initialization
-* 
-*  If we are already initialized, close
-*  all connections and re-init all variables
-*/
 
-/*func (me *FG_SERVER) ListenAndServeTCP(l net.Listener) error {
-	srv := &TcpSrv{}
-	return srv.Serve(l)
-}
-*/
+/*
 func (me *FG_SERVER) ListenAndServeUDP(addr string) error {
 	c, err := net.ListenPacket("udp", addr)
 	if err != nil {
@@ -337,8 +312,11 @@ func (me *FG_SERVER) ListenAndServeUDP(addr string) error {
 	srv.Serve(c)
 	return nil
 }
+*/
 
-
+// Basic initialization. 
+// - TODO: If we are already initialized, close
+// all connections and re-init all variables
 func (me *FG_SERVER) Init() error {
 	//if LogFile != "" {
 	// m_LogFile.open (m_LogFileName.c_str(), ios::out|ios::app);
@@ -404,47 +382,19 @@ func (me *FG_SERVER) Init() error {
 		me.ReinitData = false
 	}
 
-if me.Telnet.Reinit {
-	//if (m_TelnetSocket)
-	//{
-	// delete m_TelnetSocket;
-	//m_TelnetSocket = 0;
-	//}
-	//m_TelnetSocket = 0;
-	if me.Telnet.Port != 0 {
-		tel_adr := fmt.Sprintf(":%d", me.Telnet.Port ) // TODO ip address = 0.0.0.0 ?
-		//ln, err := net.Listen("tcp", s)
-		//if err != nil {
-		//	log.Fatal("Cannot create telnet socket")
-		//	return err
-		//}
-		//telnetDataChan := make(chan TelnetClient)
-		//http://play.golang.org/p/VGaFaDESjO
-		
-		//TODO Make UDP Socket
-		//lsu, erruu := net.ListenPacket("udp", ":5000")
-		//if erru != nil{
-		//	log.Fatal("Cannot create UDP socket")
-		//}
-		
-		//= Create and listen on Telnet Socket
-		lisTel, err := net.Listen("tcp", tel_adr)
-		if err != nil {
-			log.Panicf("Error Listening TCP: %s", err)
-		}
-		go func(lisTel net.Listener){
-			for {
-				conna, erra := lisTel.Accept() 
-				if erra != nil {
-					log.Println(erra)
-				}
-				log.Println("YES")
-				go me.HandleTelnetData(conna)
+	if me.Telnet.Reinit {
+	
+		if me.Telnet.Port > 0 {
+			me.Telnet.Addr = fmt.Sprintf(":%d", me.Telnet.Port ) // TODO ip address = 0.0.0.0 ?
+			//= Create and listen on Telnet Socket
+			var err error
+			me.Telnet.Listen, err = net.Listen("tcp", me.Telnet.Addr)
+			if err != nil {
+				log.Panicf("Error Opening Telnet: %s", err)
 			}
-		}(lisTel)
-		
-		log.Println(" >> Listening TCP: %s", tel_adr)
-		me.Telnet.Reinit = false
+			me.Telnet.Reinit = false
+		}
+
 		
 		
 		
@@ -455,9 +405,7 @@ if me.Telnet.Reinit {
 			log.Panicf("Fatal error starting UDP server: %s", err)
 			return err
 		}
-		//srv := &UdpSrv{addr}
-		//srv.Serve(c)
-		//err = me.ListenAndServeUDP(":" + "5000")
+		log.Println(" >> Listening UDP: %s", "127.0.0.1:5000")
 		count := 0
 		buf := make([]byte, MAX_PACKET_SIZE)
 		for {
@@ -472,64 +420,11 @@ if me.Telnet.Reinit {
 					//log.Println(buf[:length])
 				}
 		}
-		//if err != nil {
-			//log.Panicf("Fatal error starting DHT server: %s", err)
-		//}
-	
-		// admin
-		/*
-		sa := fmt.Sprintf(":%d", 5005 ) 
-		lna, erra := net.Listen("tcp", sa)
-		if erra != nil {
-			log.Fatal("Cannot create telnet socket for admin", erra)
-			return erra
-		}
-		ta_msgChan := make(chan TelnetClient)
-		ta_addChan := make(chan TelnetClient)
-		ta_rmChan := make(chan TelnetClient)
-		
-		go me.H_TelnetAdminMessages( ta_msgChan, ta_addChan, ta_rmChan )
-		*/
-		
-		//msgchan := make(chan string)
-		
-		//go me.PrintMessages(msgchan)
-		/* for {
-			//_, err := ln.Accept() 
-			//if err != nil {
-			//	log.Println(err)
-			//}
-			conna, erra := lna.Accept() 
-			if erra != nil {
-				log.Println(erra)
-			}
-			
-			//go me.HandleTelnetData(conn, telnetDataChan)
-			go me.HandleAdminTelnet(conna,  ta_msgChan, ta_addChan, ta_rmChan )
-			
-			
-		} */
-		
+		fmt.Println("DROOOOOOOOOPED")
 	}
 	
-	/*m_TelnetSocket->setBlocking (false);
-	m_TelnetSocket->setSockOpt (SO_REUSEADDR, true);
-	if (m_TelnetSocket->bind (m_BindAddress.c_str(), m_TelnetPort) != 0)
-	{
-		SG_ALERT (SG_SYSTEMS, SG_ALERT, "FG_SERVER::Init() - "
-		<< "failed to bind to port " << m_TelnetPort);
-		SG_ALERT (SG_SYSTEMS, SG_ALERT, "already in use?");
-		return (ERROR_COULDNT_BIND);
-	}
-	if (m_TelnetSocket->listen (MAX_TELNETS) != 0)
-	{
-		SG_ALERT (SG_SYSTEMS, SG_ALERT, "FG_SERVER::Init() - "
-		<< "failed to listen to telnet port");
-		return (ERROR_COULDNT_LISTEN);
-	}*/
 	
-}
-log.Fatal("HERE")
+	log.Fatal("HERE")
 /*
 SG_ALERT (SG_SYSTEMS, SG_ALERT, "# This is " << m_ServerName);
 SG_ALERT (SG_SYSTEMS, SG_ALERT, "# FlightGear Multiplayer Server v"
@@ -1160,3 +1055,25 @@ if ((CurrentPlayer->IsLocal) && (m_MessageList.size()))
 	}
 } */
 } // FG_SERVER::SendChatMessages ()
+
+
+
+
+
+
+func (me *FG_SERVER) Loop() {
+
+	// Startuo Telnet Listener
+	go func(lisTel net.Listener){
+		for {
+			conna, erra := lisTel.Accept() 
+			if erra != nil {
+				log.Println(erra)
+			}
+			log.Println("YES")
+			go me.HandleTelnetData(conna)
+		}
+	}(me.Telnet.Listen)
+	log.Println(" >> Listening Telnet: %s")
+	
+}

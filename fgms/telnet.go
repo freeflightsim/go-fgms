@@ -9,7 +9,7 @@ import(
 	//"io"
 	//"strings"
 )
-
+/*
 type TcpSrv struct {
 	Addr string
 }
@@ -64,7 +64,7 @@ func (srv *UdpSrv) Serve(c net.PacketConn) error {
 	select {}
 	panic("not reached")
 }
-
+*/
 
 
 
@@ -75,10 +75,12 @@ func (srv *UdpSrv) Serve(c net.PacketConn) error {
  
 // TelnetServer container
 type TelnetServer  struct {
+	Addr string
 	Port int
 	Reinit bool
 	Received int
-	Conn *net.Conn
+	//Conn *net.Conn
+	Listen net.Listener
 }
 
 // Constructs and return TelnetServer
@@ -86,7 +88,7 @@ func NewTelnetServer() *TelnetServer {
 	ob := new(TelnetServer)
 	return ob
 }
-
+/*
 
  
 // TelnetClient container
@@ -96,7 +98,7 @@ type TelnetClient  struct {
 	message string
 	ch chan string
 }
-
+*/
 /*
 func (c TelnetClient) ReadLinesInto(ch chan TelnetClient) {
 	bufc := bufio.NewReader(c.conn)

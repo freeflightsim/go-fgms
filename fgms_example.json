@@ -19,7 +19,7 @@
 		{"host": "mpserver01.flightgear.org", "port": 5000, "comment": "Oliver Schroeder, Berlin, Germany"},
 		{"host": "mpserver02.flightgear.org", "port": 5000, "comment": ""},
 		{"host": "mpserver03.flightgear.org", "port": 5000, "comment": ""},
-		{"host": "mpserverdead03.flightgear.org", "port": 5000, "comment": ""},
+		{"host": "mpserver0s7.flightgear.org", "port": 5000, "comment": ""},
 		{"host": "mpserver14.flightgear.org", "port": 5000, "comment": "FGx Zurich"}
     ],
 
@@ -29,7 +29,7 @@
     
 	"blacklists": [
 		"123.123.123.123",
-		"12.12.12.12",
+		"a12.12.12.12",
 		"122.12.12.12"
     ]
 }

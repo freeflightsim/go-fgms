@@ -4,7 +4,7 @@ package main
 
 // source = http://gitorious.org/fgms/fgms-0-x/blobs/master/src/server/main.cxx
 import(
-	"fmt"
+	//"fmt"
 	//"strconv"
 	"log"
 	"io/ioutil"
@@ -17,35 +17,24 @@ import(
 // Main instance of FG_SERVER
 var Servant *fgms.FG_SERVER
 
-//////////////////////////////////////////////////////////////////////
-/// MAIN routine 
-//* @param argc
-// @param argv*[]
-//int main ( int argc, char* argv[] )
+
+
+// MAIN routine 
 func main(){
 
 	// Initialize the beest
 	Servant = fgms.NewFG_SERVER()
-	//int     I;
-	//#if defined ENABLE_DEBUG
-	//  logbuf::set_log_classes(SG_GENERAL);
-	//#endif
 	
-	//ParseParams (argc, argv);
-	ReadConfigs(false)
-	//if ( !bHadConfig )
-	//{
-	//	SG_ALERT (SG_SYSTEMS, SG_ALERT, "No configuration file '" << DEF_CONF_FILE << "' found!");
-	//	exit(1);
-	//}
-	
-	//sglog().setLogLevels( SG_ALL, SG_INFO );
-	//sglog().enable_with_date (true);
+	ReadLoadConfigs(false)
+
 	err := Servant.Init()
+	
 	if err != nil {
 		//Servant.CloseTracker()
+		log.Println("DDDDDDDOOOOOOONEEEE", err)
 		return
 	}
+	Servant.Loop()
 	/*
 	I = Servant.Loop();
 	if (I != 0)
@@ -56,67 +45,41 @@ func main(){
 	Servant.Done();
 	return (0);
 	*/
+	log.Println("DDDDDDDOOOOOOONEEEE")
 }  // main()
 
 
 
 
-// (re)Read config files - ReInit True to reinitialize
-func ReadConfigs(ReInit bool) error {
-	
-	var Path string
-	Path = "/home/gogo/src/github.com/fgx/go-fgms/fgms_example.conf"
-	
-	//yamlFile :=  "/home/gogo/src/github.com/fgx/go-fgms/fgms_example.yaml"
-	//conf, erry := yaml.ReadFile(yamlFile)
-	
-	//fmt.Println("error=", conf, erry)
-	
-	//if (Path != "")
-	//{
-	//	Path += "/" DEF_CONF_FILE;
-	err := ProcessConfig (Path)
-	if err != nil {
-		fmt.Println("error=", err)
-		return err
-	}
-	//if (ProcessConfig (DEF_CONF_FILE))
-	//	return 1;
-	return nil
-} // ReadConfigs ()
 
 
 // Read a config file and set internal variables accordingly.
-// Returns an error or nil
-func ProcessConfig( configFilePath string) error{
+func ReadLoadConfigs( reInit bool) error{
 
-	//yamlFile :=  "/home/gogo/src/github.com/fgx/go-fgms/fgms_example.yaml"
-	jsonFile :=  "/home/gogo/src/github.com/fgx/go-fgms/fgms_example.json"
+	configFilePath := "/home/gogo/src/github.com/fgx/go-fgms/fgms_example.json"
 	
-	//Config, errj := LoadJsonConfig(jsonFile)
-	filebyte, err := ioutil.ReadFile(jsonFile) 
+	// Read file
+	filebyte, err := ioutil.ReadFile(configFilePath) 
     if err != nil { 
-        log.Fatal("Could not read JSON config file: `" + jsonFile + "` ")
+        log.Fatal("Could not read JSON config file: `" + configFilePath + "` ")
         return  err
     } 
-    //log.Println(string(filebyte))
+    // Parse JSON
 	var Config fgms.JSON_ConfAll
     err = json.Unmarshal(filebyte, &Config)
     if err != nil{
-    	log.Fatalln("JSON Decode Error from: ", jsonFile,  err)
+    	log.Fatalln("JSON Decode Error from: ", configFilePath,  err)
     	return err
     }
 	
+	// Server Name
 	Servant.SetServerName(Config.Server.Name)
-	//	bHadConfig = true; // got a serve name - minimum
-	//return nil
 	
 	// Address
 	Servant.SetBindAddress(Config.Server.Address)
 	
 	// UDP Port No
 	Servant.SetDataPort(Config.Server.Port)
-	
 	
 	// Telnet Port
 	Servant.SetTelnetPort(Config.Server.TelnetPort)
@@ -130,7 +93,6 @@ func ProcessConfig( configFilePath string) error{
 	// Server is hub
 	Servant.SetHub( Config.Server.IsHub ) 
 
-	
 	// Log File
 	Servant.SetLogfile(Config.Server.LogFile);
 	
@@ -151,9 +113,6 @@ func ProcessConfig( configFilePath string) error{
 		} 
 	}
 	*/
-	
-
-	
 	
 	// Read the list of relays
 	for _, relay := range Config.Relays {
@@ -203,44 +162,13 @@ func ProcessConfig( configFilePath string) error{
 	}
 	*/
 	
-	//////////////////////////////////////////////////
-	//      read the list of blacklisted IPs
-	//////////////////////////////////////////////////
-	/*blacklist, err := Config.GetList("blacklist")
-	fmt.Println(blacklist, err)
-	if len(blacklist) > 0 {
-		for _, bl := range blacklist {
-			Servant.AddBlacklist(bl)
-		}
-	} 
-	*/
+	// read the list of blacklisted IPs
+
 	for _, blackList := range Config.Blacklists {
 		Servant.AddBlacklist(blackList)
 	}
 	
-	/*
-	MoreToRead  = true;
-	Section = "blacklist";
-	Var    = "";
-	Val    = "";
-	if (! Config.SetSection (Section))
-	{
-		MoreToRead = false;
-	}
-	while (MoreToRead)
-	{
-		Var = Config.GetName ();
-		Val = Config.GetValue();
-		if (Var == "blacklist")
-		{
-			Servant.AddBlacklist (Val);
-		}
-		if (Config.SecNext () == 0)
-		{
-			MoreToRead = false;
-		}
-	}*/
-	//////////////////////////////////////////////////
+
 	return nil
-} // ProcessConfig ( const string& ConfigName )
+}
 
