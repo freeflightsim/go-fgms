@@ -449,7 +449,8 @@ if me.Telnet.Reinit {
 		
 		 
 		//=== UDP ===
-		connUDP, err := net.ListenPacket("udp", "127.0.0.1:5000")
+		addr, err := net.ResolveUDPAddr("udp", "127.0.0.1:5000")
+		connUDP, err := net.ListenUDP("udp", addr)
 		if err != nil {
 			log.Panicf("Fatal error starting UDP server: %s", err)
 			return err
@@ -458,16 +459,17 @@ if me.Telnet.Reinit {
 		//srv.Serve(c)
 		//err = me.ListenAndServeUDP(":" + "5000")
 		count := 0
-		buf := make([]byte, 512)
+		buf := make([]byte, MAX_PACKET_SIZE)
 		for {
-				length, _, err := connUDP.ReadFrom(buf)
+				length, _, err := connUDP.ReadFromUDP(buf)
                 if err != nil {
                         log.Printf("ReadFrom: %v", err)
                         break
                 }
                 count++
                 //log.Printf("<%s> %q", raddr, buf[:length])
-                log.Printf("%d", count, length)
+                log.Printf("%d %d", count, length)
+                //log.Println(buf[:length])
 		}
 		//if err != nil {
 			//log.Panicf("Fatal error starting DHT server: %s", err)
