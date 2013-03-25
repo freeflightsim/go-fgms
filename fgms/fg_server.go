@@ -268,7 +268,7 @@ func (me *FG_SERVER) AddBlacklist(FourDottedIP string) {
 		addrs, err := net.LookupHost(ip_str)
 		//err := net.LookupHost(ip_str)
 		if err != nil{
-			log.Fatalln("    < Blacklist FAIL: No IP address for address = ", ip_str)
+			log.Println("    < Blacklist FAIL: No IP address for address = ", ip_str)
 			return 
 		}
 		log.Println("    < Blacklist Added < Lookup OK: ", ip_str, addrs, ip_str == addrs[0])
@@ -560,220 +560,6 @@ for (;;)
 
 
 
-//////////////////////////////////////////////////////////////////////
-/**
-* @brief Handle client connections
-* @param Msg
-* @param Bytes
-* @param SenderAddress
-*/
-func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *NetAddress){
-//T_MsgHdr*       MsgHdr;
-//T_PositionMsg*  PosMsg;
-//uint32_t        MsgId;
-//uint32_t        MsgMagic;
-//Timestamp time.Time
-//Point3D         SenderPosition;
-//Point3D         SenderOrientation;
-//Point3D         PlayerPosGeod;
-//mT_PlayerListIt CurrentPlayer;
-//mT_PlayerListIt SendingPlayer;
-//unsigned int    PktsForwarded = 0;
-
-//Timestamp = time.Now() //time(0);
-//MsgHdr    = (T_MsgHdr *) Msg;
-	//MsgHdr :=  
-	var MsgHdr flightgear.T_MsgHdr
-	remainingBytes, err := xdr.Unmarshal(Msg, &MsgHdr)
-	fmt.Println("got", remainingBytes, err)
-	//MsgMagic  = XDR_decode<uint32_t> (MsgHdr->Magic);
-	//MsgId     = XDR_decode<uint32_t> (MsgHdr->MsgId);
-	fmt.Println( MsgHdr.Magic, MsgHdr.MsgId )
-	
-	//------------------------------------------------------
-	// First of all, send packet to all crossfeed servers.
-	//SendToCrossfeed (Msg, Bytes, SenderAddress);
-	//me.SendToCrossfeed(Msg, Bytes, SenderAddress)
-
-
-	//------------------------------------------------------
-	//=  Now do the local processing
-	if me.IsBlackListed(SenderAddress) {
-		me.BlackListRejected++
-		return
-	}
-	/*  WHY ??? passed by value
-	if ! me.PacketIsValid(	Bytes, 
-							MsgHdr, 
-							SenderAddress) {
-		me.PacketsInvalid++
-		return
-	} */
-	
-/* if (MsgMagic == RELAY_MAGIC) // not a local client
-{
-	if (! IsKnownRelay (SenderAddress))
-	{
-	m_UnknownRelay++;
-	return;
-	}
-	else
-	{
-	m_RelayMagic++; // bump relay magic packet
-	}
-} */
-	if MsgHdr.Magic == RELAY_MAGIC {
-		if me.IsKnownRelay(SenderAddress) {
-			return
-		}
-		me.RelayMagic++ // bump relay magic packet
-}
-
-//////////////////////////////////////////////////
-//
-//    Store senders position
-//
-//////////////////////////////////////////////////
-/* if (MsgId == POS_DATA_ID)
-{
-	m_PositionData++;
-	PosMsg = (T_PositionMsg *) (Msg + sizeof(T_MsgHdr));
-	double x = XDR_decode64<double> (PosMsg->position[X]);
-	double y = XDR_decode64<double> (PosMsg->position[Y]);
-	double z = XDR_decode64<double> (PosMsg->position[Z]);
-	if ( (x == 0.0) || (y == 0.0) || (z == 0.0) )
-	{ // ignore while position is not settled
-	return;
-	}
-	SenderPosition.Set (x, y, z);
-	SenderOrientation.Set (
-	XDR_decode<float> (PosMsg->orientation[X]),
-	XDR_decode<float> (PosMsg->orientation[Y]),
-	XDR_decode<float> (PosMsg->orientation[Z])
-	);
-}
-else
-{
-	m_NotPosData++;
-} */
-//////////////////////////////////////////////////
-//
-//    Add Client to list if its not known
-//
-//////////////////////////////////////////////////
-/* int ClientInList = SenderIsKnown (MsgHdr->Callsign, SenderAddress);
-if (ClientInList == 0)
-{ // unknown, add to the list
-	if (MsgId != POS_DATA_ID)
-	{ // ignore clients until we have a valid position
-	return;
-	}
-	AddClient (SenderAddress, Msg);
-}
-else if (ClientInList == 2)
-{ // known, but different IP => ignore
-	return;
-}*/
-//////////////////////////////////////////
-//
-//      send the packet to all clients.
-//      since we are walking through the list,
-//      we look for the sending client, too. if it
-//      is not already there, add it to the list
-//
-//////////////////////////////////////////////////
-/* MsgHdr->Magic = XDR_encode<uint32_t> (MSG_MAGIC);
-SendingPlayer = m_PlayerList.end();
-CurrentPlayer = m_PlayerList.begin();
-while (CurrentPlayer != m_PlayerList.end())
-{ */
-	//////////////////////////////////////////////////
-	//
-	//      ignore clients with errors
-	//
-	//////////////////////////////////////////////////
-	//if (CurrentPlayer->HasErrors)
-	//{
-	// CurrentPlayer++;
-	//continue;
-	//}
-	//////////////////////////////////////////////////
-	//        Sender == CurrentPlayer?
-	//////////////////////////////////////////////////
-	//  FIXME: if Sender is a Relay,
-	//         CurrentPlayer->Address will be
-	//         address of Relay and not the client's!
-	//         so use a clientID instead
-	/* if (CurrentPlayer->Callsign == MsgHdr->Callsign)
-	{
-	if (MsgId == POS_DATA_ID)
-	{
-		CurrentPlayer->LastPos         = SenderPosition;
-		CurrentPlayer->LastOrientation = SenderOrientation;
-	}
-	else
-	{
-		SenderPosition    = CurrentPlayer->LastPos;
-		SenderOrientation = CurrentPlayer->LastOrientation;
-	}
-	SendingPlayer = CurrentPlayer;
-	CurrentPlayer->Timestamp = Timestamp;
-	CurrentPlayer->PktsReceivedFrom++;
-	CurrentPlayer++;
-	continue; // don't send packet back to sender
-	}*/
-	//////////////////////////////////////////////////
-	//      do not send packets to clients if the
-	//      origin is an observer, but do send
-	//      chat messages anyway
-	//      FIXME: MAGIC = SFGF!
-	//////////////////////////////////////////////////
-	/* if ((strncasecmp(MsgHdr->Callsign, "obs", 3) == 0)
-	&&  (MsgId != CHAT_MSG_ID))
-	{
-	return;
-	} */
-	//////////////////////////////////////////////////
-	//
-	//      do not send packet to clients which
-	//      are out of reach.
-	//
-	//////////////////////////////////////////////////
-	/* if ((Distance (SenderPosition, CurrentPlayer->LastPos) > m_PlayerIsOutOfReach)
-	&&  (CurrentPlayer->Callsign.compare (0, 3, "obs", 3) != 0))
-	{
-	CurrentPlayer++;
-	continue;
-	} */
-	//////////////////////////////////////////////////
-	//
-	//  only send packet to local clients
-	//
-	//////////////////////////////////////////////////
-	/* if (CurrentPlayer->IsLocal)
-	{
-	SendChatMessages (CurrentPlayer);
-	m_DataSocket->sendto (Msg, Bytes, 0, &CurrentPlayer->Address);
-	CurrentPlayer->PktsSentTo++;
-	PktsForwarded++;
-	}
-	CurrentPlayer++;
-} */
-/* 
-if (SendingPlayer == m_PlayerList.end())
-{ // player not yet in our list
-	// should not happen, but test just in case
-	SG_LOG (SG_SYSTEMS, SG_ALERT, "## BAD => "
-	<< MsgHdr->Callsign << ":" << SenderAddress.getHost()
-	<< " : " << SenderIsKnown (MsgHdr->Callsign, SenderAddress)
-	);
-	return;
-}
-DeleteMessageQueue ();
-SendToRelays (Msg, Bytes, SendingPlayer);
-*/
-} // FG_SERVER::HandlePacket ( char* sMsg[MAX_PACKET_SIZE] )
-
 
 func (me *FG_SERVER) PacketIsValid(	Bytes int, 
 									MsgHdr flightgear.T_MsgHdr, 
@@ -1001,17 +787,240 @@ func (me *FG_SERVER) Loop() {
 	count := 0
 	buf := make([]byte, MAX_PACKET_SIZE)
 	for {
-			length, _, err := me.DataSocket.ReadFromUDP(buf)
+			length, raddr, err := me.DataSocket.ReadFromUDP(buf)
 			if err != nil {
 					log.Printf("ReadFrom: %v", err)
 					//break
 			}else {
 				count++
 				//log.Printf("<%s> %q", raddr, buf[:length])
-				log.Printf("%d %d", count, length)
+				log.Println("count", count, raddr, length)
 				//log.Println(buf[:length])
+				//Msg []byte, Bytes int, SenderAddress *NetAddress){
+				me.HandlePacket( buf[:length], length, raddr)
+				
 			}
 	}
 	fmt.Println("DONE")
 		
 }
+
+
+
+//////////////////////////////////////////////////////////////////////
+/**
+* @brief Handle client connections
+* @param Msg
+* @param Bytes
+* @param SenderAddress
+*/
+func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPAddr){
+	//T_MsgHdr*       MsgHdr;
+	//T_PositionMsg*  PosMsg;
+	//uint32_t        MsgId;
+	//uint32_t        MsgMagic;
+	//Timestamp time.Time
+	//Point3D         SenderPosition;
+	//Point3D         SenderOrientation;
+	//Point3D         PlayerPosGeod;
+	//mT_PlayerListIt CurrentPlayer;
+	//mT_PlayerListIt SendingPlayer;
+	//unsigned int    PktsForwarded = 0;
+	
+	//Timestamp = time.Now() //time(0);
+	//MsgHdr    = (T_MsgHdr *) Msg;
+	//MsgHdr :=  
+	var MsgHdr flightgear.T_MsgHdr
+	remainingBytes, err := xdr.Unmarshal(Msg, &MsgHdr)
+	if err != nil{
+		fmt.Println("got", remainingBytes, err)
+	}
+	
+	//MsgMagic  = XDR_decode<uint32_t> (MsgHdr->Magic);
+	//MsgId     = XDR_decode<uint32_t> (MsgHdr->MsgId);
+	fmt.Println( "Magic/ID", MsgHdr.Magic, MsgHdr.MsgId, MsgHdr.Callsign, MsgHdr.ReplyAddress, MsgHdr.ReplyPort )
+	
+	//------------------------------------------------------
+	// First of all, send packet to all crossfeed servers.
+	//SendToCrossfeed (Msg, Bytes, SenderAddress);
+	//me.SendToCrossfeed(Msg, Bytes, SenderAddress)
+
+
+	//------------------------------------------------------
+	//=  Now do the local processing
+	//if me.IsBlackListed(SenderAddress) {
+	//	me.BlackListRejected++
+	//	return
+	//}
+	/*  WHY ??? passed by value
+	if ! me.PacketIsValid(	Bytes, 
+							MsgHdr, 
+							SenderAddress) {
+		me.PacketsInvalid++
+		return
+	} */
+	
+/* if (MsgMagic == RELAY_MAGIC) // not a local client
+{
+	if (! IsKnownRelay (SenderAddress))
+	{
+	m_UnknownRelay++;
+	return;
+	}
+	else
+	{
+	m_RelayMagic++; // bump relay magic packet
+	}
+} */
+	/*
+	if MsgHdr.Magic == RELAY_MAGIC {
+		if me.IsKnownRelay(SenderAddress) {
+			return
+		}
+		me.RelayMagic++ // bump relay magic packet
+	}
+	*/
+//////////////////////////////////////////////////
+//
+//    Store senders position
+//
+//////////////////////////////////////////////////
+/* if (MsgId == POS_DATA_ID)
+{
+	m_PositionData++;
+	PosMsg = (T_PositionMsg *) (Msg + sizeof(T_MsgHdr));
+	double x = XDR_decode64<double> (PosMsg->position[X]);
+	double y = XDR_decode64<double> (PosMsg->position[Y]);
+	double z = XDR_decode64<double> (PosMsg->position[Z]);
+	if ( (x == 0.0) || (y == 0.0) || (z == 0.0) )
+	{ // ignore while position is not settled
+	return;
+	}
+	SenderPosition.Set (x, y, z);
+	SenderOrientation.Set (
+	XDR_decode<float> (PosMsg->orientation[X]),
+	XDR_decode<float> (PosMsg->orientation[Y]),
+	XDR_decode<float> (PosMsg->orientation[Z])
+	);
+}
+else
+{
+	m_NotPosData++;
+} */
+//////////////////////////////////////////////////
+//
+//    Add Client to list if its not known
+//
+//////////////////////////////////////////////////
+/* int ClientInList = SenderIsKnown (MsgHdr->Callsign, SenderAddress);
+if (ClientInList == 0)
+{ // unknown, add to the list
+	if (MsgId != POS_DATA_ID)
+	{ // ignore clients until we have a valid position
+	return;
+	}
+	AddClient (SenderAddress, Msg);
+}
+else if (ClientInList == 2)
+{ // known, but different IP => ignore
+	return;
+}*/
+//////////////////////////////////////////
+//
+//      send the packet to all clients.
+//      since we are walking through the list,
+//      we look for the sending client, too. if it
+//      is not already there, add it to the list
+//
+//////////////////////////////////////////////////
+/* MsgHdr->Magic = XDR_encode<uint32_t> (MSG_MAGIC);
+SendingPlayer = m_PlayerList.end();
+CurrentPlayer = m_PlayerList.begin();
+while (CurrentPlayer != m_PlayerList.end())
+{ */
+	//////////////////////////////////////////////////
+	//
+	//      ignore clients with errors
+	//
+	//////////////////////////////////////////////////
+	//if (CurrentPlayer->HasErrors)
+	//{
+	// CurrentPlayer++;
+	//continue;
+	//}
+	//////////////////////////////////////////////////
+	//        Sender == CurrentPlayer?
+	//////////////////////////////////////////////////
+	//  FIXME: if Sender is a Relay,
+	//         CurrentPlayer->Address will be
+	//         address of Relay and not the client's!
+	//         so use a clientID instead
+	/* if (CurrentPlayer->Callsign == MsgHdr->Callsign)
+	{
+	if (MsgId == POS_DATA_ID)
+	{
+		CurrentPlayer->LastPos         = SenderPosition;
+		CurrentPlayer->LastOrientation = SenderOrientation;
+	}
+	else
+	{
+		SenderPosition    = CurrentPlayer->LastPos;
+		SenderOrientation = CurrentPlayer->LastOrientation;
+	}
+	SendingPlayer = CurrentPlayer;
+	CurrentPlayer->Timestamp = Timestamp;
+	CurrentPlayer->PktsReceivedFrom++;
+	CurrentPlayer++;
+	continue; // don't send packet back to sender
+	}*/
+	//////////////////////////////////////////////////
+	//      do not send packets to clients if the
+	//      origin is an observer, but do send
+	//      chat messages anyway
+	//      FIXME: MAGIC = SFGF!
+	//////////////////////////////////////////////////
+	/* if ((strncasecmp(MsgHdr->Callsign, "obs", 3) == 0)
+	&&  (MsgId != CHAT_MSG_ID))
+	{
+	return;
+	} */
+	//////////////////////////////////////////////////
+	//
+	//      do not send packet to clients which
+	//      are out of reach.
+	//
+	//////////////////////////////////////////////////
+	/* if ((Distance (SenderPosition, CurrentPlayer->LastPos) > m_PlayerIsOutOfReach)
+	&&  (CurrentPlayer->Callsign.compare (0, 3, "obs", 3) != 0))
+	{
+	CurrentPlayer++;
+	continue;
+	} */
+	//////////////////////////////////////////////////
+	//
+	//  only send packet to local clients
+	//
+	//////////////////////////////////////////////////
+	/* if (CurrentPlayer->IsLocal)
+	{
+	SendChatMessages (CurrentPlayer);
+	m_DataSocket->sendto (Msg, Bytes, 0, &CurrentPlayer->Address);
+	CurrentPlayer->PktsSentTo++;
+	PktsForwarded++;
+	}
+	CurrentPlayer++;
+} */
+/* 
+if (SendingPlayer == m_PlayerList.end())
+{ // player not yet in our list
+	// should not happen, but test just in case
+	SG_LOG (SG_SYSTEMS, SG_ALERT, "## BAD => "
+	<< MsgHdr->Callsign << ":" << SenderAddress.getHost()
+	<< " : " << SenderIsKnown (MsgHdr->Callsign, SenderAddress)
+	);
+	return;
+}
+DeleteMessageQueue ();
+SendToRelays (Msg, Bytes, SendingPlayer);
+*/
+} // FG_SERVER::HandlePacket ( char* sMsg[MAX_PACKET_SIZE] )
