@@ -298,8 +298,9 @@ func (me *FG_SERVER) AddBlacklist(FourDottedIP string) {
 			log.Fatalln("    < Blacklist FAIL: No IP address for address = ", ip_str)
 			return 
 		}
-		log.Println("    < Blacklist Add: ", ip_str, addrs)
-		me.BlackList[ip_str] = true
+		log.Println("    < Blacklist Added < Lookup OK: ", ip_str, addrs, ip_str == addrs[0])
+		
+		me.BlackList[ addrs[0] ] = true
 	}(FourDottedIP)
 	
 	//log.Println("Added to blacklist: ", FourDottedIP)
@@ -326,69 +327,69 @@ func (me *FG_SERVER) AddBlacklist(FourDottedIP string) {
 
 
 func (me *FG_SERVER) Init() error {
-//if LogFile != "" {
-// m_LogFile.open (m_LogFileName.c_str(), ios::out|ios::app);
-	//sglog().setLogLevels( SG_ALL, SG_INFO );
-// sglog().enable_with_date (true);
-// sglog().set_output(m_LogFile);
-//}
-
-/*
-if (m_Initialized == true)
-{
-	if (m_Listening)
-	{
-	Done();
-	}
-	m_Initialized       = false;
-	m_Listening         = false;
-	m_DataSocket        = 0;
-	m_NumMaxClients     = 0;
-	m_NumCurrentClients = 0;
-}
-*/
-//if (m_ReinitData || m_ReinitTelnet)
-//{
-//  netInit ();
-//}
-
-if 1 == 0 { //me.ReinitData {
-	if me.DataSocket != nil {
-		//delete m_DataSocket;
-		//m_DataSocket = 0;
-	}
-	//m_DataSocket = new netSocket()
-	//if (m_DataSocket->open (false) == 0)    // UDP-Socket
-	//{
-	//SG_ALERT (SG_SYSTEMS, SG_ALERT, "FG_SERVER::Init() - "
-	//	<< "failed to create listener socket");
-	//return (ERROR_CREATE_SOCKET);
-	//	}
-	/* s := fmt.Sprintf(":%d", 5000 )
-	udp_ln, err := net.ListenUDP(s)
-	if err != nil {
-		log.Fatal("Cannot create UDP socket")
-		return err
-	}
-	for {
-			conn, err := udp_ln.ListenPacket() 
-			if err != nil {
-				log.Println(err)
-			}
-			log.Println(conn)
-			//go me.HandleUDP(conn)
-	}*/
-	//m_DataSocket->setBlocking (false);
-	//m_DataSocket->setSockOpt (SO_REUSEADDR, true);
-	//if (m_DataSocket->bind (m_BindAddress.c_str(), m_ListenPort) != 0)
-	//{
-	//SG_ALERT (SG_SYSTEMS, SG_ALERT, "FG_SERVER::Init() - "
-	//	<< "failed to bind to port " << m_ListenPort);
-	//SG_ALERT (SG_SYSTEMS, SG_ALERT, "already in use?");
-	//return (ERROR_COULDNT_BIND);
+	//if LogFile != "" {
+	// m_LogFile.open (m_LogFileName.c_str(), ios::out|ios::app);
+		//sglog().setLogLevels( SG_ALL, SG_INFO );
+	// sglog().enable_with_date (true);
+	// sglog().set_output(m_LogFile);
 	//}
-	me.ReinitData = false
-}
+	
+	/*
+	if (m_Initialized == true)
+	{
+		if (m_Listening)
+		{
+		Done();
+		}
+		m_Initialized       = false;
+		m_Listening         = false;
+		m_DataSocket        = 0;
+		m_NumMaxClients     = 0;
+		m_NumCurrentClients = 0;
+	}
+	*/
+	//if (m_ReinitData || m_ReinitTelnet)
+	//{
+	//  netInit ();
+	//}
+
+	if 1 == 0 { //me.ReinitData {
+		if me.DataSocket != nil {
+			//delete m_DataSocket;
+			//m_DataSocket = 0;
+		}
+		//m_DataSocket = new netSocket()
+		//if (m_DataSocket->open (false) == 0)    // UDP-Socket
+		//{
+		//SG_ALERT (SG_SYSTEMS, SG_ALERT, "FG_SERVER::Init() - "
+		//	<< "failed to create listener socket");
+		//return (ERROR_CREATE_SOCKET);
+		//	}
+		/* s := fmt.Sprintf(":%d", 5000 )
+		udp_ln, err := net.ListenUDP(s)
+		if err != nil {
+			log.Fatal("Cannot create UDP socket")
+			return err
+		}
+		for {
+				conn, err := udp_ln.ListenPacket() 
+				if err != nil {
+					log.Println(err)
+				}
+				log.Println(conn)
+				//go me.HandleUDP(conn)
+		}*/
+		//m_DataSocket->setBlocking (false);
+		//m_DataSocket->setSockOpt (SO_REUSEADDR, true);
+		//if (m_DataSocket->bind (m_BindAddress.c_str(), m_ListenPort) != 0)
+		//{
+		//SG_ALERT (SG_SYSTEMS, SG_ALERT, "FG_SERVER::Init() - "
+		//	<< "failed to bind to port " << m_ListenPort);
+		//SG_ALERT (SG_SYSTEMS, SG_ALERT, "already in use?");
+		//return (ERROR_COULDNT_BIND);
+		//}
+		me.ReinitData = false
+	}
 
 if me.Telnet.Reinit {
 	//if (m_TelnetSocket)
@@ -405,6 +406,13 @@ if me.Telnet.Reinit {
 		//	return err
 		//}
 		//telnetDataChan := make(chan TelnetClient)
+		
+		//TODO Make UDP Socket
+		lsu, erruu := net.ListenPacket("udp", ":5000")
+		if erru != nil{
+			log.Fatal("Cannot create UDP socket")
+		}
+		
 		
 		// admin
 		sa := fmt.Sprintf(":%d", 5005 ) 
