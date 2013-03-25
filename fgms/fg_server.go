@@ -323,10 +323,11 @@ func (me *FG_SERVER) AddBlacklist(FourDottedIP string) {
 *  all connections and re-init all variables
 */
 
-func (me *FG_SERVER) ListenAndServeTCP(l net.Listener) error {
+/*func (me *FG_SERVER) ListenAndServeTCP(l net.Listener) error {
 	srv := &TcpSrv{}
 	return srv.Serve(l)
 }
+*/
 func (me *FG_SERVER) ListenAndServeUDP(addr string) error {
 	c, err := net.ListenPacket("udp", addr)
 	if err != nil {
@@ -425,36 +426,52 @@ if me.Telnet.Reinit {
 		//if erru != nil{
 		//	log.Fatal("Cannot create UDP socket")
 		//}
+		
+		//= Create and listen on Telnet Socket
 		lisTel, err := net.Listen("tcp", tel_adr)
 		if err != nil {
 			log.Panicf("Error Listening TCP: %s", err)
 		}
-		//go me.ListenAndServeTCP(lisTel)
 		go func(lisTel net.Listener){
 			for {
-				//_, err := ln.Accept() 
-				//if err != nil {
-				//	log.Println(err)
-				//}
 				conna, erra := lisTel.Accept() 
 				if erra != nil {
 					log.Println(erra)
 				}
 				log.Println("YES")
 				go me.HandleTelnetData(conna)
-				//go me.HandleAdminTelnet(conna,  ta_msgChan, ta_addChan, ta_rmChan )
-			
-			
 			}
 		}(lisTel)
+		
 		log.Println(" >> Listening TCP: %s", tel_adr)
+		me.Telnet.Reinit = false
+		
 		
 		 
-		
-		err = me.ListenAndServeUDP(":" + "5000")
+		//=== UDP ===
+		connUDP, err := net.ListenPacket("udp", "127.0.0.1:5000")
 		if err != nil {
-			log.Panicf("Fatal error starting DHT server: %s", err)
+			log.Panicf("Fatal error starting UDP server: %s", err)
+			return err
 		}
+		//srv := &UdpSrv{addr}
+		//srv.Serve(c)
+		//err = me.ListenAndServeUDP(":" + "5000")
+		count := 0
+		buf := make([]byte, 512)
+		for {
+				length, _, err := connUDP.ReadFrom(buf)
+                if err != nil {
+                        log.Printf("ReadFrom: %v", err)
+                        break
+                }
+                count++
+                //log.Printf("<%s> %q", raddr, buf[:length])
+                log.Printf("%d", count, length)
+		}
+		//if err != nil {
+			//log.Panicf("Fatal error starting DHT server: %s", err)
+		//}
 	
 		// admin
 		/*
@@ -491,7 +508,7 @@ if me.Telnet.Reinit {
 		} */
 		
 	}
-	me.Telnet.Reinit = false
+	
 	/*m_TelnetSocket->setBlocking (false);
 	m_TelnetSocket->setSockOpt (SO_REUSEADDR, true);
 	if (m_TelnetSocket->bind (m_BindAddress.c_str(), m_TelnetPort) != 0)
