@@ -187,6 +187,10 @@ func ProcessConfig( configFilePath string) error{
 	//	return err
 	//}
 	//fmt.Println("RELAYS:", relays)
+	for idx, ele := range Config.Relays {
+		fmt.Println("REPLAY=", idx, ele)
+	
+	}
 	/* if len(vals) > 0 {		
 		server := vals["relay.host"]
 		port, err := Config.GetInt("relay.port") 
