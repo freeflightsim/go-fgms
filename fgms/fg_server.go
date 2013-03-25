@@ -166,11 +166,13 @@ func (me *FG_SERVER) SetBindAddress(addr string){
 }
 
 func (me *FG_SERVER) SetDataPort(port int){
+	log.Println("> SetDataPort=", port)
 	me.ListenPort = port
 	me.ReinitData = true
 }
 
 func (me *FG_SERVER) SetTelnetPort(port int){
+	log.Println("> SetTelnetPort=", port)
 	me.Telnet.Port = port
 	me.Telnet.Reinit = true
 }
@@ -179,24 +181,27 @@ func (me *FG_SERVER) SetTelnetPort(port int){
 
 // Set nautical miles two players must be apart to be out of reach
 func (me *FG_SERVER) SetOutOfReach(nm int){
+	log.Println("> SetOutOfReach=", nm, " nm")
 	me.PlayerIsOutOfReach = nm
 }
 
 // Set time in seconds. if no packet arrives from a client
 // within this time, the connection is dropped.  
 func (me *FG_SERVER) SetPlayerExpires(secs int){
+	log.Println("> SetPlayerExpires=", secs, " secs")
 	me.PlayerExpires = secs
 }
 
 // Set if we are running as a Hubserver
 func (me *FG_SERVER) SetHub(am_hub bool){
+	log.Println("> SetHub=", am_hub)
 	me.IamHUB = am_hub
 }
 
 
 // Set the logfile
 func (me *FG_SERVER) SetLogfile( log_file_name string){
-	
+	log.Println("> SetLogfile=", log_file_name)
 	me.LogFileName = log_file_name
 	
 	/*TODO after research
@@ -224,7 +229,7 @@ func (me *FG_SERVER) AddRelay(server string, port int) {
 		return 
 	}
 	me.RelayMap[NewRelay.Name] = NewRelay.Address.IpAddress
-	log.Println("Added relay server: ", server, NewRelay.Address.Ip)
+	log.Println("Added relay server: ", server, NewRelay.Address.IpAddress)
 } // FG_SERVER::AddRelay()
 
 
@@ -282,7 +287,7 @@ func (me *FG_SERVER) AddBlacklist(FourDottedIP string) {
 
 // Check if the user is black listed. true if blacklisted
  func (me *FG_SERVER) IsBlackListed(SenderAddress *NetAddress) bool {
-	_, ok :=  me.BlackList[SenderAddress.Ip]
+	_, ok :=  me.BlackList[SenderAddress.IpAddress]
 	if ok {
 		return true
 	}
@@ -789,7 +794,7 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *NetAddre
     }
   } */
   	if MsgHdr.Magic == RELAY_MAGIC {
-  		if me.IsKownRelay(SenderAddress) {
+  		if me.IsKnownRelay(SenderAddress) {
   			return
   		}
   		me.RelayMagic++ // bump relay magic packet
@@ -941,7 +946,9 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *NetAddre
 } // FG_SERVER::HandlePacket ( char* sMsg[MAX_PACKET_SIZE] )
 
 
-func (me *FG_SERVER) PacketIsValid(Bytes int, MsgHdr flightgear.T_MsgHdr, SenderAddress *NetAddress){
+func (me *FG_SERVER) PacketIsValid(	Bytes int, 
+									MsgHdr flightgear.T_MsgHdr, 
+									SenderAddress *NetAddress ) bool{
 
   //uint32_t        MsgMagic;
   //uint32_t        MsgLen;
@@ -982,7 +989,7 @@ func (me *FG_SERVER) PacketIsValid(Bytes int, MsgHdr flightgear.T_MsgHdr, Sender
     return (false);
   }
   */
-  	if MsgHdr.Magic != flightgear.MSG_MAGIC && MsgHdr.Magic != flightgear.RELAY_MAGIC {
+  	if MsgHdr.Magic != flightgear.MSG_MAGIC && MsgHdr.Magic != RELAY_MAGIC {
  		
   
 	}  
@@ -1056,13 +1063,13 @@ func (me *FG_SERVER) AddBadClient(Sender *NetAddress, ErrorMsg string, IsLocal b
   //      new client, send an error message
   //////////////////////////////////////////////////
   me.MaxClientID++
-  NewPlayer = new(FG_Player)
+  NewPlayer := new(FG_Player)
   NewPlayer.Callsign      = "* Bad Client *"
   NewPlayer.ModelName     = "* unknown *"
   //NewPlayer.Timestamp     = time(0);
   NewPlayer.JoinTime      = NewPlayer.Timestamp;
-  NewPlayer.Origin        = Sender.Host //getHost ()
-  NewPlayer.Address       = Sender.Address
+ // NewPlayer.Origin        = Sender.Host //getHost ()
+  //NewPlayer.Address       = Sender.Address
   NewPlayer.IsLocal       = IsLocal
   NewPlayer.HasErrors     = true
   NewPlayer.Error         = ErrorMsg
@@ -1070,7 +1077,7 @@ func (me *FG_SERVER) AddBadClient(Sender *NetAddress, ErrorMsg string, IsLocal b
   NewPlayer.PktsReceivedFrom      = 0
   NewPlayer.PktsSentTo            = 0
   NewPlayer.PktsForwarded         = 0
-  NewPlayer.LastRelayedToInactive = 0
+  //NewPlayer.LastRelayedToInactive = 0
   //SG_LOG (SG_SYSTEMS, SG_ALERT, "FG_SERVER::AddBadClient() - " << ErrorMsg);
   //Message = "bad client connected: ";
   //Message += Sender.getHost() + string(": ");
@@ -1081,29 +1088,34 @@ func (me *FG_SERVER) AddBadClient(Sender *NetAddress, ErrorMsg string, IsLocal b
   //m_NumCurrentClients++;
   //pthread_mutex_unlock (& m_PlayerMutex);
   //*/
-  me.PlayerList[Sender.Ip] = NewPlayer
+  //me.PlayerList[Sender.Ip] = NewPlayer
 } // FG_SERVER::AddBadClient ()
 
 
 //////////////////////////////////////////////////////////////////////
 //  Check if the sender is a known relay, return true if known relay
-func (me *FG_SERVER) IsKnownRelay(SenderAddress *NetAddress){
+func (me *FG_SERVER) IsKnownRelay(senderAddress *NetAddress) bool{
 
-  mT_RelayListIt  CurrentRelay = m_RelayList.begin();
-  while (CurrentRelay != m_RelayList.end())
-  {
-    if (CurrentRelay->Address.getIP() == SenderAddress.getIP())
-    {
-      return (true);
-    }
-    CurrentRelay++;
-  }
-  string ErrorMsg;
-  ErrorMsg  = SenderAddress.getHost();
-  ErrorMsg += " is not a valid relay!";
-  AddBlacklist (SenderAddress.getHost());
-  SG_LOG (SG_SYSTEMS, SG_ALERT, "UNKNOWN RELAY: " << ErrorMsg);
-  return (false);
+  	/*mT_RelayListIt  CurrentRelay = m_RelayList.begin();
+  	while (CurrentRelay != m_RelayList.end())
+  	{
+    	if (CurrentRelay->Address.getIP() == SenderAddress.getIP())
+    	{
+      	return (true);
+    	}
+    	CurrentRelay++;
+  	}*/
+  	_, ok := me.RelayMap[senderAddress.IpAddress]
+  	if ok {
+  		return true
+  	}
+
+  	//string ErrorMsg;
+  	//ErrorMsg  = SenderAddress.getHost();
+  	//ErrorMsg += " is not a valid relay!";
+  	me.AddBlacklist(senderAddress.IpAddress)
+  	//SG_LOG (SG_SYSTEMS, SG_ALERT, "UNKNOWN RELAY: " << ErrorMsg);
+  	return false
 } // FG_SERVER::IsKnownRelay ()
 
 

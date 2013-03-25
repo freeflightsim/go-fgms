@@ -32,7 +32,8 @@ Package main - FlightGear MulitPlyer in go
    		- Everything else
    	
    Externals:
-   		- XDR http://godoc.org/github.com/davecgh/go-xdr/xdr	
+   		- XDR - http://godoc.org/github.com/davecgh/go-xdr/xdr
+   		- Yaml - github.com/kylelemons/go-gypsy/yaml	
    			
    Useful Links:
 		- http://synflood.at/tmp/golang-slides/mrmcd2012.html# 

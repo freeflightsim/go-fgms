@@ -5,9 +5,15 @@ package main
 // source = http://gitorious.org/fgms/fgms-0-x/blobs/master/src/server/main.cxx
 import(
 	"fmt"
-	"strconv"
+	//"strconv"
+	"log"
+	"io/ioutil"
+	"encoding/json"
 )
 import(
+
+	//"github.com/kylelemons/go-gypsy/yaml"
+
 	"github.com/fgx/go-fgms/fgms"
 
 )
@@ -72,6 +78,11 @@ func ReadConfigs(ReInit bool) error {
 	var Path string
 	Path = "/home/gogo/src/github.com/fgx/go-fgms/fgms_example.conf"
 	
+	//yamlFile :=  "/home/gogo/src/github.com/fgx/go-fgms/fgms_example.yaml"
+	//conf, erry := yaml.ReadFile(yamlFile)
+	
+	//fmt.Println("error=", conf, erry)
+	
 	//if (Path != "")
 	//{
 	//	Path += "/" DEF_CONF_FILE;
@@ -90,111 +101,67 @@ func ReadConfigs(ReInit bool) error {
 // Returns an error or nil
 func ProcessConfig( configFilePath string) error{
 
-	Config := fgms.NewFG_CONFIG()
+	//yamlFile :=  "/home/gogo/src/github.com/fgx/go-fgms/fgms_example.yaml"
+	jsonFile :=  "/home/gogo/src/github.com/fgx/go-fgms/fgms_example.json"
 	
-	//if (bHadConfig)	// we already have a config, so ignore
-	//	return (true);
-	err := Config.Read (configFilePath)
-	//if (ok){
-	//fmt.Println("err=", err);
-	if err != nil {
-		return err
-	}
-	//SG_ALERT (SG_SYSTEMS, SG_ALERT, "processing " << ConfigName);
-	//var Val server.VarValue
+	//Config, errj := LoadJsonConfig(jsonFile)
+	filebyte, err := ioutil.ReadFile(jsonFile) 
+    if err != nil { 
+        log.Fatal("Could not read file " + jsonFile + " to parse")
+        return  err
+    } 
+    //log.Println(string(filebyte))
+	var Config fgms.JSON_ConfAll
+    err = json.Unmarshal(filebyte, &Config)
+    if err != nil{
+    	fmt.Println("JSON Decode Error", err)
+    	return err
+    }
 	
-	// Server Name
-	Val := Config.Get("server.name")
-	fmt.Println("server.name", Val)
-	if Val != "" {
-		Servant.SetServerName(Val)
-		//	bHadConfig = true; // got a serve name - minimum 
-	}
+	Servant.SetServerName(Config.Server.Name)
+	//	bHadConfig = true; // got a serve name - minimum
+	//return nil
 	
 	// Address
-	Val = Config.Get("server.address")
-	fmt.Println("server.address", Val)
-	if Val != "" {
-		Servant.SetBindAddress(Val)
-	}
+	Servant.SetBindAddress(Config.Server.Address)
 	
 	// UDP Port No
-	Val = Config.Get("server.port")
-	fmt.Println("server.port", Val)
-	if Val != "" {
-		port, err := strconv.ParseInt(Val, 10, 0)
-		if err != nil {
-			fmt.Println("Error", "invalid value for DataPort")
-			return err
-		} 
-		Servant.SetDataPort(int(port))
-	}
+	Servant.SetDataPort(Config.Server.Port)
+	
 	
 	// Telnet Port
-	Val = Config.Get ("server.telnet_port");
-	if Val != "" {
-		telnetport, err := strconv.ParseInt(Val, 10, 0)
-		if err != nil {
-			fmt.Println("Error", "invalid value for Telnet")
-			return err
-		} 
-		Servant.SetTelnetPort(int(telnetport))
-	}
+	Servant.SetTelnetPort(Config.Server.TelnetPort)
 	
 	// Outta Reach
-	nm, err := Config.GetInt("server.out_of_reach")
-	if err != nil {
-		fmt.Println("Error", "invalid value for `server.out_of_reach`", Val)
-		return err	
-	}
-	Servant.SetOutOfReach( nm )
-
-	// Player Expires	
-	exp_secs, err := Config.GetInt("server.playerexpires")
-	if err != nil {
-		fmt.Println("Error", "invalid value for `server.playerexpires`", err, Val)
-		return err	
-	}
-	Servant.SetPlayerExpires( exp_secs )
+	Servant.SetOutOfReach(Config.Server.OutOfReachNm)
+	
+	// Player Expires
+	Servant.SetPlayerExpires(Config.Server.PlayerExpiresSecs)	
 	
 	// Server is hub
-	Val = Config.Get("server.is_hub")
-	if Val != "" {
-		is_hub, err := strconv.ParseBool(Val)
-		if err != nil {
-			fmt.Println("Error", "server.is_hub", Val)
-			return err
-		}
-		Servant.SetHub( is_hub ) 
-	}
-	
-	
+	Servant.SetHub( Config.Server.IsHub ) 
+
 	
 	// Log File
-	Val = Config.Get("server.logfile")
-	if Val != "" {
-		Servant.SetLogfile(Val);
-	}
+	Servant.SetLogfile(Config.Server.LogFile);
 	
 	// Tracked
-	Val = Config.Get ("server.tracked")
+	/*
+	Val, err = Config.Get ("server.tracked")
 	if Val != "" {
 		tracked, _ := strconv.ParseBool(Val)
 		if tracked {
-			trkServer := Config.Get("server.tracking_server")
-			trkPorts := Config.Get("server.tracking_port")
-			trkPorti, err := strconv.ParseInt(trkPorts, 10, 0)
-			if err != nil{
-				fmt.Println("Error", "invalid value for tracking_port: ", Val)
+			trkServer, err := Config.Get("server.tracking_server")
+			if err != nil {
+				log.Fatalln("Error", "Missing `server.tracking_server`", trkServer)
 				return err
 			}
-			pii := int(trkPorti)
-			fmt.Println("addd", trkServer, pii, tracked)
+			fmt.Println("TRK", trkServer,  tracked)
 			Servant.AddTracker(trkServer, pii, tracked)
 			
 		} 
 	}
-	
+	*/
 	
 
 	
@@ -212,13 +179,15 @@ func ProcessConfig( configFilePath string) error{
 	//	MoreToRead = false;
 	//}
 	//= not sure how this works in relay
-	vals, err := Config.GetSection("relay")
-	if err != nil {
+	//relays, err := Config.Get("relays")
+	//log.Fatalln("Error", "No  `relays` found", relays, err)
+	//if err != nil {
 		//fmt.Println("section not found")
-		return err
-	}
-	
-	if len(vals) > 0 {		
+	//	log.Fatalln("Error", "No  `relays` found", Val)
+	//	return err
+	//}
+	//fmt.Println("RELAYS:", relays)
+	/* if len(vals) > 0 {		
 		server := vals["relay.host"]
 		port, err := Config.GetInt("relay.port") 
 		if err != nil{
@@ -227,7 +196,7 @@ func ProcessConfig( configFilePath string) error{
 		}
 		Servant.AddRelay(server, port);
 	}
-
+	*/
 	//////////////////////////////////////////////////
 	//      read the list of crossfeeds
 	//////////////////////////////////////////////////
@@ -274,13 +243,13 @@ func ProcessConfig( configFilePath string) error{
 	//////////////////////////////////////////////////
 	//      read the list of blacklisted IPs
 	//////////////////////////////////////////////////
-	blacklist, err := Config.GetList("blacklist")
+	/* blacklist, err := Config.GetList("blacklist")
 	fmt.Println(blacklist, err)
 	if len(blacklist) > 0 {
 		for _, bl := range blacklist {
 			Servant.AddBlacklist(bl)
 		}
-	}
+	} */
 	/*
 	MoreToRead  = true;
 	Section = "blacklist";

@@ -11,6 +11,8 @@ import(
 	"errors"
 )
 
+
+
 // A key/val pair
 type VarValue struct {
 	Key string
@@ -33,6 +35,8 @@ func NewFG_CONFIG() *FG_CONFIG {
 
 // Read, parse and load a config file
 func (me *FG_CONFIG) Read(configFile string) error {
+
+	
 
 	// Get file contents, return on error
 	contents, err := ioutil.ReadFile(configFile)
