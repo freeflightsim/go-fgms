@@ -46,7 +46,6 @@ type FG_SERVER struct {
 	converter*    tmp; */
 	VERSION int
 	ServerVersion *Version
-	ProtocolVersion *Version
 	
 	Initialized bool
 	
@@ -132,7 +131,6 @@ TrackerPostion int // Tracker messages queued
 func NewFG_SERVER() *FG_SERVER {
 	ob := new(FG_SERVER)
 	ob.ServerVersion = &Version{Major: 1, Minor: 1} // TODO
-	ob.ProtocolVersion = &Version{Major: 1, Minor: 1} // TODO
 	
 	ob.PlayerList = make(map[string]*FG_Player)
 		
@@ -451,7 +449,7 @@ Message += "\n"
 Message += "# FlightGear Multiplayer Server version: " + me.ServerVersion.Str()
 Message += "\n"
 Message += "# using protocol version: "
-Message += me.ProtocolVersion.Str()
+//Message += me.ProtocolVersion.Str()
 Message += " (LazyRelay enabled)"
 Message += "\n"
 //buf.Add
@@ -561,14 +559,12 @@ for (;;)
 
 
 
-func (me *FG_SERVER) PacketIsValid(	Bytes int, 
-									MsgHdr flightgear.T_MsgHdr, 
-									SenderAddress *net.UDPAddr ) bool{
+func (me *FG_SERVER) PacketIsValid(	Bytes int, MsgHdr flightgear.T_MsgHdr, SenderAddress *net.UDPAddr ) bool {
 
 	//uint32_t        MsgMagic;
 	//uint32_t        MsgLen;
 	//uint32_t        MsgId;
-	//string          ErrorMsg;
+	var ErrorMsg string
 	//string          Origin;
 	//typedef union
 	//{
@@ -583,34 +579,31 @@ func (me *FG_SERVER) PacketIsValid(	Bytes int,
 	MsgLen = XDR_decode<uint32_t> (MsgHdr->MsgLen);
 	*/
 	//fmt.Println("size", Bytes, unsafe.Sizeof(MsgHdr))
+	
+	// Packet size
 	s := int(unsafe.Sizeof(MsgHdr))
 	if Bytes <  s {
-		//ErrorMsg  = SenderAddress.getHost();
-		//ErrorMsg += " packet size is too small!";
-		fmt.Println("TODO: Handle Bad Packet")
-		//AddBadClient (SenderAddress, ErrorMsg, true);
+		ErrorMsg  = SenderAddress.String()
+		ErrorMsg += " packet size is too small!"
+		me.AddBadClient(SenderAddress, ErrorMsg, true)
 		return false
 	}
 	
-
 	//= Check magic
 	if MsgHdr.Magic != flightgear.MSG_MAGIC && MsgHdr.Magic != RELAY_MAGIC {
-		//char m[5];
-		//memcpy (m, (char*) &MsgMagic, 4);
-		//m[4] = 0;
-		//ErrorMsg  = Origin;
-		//ErrorMsg += " BAD magic number: ";
-		//ErrorMsg += m;
+		ErrorMsg  = SenderAddress.String();
+		ErrorMsg += " BAD magic number: "
+		//ErrorMsg += MsgHdr.Magic // TODO
 		fmt.Println("TODO: Handle Wrong Magic")
-		//AddBadClient (SenderAddress, ErrorMsg, true);
+		me.AddBadClient(SenderAddress, ErrorMsg, true)
 		return false
 	}
 	 
 	// Check Protocol Version
 	if MsgHdr.Version != flightgear.PROTO_VER {
-		//MsgHdr->Version = XDR_decode<uint32_t> (MsgHdr->Version);
-		//ErrorMsg  = Origin;
-		//ErrorMsg += " BAD protocol version! Should be ";
+		ErrorMsg  = SenderAddress.String()
+		ErrorMsg += " BAD protocol version! Should be "
+		// TODO
 		//converter*    tmp;
 		//tmp = (converter*) (& PROTO_VER);
 		//ErrorMsg += NumToStr (tmp->High, 0);
@@ -619,21 +612,18 @@ func (me *FG_SERVER) PacketIsValid(	Bytes int,
 		//tmp = (converter*) (& MsgHdr->Version);
 		//ErrorMsg += NumToStr (tmp->Low, 0);
 		//ErrorMsg += "." + NumToStr (tmp->High, 0);
-		fmt.Println("TODO: Handle Wrong PROTO")
-		//AddBadClient (SenderAddress, ErrorMsg, true);
+		me.AddBadClient(SenderAddress, ErrorMsg, true);
 		return false
 	} 
 	
 	if MsgHdr.MsgId == flightgear.POS_DATA_ID {
 		lenny := uint32( unsafe.Sizeof(MsgHdr) + unsafe.Sizeof(&flightgear.T_PositionMsg{}) )
 		if MsgHdr.MsgLen < lenny {
-			//ErrorMsg  = Origin;
-			//ErrorMsg += " Client sends insufficient position data, ";
-			//ErrorMsg += "should be ";
-			//ErrorMsg += NumToStr (sizeof(T_MsgHdr)+sizeof(T_PositionMsg));
-			//ErrorMsg += " is: " + NumToStr (MsgHdr->MsgLen);
-			fmt.Println("TODO: Handle Wrong Length")
-			//AddBadClient (SenderAddress, ErrorMsg, true);
+			ErrorMsg  = SenderAddress.String()
+			ErrorMsg += " Client sends insufficient position data, "
+			ErrorMsg += fmt.Sprintf( "should be %d", lenny)
+			ErrorMsg += fmt.Sprintf(" is: %d", MsgHdr.MsgLen)
+			me.AddBadClient (SenderAddress, ErrorMsg, true);
 			return false
 		}
 	}
@@ -652,7 +642,7 @@ func (me *FG_SERVER) PacketIsValid(	Bytes int,
 * @param ErrorMsg
 * @param IsLocal
 */
-func (me *FG_SERVER) AddBadClient(Sender *NetAddress, ErrorMsg string, IsLocal bool){
+func (me *FG_SERVER) AddBadClient(Sender *net.UDPAddr , ErrorMsg string, IsLocal bool){
 
 	//string                  Message;
 	//FG_Player               NewPlayer;
@@ -674,6 +664,7 @@ func (me *FG_SERVER) AddBadClient(Sender *NetAddress, ErrorMsg string, IsLocal b
 	//////////////////////////////////////////////////
 	//      new client, send an error message
 	//////////////////////////////////////////////////
+	fmt.Println("BADCLIENT", Sender)
 	me.MaxClientID++
 	NewPlayer := new(FG_Player)
 	NewPlayer.Callsign      = "* Bad Client *"

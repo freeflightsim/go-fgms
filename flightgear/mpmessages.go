@@ -13,7 +13,7 @@ const MSG_MAGIC = 0x46474653  // "FGFS"
 
 
 //   protocol version 
-const PROTO_VER = 0x00010001;  // 1.1
+const PROTO_VER = 0x00010001  // 1.1
 
 
 const CHAT_MSG_ID = 1

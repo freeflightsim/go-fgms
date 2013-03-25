@@ -14,8 +14,6 @@ import(
 	"github.com/fgx/go-fgms/fgms"
 )
 
-// Main instance of FG_SERVER
-var Servant *fgms.FG_SERVER
 
 
 
@@ -23,17 +21,19 @@ var Servant *fgms.FG_SERVER
 func main(){
 
 	// Initialize the beest
+	var Servant *fgms.FG_SERVER
+	
 	Servant = fgms.NewFG_SERVER()
 	
-	ReadLoadConfigs(false)
+	ReadLoadConfigs(Servant, false)
 
 	err := Servant.Init()
-	
 	if err != nil {
 		//Servant.CloseTracker()
 		log.Println("INIT Error", err)
 		return
 	}
+	
 	Servant.Loop()
 	/*
 	I = Servant.Loop();
@@ -54,7 +54,7 @@ func main(){
 
 
 // Read a config file and set internal variables accordingly.
-func ReadLoadConfigs( reInit bool) error{
+func ReadLoadConfigs(Servant *fgms.FG_SERVER, reInit bool) error {
 
 	configFilePath := "/home/gogo/src/github.com/fgx/go-fgms/fgms_example.json"
 	
