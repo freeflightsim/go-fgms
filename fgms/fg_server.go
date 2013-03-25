@@ -8,7 +8,7 @@ import(
 	"bytes"
 	//"bufio"
 	//"io"
-	//"strings"
+	"unsafe"
 )
 import(
 	"github.com/davecgh/go-xdr/xdr"
@@ -563,86 +563,83 @@ for (;;)
 
 func (me *FG_SERVER) PacketIsValid(	Bytes int, 
 									MsgHdr flightgear.T_MsgHdr, 
-									SenderAddress *NetAddress ) bool{
+									SenderAddress *net.UDPAddr ) bool{
 
-//uint32_t        MsgMagic;
-//uint32_t        MsgLen;
-//uint32_t        MsgId;
-//string          ErrorMsg;
-//string          Origin;
-//typedef union
-//{
-//  uint32_t    complete;
-//  int16_t     High;
-//  int16_t     Low;
-//} converter;
-/* TODO	
-Origin = SenderAddress.getHost();
-MsgMagic = XDR_decode<uint32_t> (MsgHdr->Magic);
-MsgId  = XDR_decode<uint32_t> (MsgHdr->MsgId);
-MsgLen = XDR_decode<uint32_t> (MsgHdr->MsgLen);
-if (Bytes < (int)sizeof(MsgHdr))
-{
-	ErrorMsg  = SenderAddress.getHost();
-	ErrorMsg += " packet size is too small!";
-	AddBadClient (SenderAddress, ErrorMsg, true);
-	return (false);
-}
-*/
-
-//= Check magic
-/*
-if ((MsgMagic != MSG_MAGIC) && (MsgMagic != RELAY_MAGIC))
-{
-	char m[5];
-	memcpy (m, (char*) &MsgMagic, 4);
-	m[4] = 0;
-	ErrorMsg  = Origin;
-	ErrorMsg += " BAD magic number: ";
-	ErrorMsg += m;
-	AddBadClient (SenderAddress, ErrorMsg, true);
-	return (false);
-}
-*/
-	if MsgHdr.Magic != flightgear.MSG_MAGIC && MsgHdr.Magic != RELAY_MAGIC {
-		
-
-	}  
-	/*
-if (XDR_decode<uint32_t> (MsgHdr->Version) != PROTO_VER)
-{
-	MsgHdr->Version = XDR_decode<uint32_t> (MsgHdr->Version);
-	ErrorMsg  = Origin;
-	ErrorMsg += " BAD protocol version! Should be ";
-	converter*    tmp;
-	tmp = (converter*) (& PROTO_VER);
-	ErrorMsg += NumToStr (tmp->High, 0);
-	ErrorMsg += "." + NumToStr (tmp->Low, 0);
-	ErrorMsg += " but is ";
-	tmp = (converter*) (& MsgHdr->Version);
-	ErrorMsg += NumToStr (tmp->Low, 0);
-	ErrorMsg += "." + NumToStr (tmp->High, 0);
-	AddBadClient (SenderAddress, ErrorMsg, true);
-	return (false);
-} */
-/*
-if (MsgId == POS_DATA_ID) 
-{
-	if (MsgLen < sizeof(T_MsgHdr) + sizeof(T_PositionMsg))
-	{
-	ErrorMsg  = Origin;
-	ErrorMsg += " Client sends insufficient position data, ";
-	ErrorMsg += "should be ";
-	ErrorMsg += NumToStr (sizeof(T_MsgHdr)+sizeof(T_PositionMsg));
-	ErrorMsg += " is: " + NumToStr (MsgHdr->MsgLen);
-	AddBadClient (SenderAddress, ErrorMsg, true);
-	return false
+	//uint32_t        MsgMagic;
+	//uint32_t        MsgLen;
+	//uint32_t        MsgId;
+	//string          ErrorMsg;
+	//string          Origin;
+	//typedef union
+	//{
+	//  uint32_t    complete;
+	//  int16_t     High;
+	//  int16_t     Low;
+	//} converter;
+	/* TODO	
+	Origin = SenderAddress.getHost();
+	MsgMagic = XDR_decode<uint32_t> (MsgHdr->Magic);
+	MsgId  = XDR_decode<uint32_t> (MsgHdr->MsgId);
+	MsgLen = XDR_decode<uint32_t> (MsgHdr->MsgLen);
+	*/
+	//fmt.Println("size", Bytes, unsafe.Sizeof(MsgHdr))
+	s := int(unsafe.Sizeof(MsgHdr))
+	if Bytes <  s {
+		//ErrorMsg  = SenderAddress.getHost();
+		//ErrorMsg += " packet size is too small!";
+		fmt.Println("TODO: Handle Bad Packet")
+		//AddBadClient (SenderAddress, ErrorMsg, true);
+		return false
 	}
-}
-*/
+	
+
+	//= Check magic
+	if MsgHdr.Magic != flightgear.MSG_MAGIC && MsgHdr.Magic != RELAY_MAGIC {
+		//char m[5];
+		//memcpy (m, (char*) &MsgMagic, 4);
+		//m[4] = 0;
+		//ErrorMsg  = Origin;
+		//ErrorMsg += " BAD magic number: ";
+		//ErrorMsg += m;
+		fmt.Println("TODO: Handle Wrong Magic")
+		//AddBadClient (SenderAddress, ErrorMsg, true);
+		return false
+	}
+	 
+	// Check Protocol Version
+	if MsgHdr.Version != flightgear.PROTO_VER {
+		//MsgHdr->Version = XDR_decode<uint32_t> (MsgHdr->Version);
+		//ErrorMsg  = Origin;
+		//ErrorMsg += " BAD protocol version! Should be ";
+		//converter*    tmp;
+		//tmp = (converter*) (& PROTO_VER);
+		//ErrorMsg += NumToStr (tmp->High, 0);
+		//ErrorMsg += "." + NumToStr (tmp->Low, 0);
+		//ErrorMsg += " but is ";
+		//tmp = (converter*) (& MsgHdr->Version);
+		//ErrorMsg += NumToStr (tmp->Low, 0);
+		//ErrorMsg += "." + NumToStr (tmp->High, 0);
+		fmt.Println("TODO: Handle Wrong PROTO")
+		//AddBadClient (SenderAddress, ErrorMsg, true);
+		return false
+	} 
+	
+	if MsgHdr.MsgId == flightgear.POS_DATA_ID {
+		lenny := uint32( unsafe.Sizeof(MsgHdr) + unsafe.Sizeof(&flightgear.T_PositionMsg{}) )
+		if MsgHdr.MsgLen < lenny {
+			//ErrorMsg  = Origin;
+			//ErrorMsg += " Client sends insufficient position data, ";
+			//ErrorMsg += "should be ";
+			//ErrorMsg += NumToStr (sizeof(T_MsgHdr)+sizeof(T_PositionMsg));
+			//ErrorMsg += " is: " + NumToStr (MsgHdr->MsgLen);
+			fmt.Println("TODO: Handle Wrong Length")
+			//AddBadClient (SenderAddress, ErrorMsg, true);
+			return false
+		}
+	}
+	
 	return true
 } // FG_SERVER::PacketIsValid ()
-//////////////////////////////////////////////////////////////////////
 
 
 //////////////////////////////////////////////////////////////////////
@@ -657,53 +654,53 @@ if (MsgId == POS_DATA_ID)
 */
 func (me *FG_SERVER) AddBadClient(Sender *NetAddress, ErrorMsg string, IsLocal bool){
 
-//string                  Message;
-//FG_Player               NewPlayer;
-//mT_PlayerListIt         CurrentPlayer;
-
-//CurrentPlayer = m_PlayerList.begin();
-//////////////////////////////////////////////////
-//      see, if we already know the client
-//////////////////////////////////////////////////
-/* while (CurrentPlayer != m_PlayerList.end())
-{
-	if (CurrentPlayer->Address.getIP() == Sender.getIP())
+	//string                  Message;
+	//FG_Player               NewPlayer;
+	//mT_PlayerListIt         CurrentPlayer;
+	
+	//CurrentPlayer = m_PlayerList.begin();
+	//////////////////////////////////////////////////
+	//      see, if we already know the client
+	//////////////////////////////////////////////////
+	/* while (CurrentPlayer != m_PlayerList.end())
 	{
-	CurrentPlayer->Timestamp = time (0);
-	return;
-	}
-	CurrentPlayer++;
-} */
-//////////////////////////////////////////////////
-//      new client, send an error message
-//////////////////////////////////////////////////
-me.MaxClientID++
-NewPlayer := new(FG_Player)
-NewPlayer.Callsign      = "* Bad Client *"
-NewPlayer.ModelName     = "* unknown *"
-//NewPlayer.Timestamp     = time(0);
-NewPlayer.JoinTime      = NewPlayer.Timestamp;
-// NewPlayer.Origin        = Sender.Host //getHost ()
-//NewPlayer.Address       = Sender.Address
-NewPlayer.IsLocal       = IsLocal
-NewPlayer.HasErrors     = true
-NewPlayer.Error         = ErrorMsg
-NewPlayer.ClientID      = me.MaxClientID
-NewPlayer.PktsReceivedFrom      = 0
-NewPlayer.PktsSentTo            = 0
-NewPlayer.PktsForwarded         = 0
-//NewPlayer.LastRelayedToInactive = 0
-//SG_LOG (SG_SYSTEMS, SG_ALERT, "FG_SERVER::AddBadClient() - " << ErrorMsg);
-//Message = "bad client connected: ";
-//Message += Sender.getHost() + string(": ");
-//Message += ErrorMsg;
-//CreateChatMessage (NewPlayer.ClientID, Message);
-//pthread_mutex_lock (& m_PlayerMutex);
-//m_PlayerList.push_back (NewPlayer);
-//m_NumCurrentClients++;
-//pthread_mutex_unlock (& m_PlayerMutex);
-//*/
-//me.PlayerList[Sender.Ip] = NewPlayer
+		if (CurrentPlayer->Address.getIP() == Sender.getIP())
+		{
+		CurrentPlayer->Timestamp = time (0);
+		return;
+		}
+		CurrentPlayer++;
+	} */
+	//////////////////////////////////////////////////
+	//      new client, send an error message
+	//////////////////////////////////////////////////
+	me.MaxClientID++
+	NewPlayer := new(FG_Player)
+	NewPlayer.Callsign      = "* Bad Client *"
+	NewPlayer.ModelName     = "* unknown *"
+	//NewPlayer.Timestamp     = time(0);
+	NewPlayer.JoinTime      = NewPlayer.Timestamp;
+	// NewPlayer.Origin        = Sender.Host //getHost ()
+	//NewPlayer.Address       = Sender.Address
+	NewPlayer.IsLocal       = IsLocal
+	NewPlayer.HasErrors     = true
+	NewPlayer.Error         = ErrorMsg
+	NewPlayer.ClientID      = me.MaxClientID
+	NewPlayer.PktsReceivedFrom      = 0
+	NewPlayer.PktsSentTo            = 0
+	NewPlayer.PktsForwarded         = 0
+	//NewPlayer.LastRelayedToInactive = 0
+	//SG_LOG (SG_SYSTEMS, SG_ALERT, "FG_SERVER::AddBadClient() - " << ErrorMsg);
+	//Message = "bad client connected: ";
+	//Message += Sender.getHost() + string(": ");
+	//Message += ErrorMsg;
+	//CreateChatMessage (NewPlayer.ClientID, Message);
+	//pthread_mutex_lock (& m_PlayerMutex);
+	//m_PlayerList.push_back (NewPlayer);
+	//m_NumCurrentClients++;
+	//pthread_mutex_unlock (& m_PlayerMutex);
+	//*/
+	//me.PlayerList[Sender.Ip] = NewPlayer
 } // FG_SERVER::AddBadClient ()
 
 
@@ -780,28 +777,29 @@ func (me *FG_SERVER) Loop() {
 			go me.HandleTelnetData(conna)
 		}
 	}(me.Telnet.Listen)
-	log.Println(" >> Listening Telnet: %s")
+	log.Println("#### Listening Telnet: > ")
 	
 	
-	log.Println(" >> Listening UDP: %s", "127.0.0.1:5000")
+	// Startup UDP listener
 	count := 0
 	buf := make([]byte, MAX_PACKET_SIZE)
+	log.Println("#### Listening UDP >", )
 	for {
-			length, raddr, err := me.DataSocket.ReadFromUDP(buf)
-			if err != nil {
-					log.Printf("ReadFrom: %v", err)
-					//break
-			}else {
-				count++
-				//log.Printf("<%s> %q", raddr, buf[:length])
-				log.Println("count", count, raddr, length)
-				//log.Println(buf[:length])
-				//Msg []byte, Bytes int, SenderAddress *NetAddress){
-				me.HandlePacket( buf[:length], length, raddr)
-				
-			}
+		length, raddr, err := me.DataSocket.ReadFromUDP(buf)
+		if err != nil {
+				log.Printf("ReadFrom: %v", err)
+				//break
+		}else {
+			count++
+			//log.Printf("<%s> %q", raddr, buf[:length])
+			log.Println("count", count, raddr, length)
+			//log.Println(buf[:length])
+			//Msg []byte, Bytes int, SenderAddress *NetAddress){
+			me.HandlePacket( buf[:length], length, raddr)
+			
+		}
 	}
-	fmt.Println("DONE")
+	fmt.Println("Should Never See This")
 		
 }
 
@@ -830,19 +828,50 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 	//Timestamp = time.Now() //time(0);
 	//MsgHdr    = (T_MsgHdr *) Msg;
 	//MsgHdr :=  
+	fmt.Println("MSG=", len(Msg))
 	var MsgHdr flightgear.T_MsgHdr
 	remainingBytes, err := xdr.Unmarshal(Msg, &MsgHdr)
 	if err != nil{
 		fmt.Println("got", remainingBytes, err)
 	}
+	fmt.Println("remain=", len(remainingBytes))
 	
 	//MsgMagic  = XDR_decode<uint32_t> (MsgHdr->Magic);
 	//MsgId     = XDR_decode<uint32_t> (MsgHdr->MsgId);
-	fmt.Println( "Magic/ID", MsgHdr.Magic, MsgHdr.MsgId, MsgHdr.Callsign, MsgHdr.ReplyAddress, MsgHdr.ReplyPort )
+	fmt.Println( "Magic/ID", MsgHdr.Magic, MsgHdr.Version, MsgHdr.MsgId, MsgHdr.Callsign, MsgHdr.ReplyAddress, MsgHdr.ReplyPort )
 	
+	fmt.Println ("=magic=", flightgear.MSG_MAGIC == MsgHdr.Magic) //WORKS
+	fmt.Println ("=proto=", flightgear.PROTO_VER == MsgHdr.Version) //WORKS
+	fmt.Println ("=ID=", MsgHdr.MsgId)
+	cs := "" //string(MsgHdr.Callsign[0]) + string(MsgHdr.Callsign[1]) + string(MsgHdr.Callsign[2]) + string(MsgHdr.Callsign[3]) + string(MsgHdr.Callsign[4]) + string(MsgHdr.Callsign[5]) + string(MsgHdr.Callsign[6]) + string(MsgHdr.Callsign[7])
+	for _, ele := range MsgHdr.Callsign{
+		if ele != 0 {
+			cs += string(ele)
+		}
+	}    
+	fmt.Println ("=callsign=", MsgHdr.Callsign, cs)
+	
+	/*
+	dec := xdr.NewDecoder(Msg)
+	//fmt.Println( dec )
+	
+	magic, err := dec.DecodeUint()
+	if err != nil {
+    	fmt.Println(err)
+    	return
+	}
+	fmt.Println("magic=", magic)
+	
+	mid, err := dec.DecodeUint()
+	if err != nil {
+    	fmt.Println(err)
+    	return
+	}
+	fmt.Println("mid=", mid)
+	*/
 	//------------------------------------------------------
 	// First of all, send packet to all crossfeed servers.
-	//SendToCrossfeed (Msg, Bytes, SenderAddress);
+	//SendToCrossfeed (Msg, Bytes, SenderAddress); ?? SHould then be send pre vaildation ?
 	//me.SendToCrossfeed(Msg, Bytes, SenderAddress)
 
 
@@ -852,13 +881,13 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 	//	me.BlackListRejected++
 	//	return
 	//}
-	/*  WHY ??? passed by value
+	// WHY ??? passed by value
 	if ! me.PacketIsValid(	Bytes, 
 							MsgHdr, 
 							SenderAddress) {
 		me.PacketsInvalid++
 		return
-	} */
+	} 
 	
 /* if (MsgMagic == RELAY_MAGIC) // not a local client
 {
