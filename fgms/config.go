@@ -11,6 +11,7 @@ import(
 //= A Host Row
 type JSON_HostConf struct{
 	Host string `json:"host"`
+	Port int `json:"port"`
 	Comment string `json:"comment"`
 }
 

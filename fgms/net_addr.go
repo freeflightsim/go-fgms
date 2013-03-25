@@ -4,8 +4,9 @@ package fgms
 import(
 	"net"
 )
-
+// Represent a Network address
 type NetAddress struct {
+	NickName string
 	Host string
 	Port int
 	IpAddress	string

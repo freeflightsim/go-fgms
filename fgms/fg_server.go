@@ -37,18 +37,22 @@ const RELAY_MAGIC             = 0x53464746    // GSGF
 // http://gitorious.org/fgms/fgms-0-x/blobs/master/src/server/fg_server.cxx#line167
 type FG_SERVER struct {
 
-/*typedef union
-{
-	uint32_t    complete;
-	int16_t     High;
-	int16_t     Low;
-} converter; 
-converter*    tmp; */
-VERSION int
-Initialized bool
-ReinitData bool
-//ReinitTelnet bool
-Listening bool
+	/*typedef union
+	{
+		uint32_t    complete;
+		int16_t     High;
+		int16_t     Low;
+	} converter; 
+	converter*    tmp; */
+	VERSION int
+	ServerVersion *Version
+	ProtocolVersion *Version
+	
+	Initialized bool
+	
+	ReinitData bool
+	//ReinitTelnet bool
+	Listening bool
 
 
 	ServerName  string
@@ -56,8 +60,7 @@ Listening bool
 	ListenPort int
 	IamHUB bool
 	
-	ServerVersion *Version
-	ProtocolVersion *Version
+
 
 	PlayerList map[string]*FG_Player
 	PlayerExpires int
@@ -90,15 +93,15 @@ MaxClientID int
 	BlackListRejected uint64
 
 	RelayMap map[string]string//           = map<uint32_t, string>();
-	RelayList []*MT_Relay
+	RelayList []*NetAddress
 
 //typedef std::list<mT_Relay>               mT_RelayList;
 //	typedef mT_RelayList::iterator            mT_RelayListIt;
 //typedef std::map<uint32_t,string>         mT_IP2RelayNames;	
 //ReInitTelnet bool
 
-IsTracked bool
-Tracker *tracker.FG_TRACKER
+	IsTracked bool
+	Tracker *tracker.FG_TRACKER
 
 //UpdateSecs          = DEF_UPDATE_SECS;
 // clear stats - should show what type of packet was received
@@ -143,7 +146,7 @@ func NewFG_SERVER() *FG_SERVER {
 	
 	ob.BlackList = make(map[string]bool)
 	
-	ob.RelayList = make([]*MT_Relay, 0)
+	ob.RelayList = make([]*NetAddress, 0)
 	ob.RelayMap = make(map[string]string)
 	
 	ob.Telnet = NewTelnetServer()
@@ -221,15 +224,21 @@ sglog().set_output (m_LogFile);
 // Insert a new relay server into internal list 
 func (me *FG_SERVER) AddRelay(server string, port int) {
 	
-	NewRelay := NewMT_Relay(server, port)	
-	NewRelay.Name = server
-	err := NewRelay.Address.LookupIP()
-	if err != nil{
-		log.Fatalln("ERROR: No IP address for ", server, port)
-		return 
-	}
-	me.RelayMap[NewRelay.Name] = NewRelay.Address.IpAddress
-	log.Println("Added relay server: ", server, NewRelay.Address.IpAddress)
+	// First create a relay object, which is a NetAddress
+	NewRelay := NewMT_Relay(server, port)
+	log.Println("> Add Relay = ", server, NewRelay.IpAddress)
+	
+	//= Now go and check it exists as IP as a callback
+	go func(addr *NetAddress){
+		err := NewRelay.LookupIP()
+		if err != nil{
+			log.Fatalln("    < Relay FAIL < No IP address for Host ", addr.Host, addr.Port)
+			return 
+		}
+		me.RelayMap[NewRelay.Host] = NewRelay.IpAddress
+		log.Println("    < Relay Added < Lookup OK:  ", addr.Host, NewRelay.IpAddress)
+	}(NewRelay)	
+	
 } // FG_SERVER::AddRelay()
 
 
@@ -281,8 +290,20 @@ return (SUCCESS);
 func (me *FG_SERVER) AddBlacklist(FourDottedIP string) {
 	//SG_ALERT (SG_SYSTEMS, SG_ALERT, "Adding to blacklist: " << FourDottedIP);
 	//m_BlackList[netAddress(FourDottedIP.c_str(), 0).getIP()] = true; // TODO lookup ip ?
-	me.BlackList[FourDottedIP] = true
-	log.Println("Added to blacklist: ", FourDottedIP)
+	log.Println("> Add Blacklist = ", FourDottedIP)
+	go func(ip_str string){
+		addrs, err := net.LookupHost(ip_str)
+		//err := net.LookupHost(ip_str)
+		if err != nil{
+			log.Fatalln("    < Blacklist FAIL: No IP address for address = ", ip_str)
+			return 
+		}
+		log.Println("    < Blacklist Add: ", ip_str, addrs)
+		me.BlackList[ip_str] = true
+	}(FourDottedIP)
+	
+	//log.Println("Added to blacklist: ", FourDottedIP)
+		
 } 
 
 // Check if the user is black listed. true if blacklisted

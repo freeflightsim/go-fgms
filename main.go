@@ -11,11 +11,7 @@ import(
 	"encoding/json"
 )
 import(
-
-	//"github.com/kylelemons/go-gypsy/yaml"
-
 	"github.com/fgx/go-fgms/fgms"
-
 )
 
 // Main instance of FG_SERVER
@@ -51,13 +47,6 @@ func main(){
 		return
 	}
 	/*
-	#ifndef _MSC_VER
-	if (RunAsDaemon)
-	{
-		Myself.Daemonize ();
-		SG_ALERT (SG_SYSTEMS, SG_ALERT, "Main server started!");
-	}
-	#endif
 	I = Servant.Loop();
 	if (I != 0)
 	{
@@ -107,14 +96,14 @@ func ProcessConfig( configFilePath string) error{
 	//Config, errj := LoadJsonConfig(jsonFile)
 	filebyte, err := ioutil.ReadFile(jsonFile) 
     if err != nil { 
-        log.Fatal("Could not read file " + jsonFile + " to parse")
+        log.Fatal("Could not read JSON config file: `" + jsonFile + "` ")
         return  err
     } 
     //log.Println(string(filebyte))
 	var Config fgms.JSON_ConfAll
     err = json.Unmarshal(filebyte, &Config)
     if err != nil{
-    	fmt.Println("JSON Decode Error", err)
+    	log.Fatalln("JSON Decode Error from: ", jsonFile,  err)
     	return err
     }
 	
@@ -165,42 +154,12 @@ func ProcessConfig( configFilePath string) error{
 	
 
 	
-	//////////////////////////////////////////////////
-	//      read the list of relays
-	//////////////////////////////////////////////////
 	
-	//bool    MoreToRead  = true;
-	//Section := "relay"
-	//string  Var;
-	//string  Server = "";
-	//int     Port   = 0;
-	//if (! Config.SetSection (Section))
-	//{
-	//	MoreToRead = false;
-	//}
-	//= not sure how this works in relay
-	//relays, err := Config.Get("relays")
-	//log.Fatalln("Error", "No  `relays` found", relays, err)
-	//if err != nil {
-		//fmt.Println("section not found")
-	//	log.Fatalln("Error", "No  `relays` found", Val)
-	//	return err
-	//}
-	//fmt.Println("RELAYS:", relays)
-	for idx, ele := range Config.Relays {
-		fmt.Println("REPLAY=", idx, ele)
-	
+	// Read the list of relays
+	for _, relay := range Config.Relays {
+		Servant.AddRelay(relay.Host, relay.Port);
 	}
-	/* if len(vals) > 0 {		
-		server := vals["relay.host"]
-		port, err := Config.GetInt("relay.port") 
-		if err != nil{
-			//fmt.Println("Error:", err)
-			return err
-		}
-		Servant.AddRelay(server, port);
-	}
-	*/
+
 	//////////////////////////////////////////////////
 	//      read the list of crossfeeds
 	//////////////////////////////////////////////////
@@ -247,13 +206,18 @@ func ProcessConfig( configFilePath string) error{
 	//////////////////////////////////////////////////
 	//      read the list of blacklisted IPs
 	//////////////////////////////////////////////////
-	/* blacklist, err := Config.GetList("blacklist")
+	/*blacklist, err := Config.GetList("blacklist")
 	fmt.Println(blacklist, err)
 	if len(blacklist) > 0 {
 		for _, bl := range blacklist {
 			Servant.AddBlacklist(bl)
 		}
-	} */
+	} 
+	*/
+	for _, blackList := range Config.Blacklists {
+		Servant.AddBlacklist(blackList)
+	}
+	
 	/*
 	MoreToRead  = true;
 	Section = "blacklist";

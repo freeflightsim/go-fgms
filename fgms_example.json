@@ -16,14 +16,15 @@
 
 
 	"relays": [
-		{"host": "mpserver01.flightgear.org:5000", "comment": "Oliver Schroeder, Berlin, Germany"},
-		{"host": "mpserver02.flightgear.org:5000", "comment": ""},
-		{"host": "mpserver03.flightgear.org:5000", "comment": ""},
-		{"host": "mpserver14.flightgear.org:5000", "comment": "FGx Zurich"}
+		{"host": "mpserver01.flightgear.org", "port": 5000, "comment": "Oliver Schroeder, Berlin, Germany"},
+		{"host": "mpserver02.flightgear.org", "port": 5000, "comment": ""},
+		{"host": "mpserver03.flightgear.org", "port": 5000, "comment": ""},
+		{"host": "mpserverdead03.flightgear.org", "port": 5000, "comment": ""},
+		{"host": "mpserver14.flightgear.org", "port": 5000, "comment": "FGx Zurich"}
     ],
 
 	"crossfeeds": [
-		{"host": "localhost:5002", "comment": "Where is the tracker"}
+		{"host": "localhost", "port": 5002, "comment": "Where is the tracker"}
     ],
     
 	"blacklists": [
@@ -32,3 +33,4 @@
 		"122.12.12.12"
     ]
 }
+
