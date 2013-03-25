@@ -464,12 +464,13 @@ if me.Telnet.Reinit {
 				length, _, err := connUDP.ReadFromUDP(buf)
                 if err != nil {
                         log.Printf("ReadFrom: %v", err)
-                        break
-                }
-                count++
-                //log.Printf("<%s> %q", raddr, buf[:length])
-                log.Printf("%d %d", count, length)
-                //log.Println(buf[:length])
+                        //break
+                }else {
+                	count++
+                	//log.Printf("<%s> %q", raddr, buf[:length])
+                	log.Printf("%d %d", count, length)
+                	//log.Println(buf[:length])
+				}
 		}
 		//if err != nil {
 			//log.Panicf("Fatal error starting DHT server: %s", err)
