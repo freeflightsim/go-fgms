@@ -4,11 +4,50 @@ package fgms
 
 import(
 	"net"
-	"bufio"
-	"fmt"
-	"io"
+	//"bufio"
+	//"fmt"
+	//"io"
 	//"strings"
 )
+
+type TcpSrv struct {
+	Addr string
+}
+func (srv *TcpSrv) newConn(rwc net.Conn) (c *TcpConn, err error) {
+	c = new(TcpConn)
+	c.remoteAddr = rwc.RemoteAddr()
+	c.server = srv
+	c.rwc = rwc
+	return
+}
+
+func (srv *TcpSrv) Serve(l net.Listener) error {
+	defer l.Close()
+	for {
+		rw, err := l.Accept()
+		if err != nil {
+			return err
+		}
+		c, err := srv.newConn(rw)
+		if err != nil {
+			continue
+		}
+		go c.Serve()
+	}
+	panic("not reached")
+}
+
+//==================================
+type TcpConn struct {
+	remoteAddr	net.Addr
+	server		*TcpSrv
+	rwc		net.Conn
+}
+func (c *TcpConn) Serve() {
+	var helloString = "hello"
+	c.rwc.Write([]byte(helloString))
+}
+
  
 // TelnetServer container
 type TelnetServer  struct {
@@ -34,7 +73,7 @@ type TelnetClient  struct {
 	ch chan string
 }
 
-
+/*
 func (c TelnetClient) ReadLinesInto(ch chan TelnetClient) {
 	bufc := bufio.NewReader(c.conn)
 	for {
@@ -57,3 +96,4 @@ func (c TelnetClient) WriteLinesFrom(ch chan TelnetClient) {
 		fmt.Println("Write", msg)
 	}
 }
+*/

@@ -8,7 +8,7 @@ import(
 	"bytes"
 	"bufio"
 	"io"
-	"strings"
+	//"strings"
 )
 import(
 	"github.com/davecgh/go-xdr/xdr"
@@ -302,9 +302,6 @@ func (me *FG_SERVER) AddBlacklist(FourDottedIP string) {
 		
 		me.BlackList[ addrs[0] ] = true
 	}(FourDottedIP)
-	
-	//log.Println("Added to blacklist: ", FourDottedIP)
-		
 } 
 
 // Check if the user is black listed. true if blacklisted
@@ -324,6 +321,10 @@ func (me *FG_SERVER) AddBlacklist(FourDottedIP string) {
 *  all connections and re-init all variables
 */
 
+func (me *FG_SERVER) ListenAndServeTCP(l net.Listener) error {
+	srv := &TcpSrv{}
+	return srv.Serve(l)
+}
 
 
 func (me *FG_SERVER) Init() error {
@@ -399,22 +400,30 @@ if me.Telnet.Reinit {
 	//}
 	//m_TelnetSocket = 0;
 	if me.Telnet.Port != 0 {
-		//s := fmt.Sprintf(":%d", me.Telnet.Port ) // TODO ip address = 0.0.0.0 ?
+		tel_adr := fmt.Sprintf(":%d", me.Telnet.Port ) // TODO ip address = 0.0.0.0 ?
 		//ln, err := net.Listen("tcp", s)
 		//if err != nil {
 		//	log.Fatal("Cannot create telnet socket")
 		//	return err
 		//}
 		//telnetDataChan := make(chan TelnetClient)
+		//http://play.golang.org/p/VGaFaDESjO
 		
 		//TODO Make UDP Socket
-		lsu, erruu := net.ListenPacket("udp", ":5000")
-		if erru != nil{
-			log.Fatal("Cannot create UDP socket")
+		//lsu, erruu := net.ListenPacket("udp", ":5000")
+		//if erru != nil{
+		//	log.Fatal("Cannot create UDP socket")
+		//}
+		lisTel, err := net.Listen("tcp", tel_adr)
+		if err != nil {
+			log.Panicf("Error Listening TCP: %s", err)
 		}
-		
+		go me.ListenAndServeTCP(lisTel)
+		log.Println(" >> Listening TCP: %s", tel_adr)
+		 
 		
 		// admin
+		/*
 		sa := fmt.Sprintf(":%d", 5005 ) 
 		lna, erra := net.Listen("tcp", sa)
 		if erra != nil {
@@ -426,11 +435,12 @@ if me.Telnet.Reinit {
 		ta_rmChan := make(chan TelnetClient)
 		
 		go me.H_TelnetAdminMessages( ta_msgChan, ta_addChan, ta_rmChan )
+		*/
 		
 		//msgchan := make(chan string)
 		
 		//go me.PrintMessages(msgchan)
-		for {
+		/* for {
 			//_, err := ln.Accept() 
 			//if err != nil {
 			//	log.Println(err)
@@ -444,7 +454,7 @@ if me.Telnet.Reinit {
 			go me.HandleAdminTelnet(conna,  ta_msgChan, ta_addChan, ta_rmChan )
 			
 			
-		}
+		} */
 		
 	}
 	me.Telnet.Reinit = false
@@ -683,78 +693,6 @@ func PromptNick(c net.Conn, bufc *bufio.Reader) string {
 	io.WriteString(c, "fgms needs password > ")
 	nick, _, _ := bufc.ReadLine()
 	return string(nick)
-}
-
-/**
-*  Handle a telnet session. if a telnet connection is opened, this 
-*  method outputs a list  of all known clients.
-*/
-func (me *FG_SERVER) HandleAdminTelnet(c net.Conn, msgchan chan TelnetClient, 
-										addchan chan<- TelnetClient, rmchan chan<- TelnetClient){
-	log.Println("HandleAdminTelnet", c)
-	bufc := bufio.NewReader(c)
-	
-	defer c.Close()
-	client := TelnetClient{
-		conn:     c,
-		nickname: PromptNick(c, bufc),
-		ch:       make(chan string),
-	}
-	if strings.TrimSpace(client.nickname) != "s" {
-		io.WriteString(c, "Invalid Password\n")
-		return
-	}
-
-	// Register user
-	addchan <- client
-	defer func() {
-		//msgchan <- client //fmt.Sprintf("User %s left the chat room.\n", client.nickname)
-		log.Printf("Connection from %v closed.\n", c.RemoteAddr())
-		rmchan <- client
-	}()
-	io.WriteString(c, fmt.Sprintf("Welcome, %s!\n\n", client.nickname))
-	//msgchan <- fmt.Sprintf("New user %s has joined the chat room.\n", client.nickname)
-
-	io.WriteString(c, "show | help | set var = value\n > ")
-	// I/O
-	go client.ReadLinesInto(msgchan)
-	client.WriteLinesFrom(msgchan)
-}
-
-
-
-func (me *FG_SERVER) H_TelnetAdminMessages(msgChan <-chan TelnetClient, addChan <-chan TelnetClient, rmChan <-chan TelnetClient) {
-
-	//clients := make(map[net.Conn]chan<- string)    
-    for {
-    	select {
-    	
-    		case client := <-msgChan:
-    			log.Println("New Telnet Data request", client)
-    			fmt.Println(">>", client.message)
-    			m := strings.TrimSpace(client.message)
-    			if m == "help" {
-    					io.WriteString(client.conn, "HELP\n\n")
-    				
-    			}else if m == "show"{
-					io.WriteString(client.conn, "SHOW\n\n")
-    			}
-    			//for _, ch := range clients {
-				//	go func(mch chan<- string) { mch <- "\033[1;33;40m" + msg + "\033[m" }(ch)
-				//}
-    		
-    		case client := <-addChan:
-    			//log.Println("New Telnet Admin request", client)
-    			log.Printf("New client: %v\n", client.conn)
-				//clients[client.conn] = client.ch
-				
-			case client := <-rmChan:
-				log.Printf("Client disconnects: %v\n", client.conn)
-				//delete(clients, client.conn)
-				
-    	}
-    }
-  
 }
 
 
