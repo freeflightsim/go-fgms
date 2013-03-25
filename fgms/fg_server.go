@@ -424,14 +424,8 @@ func (me *FG_SERVER) Init() error {
 
 //---------------------------------------------------------------------------
 
-
-
-//---------------------------------------------------------------------------
-
-/**
-*  Handle a telnet session. if a telnet connection is opened, this 
-*  method outputs a list  of all known clients.
-*/
+//  Handle a telnet session. if a telnet connection is opened, this 
+// method outputs a list  of all known clients.
 func (me *FG_SERVER) HandleTelnetData(conn net.Conn){
 
 	//var errno int = 0
