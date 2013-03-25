@@ -216,7 +216,7 @@ func (me *FG_SERVER) AddRelay(server string, port int) {
 	go func(addr *NetAddress){
 		err := NewRelay.LookupIP()
 		if err != nil{
-			log.Fatalln("    < Relay FAIL < No IP address for Host ", addr.Host, addr.Port)
+			log.Println("    < Relay FAIL < No IP address for Host ", addr.Host, addr.Port)
 			//return 
 		}else{
 			me.RelayMap[NewRelay.Host] = NewRelay.IpAddress
@@ -271,10 +271,8 @@ return (SUCCESS);
 
 // --------------------------------------------------------
 
-// Add an IP to the blacklist
+// Add an IP to the blacklist - (after DNS lookup)
 func (me *FG_SERVER) AddBlacklist(FourDottedIP string) {
-	//SG_ALERT (SG_SYSTEMS, SG_ALERT, "Adding to blacklist: " << FourDottedIP);
-	//m_BlackList[netAddress(FourDottedIP.c_str(), 0).getIP()] = true; // TODO lookup ip ?
 	log.Println("> Add Blacklist = ", FourDottedIP)
 	go func(ip_str string){
 		addrs, err := net.LookupHost(ip_str)
@@ -289,9 +287,7 @@ func (me *FG_SERVER) AddBlacklist(FourDottedIP string) {
 	}(FourDottedIP)
 } 
 
-
-
-// Check if the user is black listed. true if blacklisted
+// Check if the cient is black listed. true if blacklisted
 func (me *FG_SERVER) IsBlackListed(SenderAddress *NetAddress) bool {
 	_, ok :=  me.BlackList[SenderAddress.IpAddress]
 	if ok {
@@ -400,27 +396,12 @@ func (me *FG_SERVER) Init() error {
 		
 		//=== UDP ===
 		addr, err := net.ResolveUDPAddr("udp", "127.0.0.1:5000")
-		connUDP, err := net.ListenUDP("udp", addr)
+		me.DataSocket, err := net.ListenUDP("udp", addr)
 		if err != nil {
 			log.Panicf("Fatal error starting UDP server: %s", err)
 			return err
 		}
-		log.Println(" >> Listening UDP: %s", "127.0.0.1:5000")
-		count := 0
-		buf := make([]byte, MAX_PACKET_SIZE)
-		for {
-				length, _, err := connUDP.ReadFromUDP(buf)
-				if err != nil {
-						log.Printf("ReadFrom: %v", err)
-						//break
-				}else {
-					count++
-					//log.Printf("<%s> %q", raddr, buf[:length])
-					log.Printf("%d %d", count, length)
-					//log.Println(buf[:length])
-				}
-		}
-		fmt.Println("DROOOOOOOOOPED")
+		
 	}
 	
 	
@@ -1076,4 +1057,22 @@ func (me *FG_SERVER) Loop() {
 	}(me.Telnet.Listen)
 	log.Println(" >> Listening Telnet: %s")
 	
+	
+	log.Println(" >> Listening UDP: %s", "127.0.0.1:5000")
+	count := 0
+	buf := make([]byte, MAX_PACKET_SIZE)
+	for {
+			length, _, err := connUDP.ReadFromUDP(buf)
+			if err != nil {
+					log.Printf("ReadFrom: %v", err)
+					//break
+			}else {
+				count++
+				//log.Printf("<%s> %q", raddr, buf[:length])
+				log.Printf("%d %d", count, length)
+				//log.Println(buf[:length])
+			}
+	}
+	//fmt.Println("DROOOOOOOOOPED")
+		
 }
