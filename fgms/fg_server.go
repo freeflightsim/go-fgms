@@ -10,6 +10,7 @@ import(
 	"time"
 	"unsafe"
 )
+
 import(
 	"github.com/davecgh/go-xdr/xdr"
 
@@ -18,7 +19,6 @@ import(
 	
 	
 )
-
 
 const SUCCESS                 = 0
 const ERROR_COMMANDLINE       = 1
@@ -33,8 +33,14 @@ const UPDATE_INACTIVE_PERIOD  = 1
 const MAX_TELNETS             = 5
 const RELAY_MAGIC             = 0x53464746    // GSGF
 
+
+const (
+	SENDER_UNKNOWN  = iota
+	SENDER_KNOWN  
+	SENDER_DIFF_IP
+)
 		
-// http://gitorious.org/fgms/fgms-0-x/blobs/master/src/server/fg_server.cxx#line167
+// Main Server
 type FG_SERVER struct {
 
 	/*typedef union
@@ -43,9 +49,10 @@ type FG_SERVER struct {
 		int16_t     High;
 		int16_t     Low;
 	} converter; 
-	converter*    tmp; */
+	converter*    tmp; 
+	*/
 	VERSION int
-	ServerVersion *Version
+	//ServerVersion *Version
 	
 	Initialized bool
 	
@@ -67,14 +74,14 @@ type FG_SERVER struct {
 	Telnet *TelnetServer
 	DataSocket *net.UDPConn
 
-	//Loglevel            = SG_INFO;
+	//Loglevel            = SG_INFO; / TODO
 	LogFileName string
 
-NumMaxClients int
-PlayerIsOutOfReach int // nautical miles
-NumCurrentClients int
-IsParent bool
-MaxClientID int
+	NumMaxClients int
+	PlayerIsOutOfReach int // nautical miles
+	NumCurrentClients int
+	IsParent bool
+	MaxClientID int
 
 
 	
@@ -94,45 +101,45 @@ MaxClientID int
 	IsTracked bool
 	Tracker *tracker.FG_TRACKER
 
-//UpdateSecs          = DEF_UPDATE_SECS;
-// clear stats - should show what type of packet was received
-PacketsReceived int
-TelnetReceived int 
-BlackRejected int
-PacketsInvalid int //     = 0;  // invalid packet
+	//UpdateSecs          = DEF_UPDATE_SECS;
+	// clear stats - should show what type of packet was received
+	PacketsReceived int
+	TelnetReceived int 
+	BlackRejected int
+	PacketsInvalid int //     = 0;  // invalid packet
 	
 	UnknownRelay int //       = 0;  // unknown relay
 	RelayMagic  int //        = 0;  // relay magic packet
 	PositionData int //         = 0;  // position data packet
 	NotPosData int    //     = 0;
 	
-// clear totals
-MT_PacketsReceived int
-MT_BlackRejected int
-MT_PacketsInvalid int
-MT_UnknownRelay int
-MT_PositionData int
-MT_TelnetReceived int
-MT_RelayMagic int
-MT_NotPosData int
+	// clear totals
+	MT_PacketsReceived int
+	MT_BlackRejected int
+	MT_PacketsInvalid int
+	MT_UnknownRelay int
+	MT_PositionData int
+	MT_TelnetReceived int
+	MT_RelayMagic int
+	MT_NotPosData int
 
-CrossFeedFailed int
-CrossFeedSent int
+	CrossFeedFailed int
+	CrossFeedSent int
 
-MT_CrossFeedFailed int
-MT_CrossFeedSent int
-TrackerConnect int
-TrackerDisconnect int
-TrackerPostion int // Tracker messages queued
-//pthread_mutex_init( &m_PlayerMutex, 0 );
+	MT_CrossFeedFailed int
+	MT_CrossFeedSent int
+	TrackerConnect int
+	TrackerDisconnect int
+	TrackerPostion int // Tracker messages queued
+	//pthread_mutex_init( &m_PlayerMutex, 0 );
 } 
 
-//--------------------------------------------------------------------------
 
-// Consrtruct and return pointer to new FG_SERVER instance
+
+// Construct and return pointer to new FG_SERVER instance
 func NewFG_SERVER() *FG_SERVER {
 	ob := new(FG_SERVER)
-	ob.ServerVersion = &Version{Major: 1, Minor: 1} // TODO
+
 	
 	//ob.PlayerList = make(map[string]*FG_Player)
 	ob.PlayerList = make([]*FG_Player, 0)
@@ -231,38 +238,38 @@ func (me *FG_SERVER) AddTracker(host string, port int, isTracked bool){
 	me.Tracker = tracker.NewFG_TRACKER(host, port, 0)
 	
 	/* TODO
-#ifndef NO_TRACKER_PORT
-#ifdef USE_TRACKER_PORT
-if ( m_Tracker )
-{
-	delete m_Tracker;
-}
-m_Tracker = new FG_TRACKER(Port,Server,0);
-#else // !#ifdef USE_TRACKER_PORT
-if ( m_Tracker )
-{
-	msgctl(m_ipcid,IPC_RMID,NULL);
-	delete m_Tracker;
-	m_Tracker = 0; // just deleted
-}
-printf("Establishing IPC\n");
-m_ipcid         = msgget(IPC_PRIVATE,IPCPERMS);
-if (m_ipcid <= 0)
-{
-	perror("msgget getting ipc id failed");
-	return -1;
-}
-m_Tracker = new FG_TRACKER(Port,Server,m_ipcid);
-#endif // #ifdef USE_TRACKER_PORT y/n
-#endif // NO_TRACKER_PORT
-return (SUCCESS);
-*/
+	#ifndef NO_TRACKER_PORT
+	#ifdef USE_TRACKER_PORT
+	if ( m_Tracker )
+	{
+		delete m_Tracker;
+	}
+	m_Tracker = new FG_TRACKER(Port,Server,0);
+	#else // !#ifdef USE_TRACKER_PORT
+	if ( m_Tracker )
+	{
+		msgctl(m_ipcid,IPC_RMID,NULL);
+		delete m_Tracker;
+		m_Tracker = 0; // just deleted
+	}
+	printf("Establishing IPC\n");
+	m_ipcid         = msgget(IPC_PRIVATE,IPCPERMS);
+	if (m_ipcid <= 0)
+	{
+		perror("msgget getting ipc id failed");
+		return -1;
+	}
+	m_Tracker = new FG_TRACKER(Port,Server,m_ipcid);
+	#endif // #ifdef USE_TRACKER_PORT y/n
+	#endif // NO_TRACKER_PORT
+	return (SUCCESS);
+	*/
 } // FG_SERVER::AddTracker()
 
 
 // --------------------------------------------------------
 
-// Add an IP to the blacklist - (after DNS lookup)
+// AddBlacklist - Add an IP to the blacklist - (after DNS lookup)
 func (me *FG_SERVER) AddBlacklist(FourDottedIP string) {
 	log.Println("> Add Blacklist = ", FourDottedIP)
 	go func(ip_str string){
@@ -278,7 +285,7 @@ func (me *FG_SERVER) AddBlacklist(FourDottedIP string) {
 	}(FourDottedIP)
 } 
 
-// Check if the cient is black listed. true if blacklisted
+// Check if the client is black listed. true if blacklisted
 func (me *FG_SERVER) IsBlackListed(SenderAddress *NetAddress) bool {
 	_, ok :=  me.BlackList[SenderAddress.IpAddress]
 	if ok {
@@ -434,119 +441,119 @@ func (me *FG_SERVER) HandleTelnetData(conn net.Conn){
 	//buf := make([]byte, 4096)
 
 	
-/** @brief  Geodetic Coordinates */
-//Point3D         PlayerPosGeod;  
-//FG_Player CurrentPlayer;
-//netSocket       NewTelnet;
-//unsigned int  it;
-//NewTelnet.setHandle (Fd);
-//errno = 0;
-//////////////////////////////////////////////////
-//
-//      create the output message
-//      header
-//
-//////////////////////////////////////////////////
-Message  = "# This is " + me.ServerName 
-Message += "\n"
-Message += "# FlightGear Multiplayer Server version: " + me.ServerVersion.Str()
-Message += "\n"
-Message += "# using protocol version: "
-//Message += me.ProtocolVersion.Str()
-Message += " (LazyRelay enabled)"
-Message += "\n"
-//buf.Add
+	/** @brief  Geodetic Coordinates */
+	//Point3D         PlayerPosGeod;  
+	//FG_Player CurrentPlayer;
+	//netSocket       NewTelnet;
+	//unsigned int  it;
+	//NewTelnet.setHandle (Fd);
+	//errno = 0;
+	//////////////////////////////////////////////////
+	//
+	//      create the output message
+	//      header
+	//
+	//////////////////////////////////////////////////
+	Message  = "# This is " + me.ServerName 
+	Message += "\n"
+	//Message += "# FlightGear Multiplayer Server version: " + me.ServerVersion.Str() TODO
+	Message += "\n"
+	Message += "# using protocol version: "
+	//Message += me.ProtocolVersion.Str()
+	Message += " (LazyRelay enabled)"
+	Message += "\n"
+	//buf.Add
 
 	// print conn.RemoteAddr()
-/* if ( m_IsTracked )
-{
-	Message += "# This server is tracked: ";
-	Message += m_Tracker->GetTrackerServer();
-	Message += "\n";
-}
-if (NewTelnet.send (Message.c_str(),Message.size(), MSG_NOSIGNAL) < 0)
-{
-	if ((errno != EAGAIN) && (errno != EPIPE))
+	/* if ( m_IsTracked )
 	{
-	SG_LOG (SG_SYSTEMS, SG_ALERT, "FG_SERVER::HandleTelnet() - " << strerror (errno));
+		Message += "# This server is tracked: ";
+		Message += m_Tracker->GetTrackerServer();
+		Message += "\n";
 	}
-	return (0);
-} */
-/* pthread_mutex_lock (& m_PlayerMutex);
-Message  = "# "+ NumToStr (m_PlayerList.size(), 0);
-pthread_mutex_unlock (& m_PlayerMutex);
-Message += " pilot(s) online\n";
-if (NewTelnet.send (Message.c_str(),Message.size(), MSG_NOSIGNAL) < 0)
-{
-	if ((errno != EAGAIN) && (errno != EPIPE))
-	{
-	SG_LOG (SG_SYSTEMS, SG_ALERT, "FG_SERVER::HandleTelnet() - " << strerror (errno));
-	}
-	return (0);
-}*/
-//////////////////////////////////////////////////
-//
-//      create list of players
-//
-//////////////////////////////////////////////////
-/*
-it = 0;
-for (;;)
-{
-	pthread_mutex_lock (& m_PlayerMutex);
-	if (it < m_PlayerList.size())
-	{
-	CurrentPlayer = m_PlayerList[it]; 
-	it++;
-	}
-	else
-	{
-	pthread_mutex_unlock (& m_PlayerMutex);
-	break;
-	}
-	pthread_mutex_unlock (& m_PlayerMutex);
-	sgCartToGeod (CurrentPlayer.LastPos, PlayerPosGeod);
-	Message = CurrentPlayer.Callsign + "@";
-	if (CurrentPlayer.IsLocal)
-	{
-	Message += "LOCAL: ";
-	}
-	else
-	{
-	mT_RelayMapIt Relay = m_RelayMap.find(CurrentPlayer.Address.getIP());
-	if (Relay != m_RelayMap.end())
-	{
-		Message += Relay->second + ": ";
-	}
-	else
-	{
-		Message += CurrentPlayer.Origin + ": ";
-	}
-	}
-	if (CurrentPlayer.Error != "")
-	{
-	Message += CurrentPlayer.Error + " ";
-	}
-	Message += NumToStr (CurrentPlayer.LastPos[X], 6)+" ";
-	Message += NumToStr (CurrentPlayer.LastPos[Y], 6)+" ";
-	Message += NumToStr (CurrentPlayer.LastPos[Z], 6)+" ";
-	Message += NumToStr (PlayerPosGeod[Lat], 6)+" ";
-	Message += NumToStr (PlayerPosGeod[Lon], 6)+" ";
-	Message += NumToStr (PlayerPosGeod[Alt], 6)+" ";
-	Message += NumToStr (CurrentPlayer.LastOrientation[X], 6)+" ";
-	Message += NumToStr (CurrentPlayer.LastOrientation[Y], 6)+" ";
-	Message += NumToStr (CurrentPlayer.LastOrientation[Z], 6)+" ";
-	Message += CurrentPlayer.ModelName;
-	Message += "\n";
 	if (NewTelnet.send (Message.c_str(),Message.size(), MSG_NOSIGNAL) < 0)
 	{
-	if ((errno != EAGAIN) && (errno != EPIPE))
-	{
+		if ((errno != EAGAIN) && (errno != EPIPE))
+		{
 		SG_LOG (SG_SYSTEMS, SG_ALERT, "FG_SERVER::HandleTelnet() - " << strerror (errno));
-	}
-	return (0);
-	}
-}*/
+		}
+		return (0);
+	} */
+	/* pthread_mutex_lock (& m_PlayerMutex);
+	Message  = "# "+ NumToStr (m_PlayerList.size(), 0);
+	pthread_mutex_unlock (& m_PlayerMutex);
+	Message += " pilot(s) online\n";
+	if (NewTelnet.send (Message.c_str(),Message.size(), MSG_NOSIGNAL) < 0)
+	{
+		if ((errno != EAGAIN) && (errno != EPIPE))
+		{
+		SG_LOG (SG_SYSTEMS, SG_ALERT, "FG_SERVER::HandleTelnet() - " << strerror (errno));
+		}
+		return (0);
+	}*/
+	//////////////////////////////////////////////////
+	//
+	//      create list of players
+	//
+	//////////////////////////////////////////////////
+	/*
+	it = 0;
+	for (;;)
+	{
+		pthread_mutex_lock (& m_PlayerMutex);
+		if (it < m_PlayerList.size())
+		{
+		CurrentPlayer = m_PlayerList[it]; 
+		it++;
+		}
+		else
+		{
+		pthread_mutex_unlock (& m_PlayerMutex);
+		break;
+		}
+		pthread_mutex_unlock (& m_PlayerMutex);
+		sgCartToGeod (CurrentPlayer.LastPos, PlayerPosGeod);
+		Message = CurrentPlayer.Callsign + "@";
+		if (CurrentPlayer.IsLocal)
+		{
+		Message += "LOCAL: ";
+		}
+		else
+		{
+		mT_RelayMapIt Relay = m_RelayMap.find(CurrentPlayer.Address.getIP());
+		if (Relay != m_RelayMap.end())
+		{
+			Message += Relay->second + ": ";
+		}
+		else
+		{
+			Message += CurrentPlayer.Origin + ": ";
+		}
+		}
+		if (CurrentPlayer.Error != "")
+		{
+		Message += CurrentPlayer.Error + " ";
+		}
+		Message += NumToStr (CurrentPlayer.LastPos[X], 6)+" ";
+		Message += NumToStr (CurrentPlayer.LastPos[Y], 6)+" ";
+		Message += NumToStr (CurrentPlayer.LastPos[Z], 6)+" ";
+		Message += NumToStr (PlayerPosGeod[Lat], 6)+" ";
+		Message += NumToStr (PlayerPosGeod[Lon], 6)+" ";
+		Message += NumToStr (PlayerPosGeod[Alt], 6)+" ";
+		Message += NumToStr (CurrentPlayer.LastOrientation[X], 6)+" ";
+		Message += NumToStr (CurrentPlayer.LastOrientation[Y], 6)+" ";
+		Message += NumToStr (CurrentPlayer.LastOrientation[Z], 6)+" ";
+		Message += CurrentPlayer.ModelName;
+		Message += "\n";
+		if (NewTelnet.send (Message.c_str(),Message.size(), MSG_NOSIGNAL) < 0)
+		{
+		if ((errno != EAGAIN) && (errno != EPIPE))
+		{
+			SG_LOG (SG_SYSTEMS, SG_ALERT, "FG_SERVER::HandleTelnet() - " << strerror (errno));
+		}
+		return (0);
+		}
+	}*/
 	// NewTelnet.close ();
 	var buffer bytes.Buffer
 	buffer.WriteString( Message )
@@ -584,7 +591,7 @@ func (me *FG_SERVER) PacketIsValid(	Bytes int, MsgHdr flightgear.T_MsgHdr, Sende
 		me.AddBadClient(SenderAddress, ErrorMsg, true)
 		return false
 	}
-	 
+	
 	// Check Protocol Version
 	if MsgHdr.Version != flightgear.PROTO_VER {
 		ErrorMsg  = SenderAddress.String()
@@ -613,7 +620,6 @@ func (me *FG_SERVER) PacketIsValid(	Bytes int, MsgHdr flightgear.T_MsgHdr, Sende
 			return false
 		}
 	}
-	
 	return true
 } // FG_SERVER::PacketIsValid ()
 
@@ -717,30 +723,27 @@ func (me *FG_SERVER) IsKnownRelay(senderAddress *net.UDPAddr) bool{
 */
 func (me *FG_SERVER) SendChatMessages() {
 
-//mT_MessageIt  CurrentMessage;
-	/*
-if ((CurrentPlayer->IsLocal) && (m_MessageList.size()))
-{
-	CurrentMessage = m_MessageList.begin();
-	while (CurrentMessage != m_MessageList.end())
+	//mT_MessageIt  CurrentMessage;
+		/*
+	if ((CurrentPlayer->IsLocal) && (m_MessageList.size()))
 	{
-	if ((CurrentMessage->Target == 0)
-	||  (CurrentMessage->Target == CurrentPlayer->ClientID))
-	{
-		int len = sizeof(T_MsgHdr) + sizeof(T_ChatMsg);
-		m_DataSocket->sendto (CurrentMessage->Msg, len, 0,
-		&CurrentPlayer->Address);
-	}
-	CurrentMessage++;
-	}
-} */
+		CurrentMessage = m_MessageList.begin();
+		while (CurrentMessage != m_MessageList.end())
+		{
+		if ((CurrentMessage->Target == 0)
+		||  (CurrentMessage->Target == CurrentPlayer->ClientID))
+		{
+			int len = sizeof(T_MsgHdr) + sizeof(T_ChatMsg);
+			m_DataSocket->sendto (CurrentMessage->Msg, len, 0,
+			&CurrentPlayer->Address);
+		}
+		CurrentMessage++;
+		}
+	} */
 } // FG_SERVER::SendChatMessages ()
 
 
-
-
-
-
+// Main Loop
 func (me *FG_SERVER) Loop() {
 
 	//== Startup Telnet Listener
@@ -785,22 +788,22 @@ func (me *FG_SERVER) Loop() {
 // return - 0: Sender is unknown  - 1: Sender is known - 2: Sender is known, but has a different IP
 func (me *FG_SERVER) SenderIsKnown(SenderCallsign string, SenderAddress  *net.UDPAddr) int {
 	/* mT_PlayerListIt CurrentPlayer;
-  	for (CurrentPlayer = m_PlayerList.begin();
-       CurrentPlayer != m_PlayerList.end();
-       CurrentPlayer++)
-  	{
-    if (CurrentPlayer->Callsign == SenderCallsign)
-    {
-      if CurrentPlayer->Address.getIP() == SenderAddress.getIP() {
-        return 1 // Sender is known
-      }
-      // Same callsign, but different IP.
-      // Quietly ignore this packet.
-      return 2
-    }
-  	} */
-  	// Sender is unkown
- 	return 0
+	for (CurrentPlayer = m_PlayerList.begin();
+	CurrentPlayer != m_PlayerList.end();
+	CurrentPlayer++)
+	{
+	if (CurrentPlayer->Callsign == SenderCallsign)
+	{
+	if CurrentPlayer->Address.getIP() == SenderAddress.getIP() {
+		return 1 // Sender is known
+	}
+	// Same callsign, but different IP.
+	// Quietly ignore this packet.
+	return 2
+	}
+	} */
+	// Sender is unkown
+	return 0
 } // FG_SERVER::SenderIsKnown ()
 
 //------------------------------------------------------------------------
@@ -853,15 +856,15 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 	
 	magic, err := dec.DecodeUint()
 	if err != nil {
-    	fmt.Println(err)
-    	return
+		fmt.Println(err)
+		return
 	}
 	fmt.Println("magic=", magic)
 	
 	mid, err := dec.DecodeUint()
 	if err != nil {
-    	fmt.Println(err)
-    	return
+		fmt.Println(err)
+		return
 	}
 	fmt.Println("mid=", mid)
 	*/
@@ -896,7 +899,7 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 	//////////////////////////////////////////////////
 	//    Store senders position
 	//////////////////////////////////////////////////
-	 if MsgHdr.MsgId == flightgear.POS_DATA_ID	{
+	if MsgHdr.MsgId == flightgear.POS_DATA_ID	{
 		me.PositionData++
 		/*PosMsg = (T_PositionMsg *) (Msg + sizeof(T_MsgHdr));
 		double x = XDR_decode64<double> (PosMsg->position[X]);
@@ -914,24 +917,19 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 	} else {
 		me.NotPosData++
 	} 
-	//////////////////////////////////////////////////
-	//
-	//    Add Client to list if its not known
-	//
-	//////////////////////////////////////////////////
-	//ClientInList := me.SenderIsKnown(MsgHdr.Callsign, SenderAddress)
-	/*if (ClientInList == 0)
-	{ // unknown, add to the list
-		if (MsgId != POS_DATA_ID)
-		{ // ignore clients until we have a valid position
-		return;
+	
+	// Add Client to list if its not known
+	senderInList := me.SenderIsKnown(MsgHdr.CallsignString(), SenderAddress)
+	if senderInList == SENDER_UNKOWN{ 
+		// unknown, add to the list
+		if MsgHdr.MsgId != POS_DATA_ID {
+			return // ignore clients until we have a valid position
 		}
-		AddClient (SenderAddress, Msg);
+		me.AddClient(SenderAddress, Msg);
+	}else if senderInList == SENDER_DIFF_IP {
+		return // known, but different IP => ignore
 	}
-	else if (ClientInList == 2)
-	{ // known, but different IP => ignore
-		return;
-	}*/
+	
 	//////////////////////////////////////////
 	//
 	//      send the packet to all clients.
@@ -1041,107 +1039,104 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 //////////////////////////////////////////////////////////////////////
 //  Insert a new client to internal list
 func (me *FG_SERVER) AddClient(Sender *net.UDPAddr, MsgHdr *flightgear.T_MsgHdr, PosMsg *flightgear.T_PositionMsg) {
-  //time_t          Timestamp;
-  //uint32_t        MsgLen;
-  //uint32_t        MsgId;
-  //uint32_t        MsgMagic;
-  //string          Message;
-  //string          Origin;
-  //T_MsgHdr*       MsgHdr;
-  //T_PositionMsg*  PosMsg;
-  //FG_Player       NewPlayer;
-  //bool    IsLocal;
+	//time_t          Timestamp;
+	//uint32_t        MsgLen;
+	//uint32_t        MsgId;
+	//uint32_t        MsgMagic;
+	//string          Message;
+	//string          Origin;
+	//T_MsgHdr*       MsgHdr;
+	//T_PositionMsg*  PosMsg;
+	//FG_Player       NewPlayer;
+	//bool    IsLocal;
 
-  //Timestamp           = time(0);
-  //MsgHdr              = (T_MsgHdr *) Msg;
-  //var MsgHdr &flightgear.T_MsgTdr{}
-  //PosMsg              = (T_PositionMsg *) (Msg + sizeof(T_MsgHdr));
-  //MsgId               = XDR_decode<uint32_t> (MsgHdr->MsgId);
-  //MsgLen              = XDR_decode<uint32_t> (MsgHdr->MsgLen);
-  //MsgMagic            = XDR_decode<uint32_t> (MsgHdr->Magic);
-  //IsLocal             = true;
+	//Timestamp           = time(0);
+	//MsgHdr              = (T_MsgHdr *) Msg;
+	//var MsgHdr &flightgear.T_MsgTdr{}
+	//PosMsg              = (T_PositionMsg *) (Msg + sizeof(T_MsgHdr));
+	//MsgId               = XDR_decode<uint32_t> (MsgHdr->MsgId);
+	//MsgLen              = XDR_decode<uint32_t> (MsgHdr->MsgLen);
+	//MsgMagic            = XDR_decode<uint32_t> (MsgHdr->Magic);
+	//IsLocal             = true;
 	IsLocal := MsgHdr.Magic != RELAY_MAGIC  // not a local client
-    	
+		
 	NewPlayer := new(FG_Player)
-  NewPlayer.Callsign  = MsgHdr.CallsignString()
-  NewPlayer.Passwd    = "test" //MsgHdr->Passwd;
-  NewPlayer.ModelName = "* unknown *"
-  NewPlayer.Timestamp = time.Now().Unix()
-  NewPlayer.JoinTime  = NewPlayer.Timestamp
-  //NewPlayer.Origin    = Sender.getHost () TODO
-  NewPlayer.HasErrors = false
- // NewPlayer.Address   = Sender
-  NewPlayer.IsLocal   = IsLocal
-  NewPlayer.LastPos.Clear()
-  NewPlayer.LastOrientation.Clear()
-  NewPlayer.PktsReceivedFrom = 0
-  NewPlayer.PktsSentTo       = 0
-  NewPlayer.PktsForwarded    = 0
-  NewPlayer.LastRelayedToInactive = 0 
- /* NewPlayer.LastPos.Set (
-    XDR_decode64<double> (PosMsg->position[X]),
-    XDR_decode64<double> (PosMsg->position[Y]),
-    XDR_decode64<double> (PosMsg->position[Z])
-  ); */
-  /*NewPlayer.LastOrientation.Set (
-    XDR_decode<float> (PosMsg->orientation[X]),
-    XDR_decode<float> (PosMsg->orientation[Y]),
-    XDR_decode<float> (PosMsg->orientation[Z])
-  );*/
-  NewPlayer.ModelName = PosMsg.ModelString()
-  //m_MaxClientID++
-  NewPlayer.ClientID = me.MaxClientID
-  //pthread_mutex_lock (& m_PlayerMutex)
-  //m_PlayerList.push_back (NewPlayer)
-  //pthread_mutex_unlock (& m_PlayerMutex);
-  me.NumCurrentClients++
-  if me.NumCurrentClients > me.NumMaxClients {
-   		me.NumMaxClients = me.NumCurrentClients;
-  }
-  if IsLocal {
-    /*Message  = "Welcome to ";
-    Message += m_ServerName;
-    CreateChatMessage (NewPlayer.ClientID , Message);
-    Message = "this is version v" + string(VERSION);
-    Message += " (LazyRelay enabled)";
-    CreateChatMessage (NewPlayer.ClientID , Message);
-    Message  ="using protocol version v";
-    Message += NumToStr (m_ProtoMajorVersion, 0);
-    Message += "." + NumToStr (m_ProtoMinorVersion, 0);
-    if (m_IsTracked)
-    {
-      Message += "This server is tracked.";
-    }
-    CreateChatMessage (NewPlayer.ClientID , Message);
-    UpdateTracker (NewPlayer.Callsign, NewPlayer.Passwd,
-      NewPlayer.ModelName, NewPlayer.Timestamp, CONNECT); 
-      */
-  }
-  /* Message  = NewPlayer.Callsign;
-  Message += " is now online, using ";
-  CreateChatMessage (0, Message);
-  Message  = NewPlayer.ModelName;
-  CreateChatMessage (0, Message);
-  Origin  = NewPlayer.Origin;
-  if (IsLocal)
-  {
-    Message = "New LOCAL Client: ";
-  }
-  else
-  {
-    Message = "New REMOTE Client: ";
-    mT_RelayMapIt Relay = m_RelayMap.find(NewPlayer.Address.getIP());
-    if (Relay != m_RelayMap.end())
-    {
-      Origin = Relay->second;
-    }
-  } */
-  /*
-  SG_LOG (SG_SYSTEMS, SG_INFO, Message
-    << NewPlayer.Callsign << " "
-    << Origin << ":" << Sender.getPort()
-    << " (" << NewPlayer.ModelName << ")"
-    << " current clients: "
-    << m_NumCurrentClients << " max: " << m_NumMaxClients
-  ); */
+	NewPlayer.Callsign  = MsgHdr.CallsignString()
+	NewPlayer.Passwd    = "test" //MsgHdr->Passwd;
+	NewPlayer.ModelName = "* unknown *"
+	NewPlayer.Timestamp = time.Now().Unix()
+	NewPlayer.JoinTime  = NewPlayer.Timestamp
+	//NewPlayer.Origin    = Sender.getHost () TODO
+	NewPlayer.HasErrors = false
+	// NewPlayer.Address   = Sender
+	NewPlayer.IsLocal   = IsLocal
+	NewPlayer.LastPos.Clear()
+	NewPlayer.LastOrientation.Clear()
+	NewPlayer.PktsReceivedFrom = 0
+	NewPlayer.PktsSentTo       = 0
+	NewPlayer.PktsForwarded    = 0
+	NewPlayer.LastRelayedToInactive = 0 
+	/* NewPlayer.LastPos.Set (
+		XDR_decode64<double> (PosMsg->position[X]),
+		XDR_decode64<double> (PosMsg->position[Y]),
+		XDR_decode64<double> (PosMsg->position[Z])
+	); */
+	/*NewPlayer.LastOrientation.Set (
+		XDR_decode<float> (PosMsg->orientation[X]),
+		XDR_decode<float> (PosMsg->orientation[Y]),
+		XDR_decode<float> (PosMsg->orientation[Z])
+	);*/
+	NewPlayer.ModelName = PosMsg.ModelString()
+	//m_MaxClientID++
+	NewPlayer.ClientID = me.MaxClientID
+	//pthread_mutex_lock (& m_PlayerMutex)
+	//m_PlayerList.push_back (NewPlayer)
+	//pthread_mutex_unlock (& m_PlayerMutex);
+	me.NumCurrentClients++
+	if me.NumCurrentClients > me.NumMaxClients {
+			me.NumMaxClients = me.NumCurrentClients;
+	}
+	if IsLocal {
+		/*Message  = "Welcome to ";
+		Message += m_ServerName;
+		CreateChatMessage (NewPlayer.ClientID , Message);
+		Message = "this is version v" + string(VERSION);
+		Message += " (LazyRelay enabled)";
+		CreateChatMessage (NewPlayer.ClientID , Message);
+		Message  ="using protocol version v";
+		Message += NumToStr (m_ProtoMajorVersion, 0);
+		Message += "." + NumToStr (m_ProtoMinorVersion, 0);
+		if (m_IsTracked)
+		{
+		Message += "This server is tracked.";
+		}
+		CreateChatMessage (NewPlayer.ClientID , Message);
+		UpdateTracker (NewPlayer.Callsign, NewPlayer.Passwd,
+		NewPlayer.ModelName, NewPlayer.Timestamp, CONNECT); 
+		*/
+	}
+	/* Message  = NewPlayer.Callsign;
+	Message += " is now online, using ";
+	CreateChatMessage (0, Message);
+	Message  = NewPlayer.ModelName;
+	CreateChatMessage (0, Message);
+	Origin  = NewPlayer.Origin;
+	if IsLocal{
+		Message = "New LOCAL Client: ";
+	}else{
+		Message = "New REMOTE Client: ";
+		mT_RelayMapIt Relay = m_RelayMap.find(NewPlayer.Address.getIP());
+		if (Relay != m_RelayMap.end())
+		{
+		Origin = Relay->second;
+		}
+	} */
+	/*
+	SG_LOG (SG_SYSTEMS, SG_INFO, Message
+		<< NewPlayer.Callsign << " "
+		<< Origin << ":" << Sender.getPort()
+		<< " (" << NewPlayer.ModelName << ")"
+		<< " current clients: "
+		<< m_NumCurrentClients << " max: " << m_NumMaxClients
+	); */
 } // FG_SERVER::AddClient()
