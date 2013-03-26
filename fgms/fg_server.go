@@ -61,7 +61,7 @@ type FG_SERVER struct {
 	
 
 
-	PlayerList map[string]*FG_Player
+	PlayerList []*FG_Player
 	PlayerExpires int
 
 	Telnet *TelnetServer
@@ -134,7 +134,8 @@ func NewFG_SERVER() *FG_SERVER {
 	ob := new(FG_SERVER)
 	ob.ServerVersion = &Version{Major: 1, Minor: 1} // TODO
 	
-	ob.PlayerList = make(map[string]*FG_Player)
+	//ob.PlayerList = make(map[string]*FG_Player)
+	ob.PlayerList = make([]*FG_Player, 0)
 		
 	ob.RelayList = make([]*NetAddress, 0)
 	ob.RelayMap = make(map[string]string)
@@ -1087,7 +1088,7 @@ func (me *FG_SERVER) AddClient(Sender *net.UDPAddr, MsgHdr *flightgear.T_MsgHdr,
     XDR_decode<float> (PosMsg->orientation[Y]),
     XDR_decode<float> (PosMsg->orientation[Z])
   );*/
-  NewPlayer.ModelName = PosMsg.Model
+  NewPlayer.ModelName = PosMsg.ModelString()
   //m_MaxClientID++
   NewPlayer.ClientID = me.MaxClientID
   //pthread_mutex_lock (& m_PlayerMutex)

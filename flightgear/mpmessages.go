@@ -70,14 +70,14 @@ const MAX_PROPERTY_LEN   = 52
 
 // TODO There has Got to be a better way
 func (me *T_MsgHdr) CallsignString() string{
-	cs := ""
+	s := ""
 	for _, ele := range me.Callsign {
 		if ele == 0 {
-			return cs
+			return s
 		}
-		cs += string(ele)
+		s += string(ele)
 	}
-	return cs   
+	return s   
 }
 
 
@@ -140,6 +140,18 @@ type T_PositionMsg struct{
 	 */
     //xdr_data_t angularAccel[3];
     angularAccel [3]uint32
+}
+
+// TODO There has Got to be a better way
+func (me *T_PositionMsg) ModelString() string{
+	s := ""
+	for _, ele := range me.Model {
+		if ele == 0 {
+			return s
+		}
+		s += string(ele)
+	}
+	return s   
 }
 
 
