@@ -1,7 +1,7 @@
 package fgms
 
 import (
-	//"time"
+	"time"
 )
 
 type FG_Player struct {
@@ -40,6 +40,8 @@ type FG_Player struct {
 
 func NewFG_Player() *FG_Player {
 	ob := new(FG_Player)
+	ob.Timestamp = time.Now().Unix()
+	ob.JoinTime  = ob.Timestamp
 	return ob
 }
 

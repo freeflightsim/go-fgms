@@ -7,7 +7,7 @@ import(
 	"net"
 	"bytes"
 	//"bufio"
-	"time"
+	//"time"
 	"unsafe"
 )
 
@@ -67,8 +67,8 @@ type FG_SERVER struct {
 	IamHUB bool
 	
 
-
-	PlayerList []*FG_Player
+	//PlayerList []*FG_Player
+	PlayerList map[string]*FG_Player
 	PlayerExpires int
 
 	Telnet *TelnetServer
@@ -141,8 +141,8 @@ func NewFG_SERVER() *FG_SERVER {
 	ob := new(FG_SERVER)
 
 	
-	//ob.PlayerList = make(map[string]*FG_Player)
-	ob.PlayerList = make([]*FG_Player, 0)
+	ob.PlayerList = make(map[string]*FG_Player)
+	//ob.PlayerList = make([]*FG_Player, 0)
 		
 	ob.RelayList = make([]*NetAddress, 0)
 	ob.RelayMap = make(map[string]string)
@@ -658,20 +658,20 @@ func (me *FG_SERVER) AddBadClient(Sender *net.UDPAddr , ErrorMsg string, IsLocal
 	//////////////////////////////////////////////////
 	fmt.Println("BADCLIENT", Sender)
 	me.MaxClientID++
-	NewPlayer := new(FG_Player)
+	NewPlayer := NewFG_Player()
 	NewPlayer.Callsign      = "* Bad Client *"
 	NewPlayer.ModelName     = "* unknown *"
 	//NewPlayer.Timestamp     = time(0);
-	NewPlayer.JoinTime      = NewPlayer.Timestamp;
+	//NewPlayer.JoinTime      = NewPlayer.Timestamp;
 	// NewPlayer.Origin        = Sender.Host //getHost ()
 	//NewPlayer.Address       = Sender.Address
 	NewPlayer.IsLocal       = IsLocal
 	NewPlayer.HasErrors     = true
 	NewPlayer.Error         = ErrorMsg
 	NewPlayer.ClientID      = me.MaxClientID
-	NewPlayer.PktsReceivedFrom      = 0
-	NewPlayer.PktsSentTo            = 0
-	NewPlayer.PktsForwarded         = 0
+	//NewPlayer.PktsReceivedFrom      = 0
+	//NewPlayer.PktsSentTo            = 0
+	//NewPlayer.PktsForwarded         = 0
 	//NewPlayer.LastRelayedToInactive = 0
 	//SG_LOG (SG_SYSTEMS, SG_ALERT, "FG_SERVER::AddBadClient() - " << ErrorMsg);
 	//Message = "bad client connected: ";
@@ -787,23 +787,35 @@ func (me *FG_SERVER) Loop() {
 // Look if we know the sending client
 // return - 0: Sender is unknown  - 1: Sender is known - 2: Sender is known, but has a different IP
 func (me *FG_SERVER) SenderIsKnown(SenderCallsign string, SenderAddress  *net.UDPAddr) int {
+
+	addr := SenderAddress.String()
+	fmt.Println("Find=", addr)
+	_, ok := me.PlayerList[addr]
+	//for _, player := range me.PlayerList {
+	//	if player.Callsign == SenderCallsign {
+	//		//if player.
+	//	}
+	//	
+	//}
+	if ok {
+		return SENDER_KNOWN
+	}
 	/* mT_PlayerListIt CurrentPlayer;
 	for (CurrentPlayer = m_PlayerList.begin();
 	CurrentPlayer != m_PlayerList.end();
 	CurrentPlayer++)
 	{
-	if (CurrentPlayer->Callsign == SenderCallsign)
-	{
-	if CurrentPlayer->Address.getIP() == SenderAddress.getIP() {
-		return 1 // Sender is known
-	}
-	// Same callsign, but different IP.
-	// Quietly ignore this packet.
-	return 2
-	}
+	if (CurrentPlayer->Callsign == SenderCallsign){
+		if CurrentPlayer->Address.getIP() == SenderAddress.getIP() {
+			return 1 // Sender is known
+		}
+		// Same callsign, but different IP.
+		// Quietly ignore this packet.
+		return 2
+		}
 	} */
 	// Sender is unkown
-	return 0
+	return SENDER_UNKNOWN
 } // FG_SERVER::SenderIsKnown ()
 
 //------------------------------------------------------------------------
@@ -842,13 +854,13 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 	//fmt.Println ("=magic=", flightgear.MSG_MAGIC == MsgHdr.Magic) //WORKS
 	//fmt.Println ("=proto=", flightgear.PROTO_VER == MsgHdr.Version) //WORKS
 	//fmt.Println ("=ID=", MsgHdr.MsgId)
-	cs := "" //string(MsgHdr.Callsign[0]) + string(MsgHdr.Callsign[1]) + string(MsgHdr.Callsign[2]) + string(MsgHdr.Callsign[3]) + string(MsgHdr.Callsign[4]) + string(MsgHdr.Callsign[5]) + string(MsgHdr.Callsign[6]) + string(MsgHdr.Callsign[7])
-	for _, ele := range MsgHdr.Callsign{
-		if ele != 0 {
-			cs += string(ele)
-		}
-	}    
-	fmt.Println ("=callsign=", MsgHdr.Callsign, cs)
+	//cs := "" //string(MsgHdr.Callsign[0]) + string(MsgHdr.Callsign[1]) + string(MsgHdr.Callsign[2]) + string(MsgHdr.Callsign[3]) + string(MsgHdr.Callsign[4]) + string(MsgHdr.Callsign[5]) + string(MsgHdr.Callsign[6]) + string(MsgHdr.Callsign[7])
+	//for _, ele := range MsgHdr.Callsign{
+	//	if ele != 0 {
+	//		cs += string(ele)
+	//	}
+	//}    
+	fmt.Println ("=callsign=", MsgHdr.Callsign, MsgHdr.CallsignString())
 	
 	/*
 	dec := xdr.NewDecoder(Msg)
@@ -882,10 +894,13 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 	//}
 	
 	// Check packet is valid
+	fmt.Println (" > checkvalid")
 	if !me.PacketIsValid(Bytes, MsgHdr, SenderAddress) {
 		me.PacketsInvalid++
+		fmt.Println ("  <<  NO checkvalid")
 		return
 	} 
+	fmt.Println ("  <<  YES checkvalid")
 	
 	if MsgHdr.Magic == RELAY_MAGIC { // not a local client
 		if !me.IsKnownRelay(SenderAddress) {
@@ -920,12 +935,15 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 	
 	// Add Client to list if its not known
 	senderInList := me.SenderIsKnown(MsgHdr.CallsignString(), SenderAddress)
-	if senderInList == SENDER_UNKOWN{ 
+	fmt.Println ("  <<  senderInList", senderInList)
+	if senderInList == SENDER_UNKNOWN { 
 		// unknown, add to the list
-		if MsgHdr.MsgId != POS_DATA_ID {
-			return // ignore clients until we have a valid position
+		if MsgHdr.MsgId != flightgear.POS_DATA_ID {
+			return // ignore client until we have a valid position
 		}
-		me.AddClient(SenderAddress, Msg);
+		tempPosMsg := flightgear.T_PositionMsg{}
+		me.AddClient(SenderAddress, MsgHdr, tempPosMsg)
+		
 	}else if senderInList == SENDER_DIFF_IP {
 		return // known, but different IP => ignore
 	}
@@ -1038,7 +1056,7 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 
 //////////////////////////////////////////////////////////////////////
 //  Insert a new client to internal list
-func (me *FG_SERVER) AddClient(Sender *net.UDPAddr, MsgHdr *flightgear.T_MsgHdr, PosMsg *flightgear.T_PositionMsg) {
+func (me *FG_SERVER) AddClient(Sender *net.UDPAddr, MsgHdr flightgear.T_MsgHdr, PosMsg flightgear.T_PositionMsg) {
 	//time_t          Timestamp;
 	//uint32_t        MsgLen;
 	//uint32_t        MsgId;
@@ -1058,24 +1076,26 @@ func (me *FG_SERVER) AddClient(Sender *net.UDPAddr, MsgHdr *flightgear.T_MsgHdr,
 	//MsgLen              = XDR_decode<uint32_t> (MsgHdr->MsgLen);
 	//MsgMagic            = XDR_decode<uint32_t> (MsgHdr->Magic);
 	//IsLocal             = true;
+	
+	fmt.Println (" ADD Client", Sender, len(me.PlayerList))
 	IsLocal := MsgHdr.Magic != RELAY_MAGIC  // not a local client
 		
-	NewPlayer := new(FG_Player)
-	NewPlayer.Callsign  = MsgHdr.CallsignString()
+	NewPlayer := NewFG_Player()
+	NewPlayer.Callsign  = "FOO" //MsgHdr.CallsignString()
 	NewPlayer.Passwd    = "test" //MsgHdr->Passwd;
 	NewPlayer.ModelName = "* unknown *"
-	NewPlayer.Timestamp = time.Now().Unix()
-	NewPlayer.JoinTime  = NewPlayer.Timestamp
+	//NewPlayer.Timestamp = time.Now().Unix()
+	//NewPlayer.JoinTime  = NewPlayer.Timestamp
 	//NewPlayer.Origin    = Sender.getHost () TODO
 	NewPlayer.HasErrors = false
 	// NewPlayer.Address   = Sender
 	NewPlayer.IsLocal   = IsLocal
-	NewPlayer.LastPos.Clear()
-	NewPlayer.LastOrientation.Clear()
-	NewPlayer.PktsReceivedFrom = 0
-	NewPlayer.PktsSentTo       = 0
-	NewPlayer.PktsForwarded    = 0
-	NewPlayer.LastRelayedToInactive = 0 
+	//NewPlayer.LastPos.Clear()
+	//NewPlayer.LastOrientation.Clear()
+	//NewPlayer.PktsReceivedFrom = 0
+	//NewPlayer.PktsSentTo       = 0
+	//NewPlayer.PktsForwarded    = 0
+	//NewPlayer.LastRelayedToInactive = 0 
 	/* NewPlayer.LastPos.Set (
 		XDR_decode64<double> (PosMsg->position[X]),
 		XDR_decode64<double> (PosMsg->position[Y]),
@@ -1086,15 +1106,18 @@ func (me *FG_SERVER) AddClient(Sender *net.UDPAddr, MsgHdr *flightgear.T_MsgHdr,
 		XDR_decode<float> (PosMsg->orientation[Y]),
 		XDR_decode<float> (PosMsg->orientation[Z])
 	);*/
-	NewPlayer.ModelName = PosMsg.ModelString()
+	//NewPlayer.ModelName = PosMsg.ModelString()
 	//m_MaxClientID++
 	NewPlayer.ClientID = me.MaxClientID
 	//pthread_mutex_lock (& m_PlayerMutex)
 	//m_PlayerList.push_back (NewPlayer)
+	
+	me.PlayerList[Sender.String()] = NewPlayer
+	//me.PlayerList = append(me.PlayerList, NewPlayer)
 	//pthread_mutex_unlock (& m_PlayerMutex);
 	me.NumCurrentClients++
 	if me.NumCurrentClients > me.NumMaxClients {
-			me.NumMaxClients = me.NumCurrentClients;
+		me.NumMaxClients = me.NumCurrentClients;
 	}
 	if IsLocal {
 		/*Message  = "Welcome to ";
