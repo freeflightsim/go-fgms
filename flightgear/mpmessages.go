@@ -1,5 +1,8 @@
 package flightgear
 
+import (
+	"fmt"
+)
 
 import (
 	"github.com/fgx/go-fgms/simgear"
@@ -13,7 +16,14 @@ const MSG_MAGIC = 0x46474653  // "FGFS"
 
 
 //   protocol version 
-const PROTO_VER = 0x00010001  // 1.1
+const PROTO_VER = 0x00010002  // 1.1
+const PROTO_VER_STR = "1.1"
+
+func GetProtocolVerString() string {
+	major := PROTO_VER >> 16
+	minor := PROTO_VER >> 4
+	return fmt.Sprintf("%d.%d", major, minor) // FAIL FAIL FAIL 
+}
 
 
 const CHAT_MSG_ID = 1
