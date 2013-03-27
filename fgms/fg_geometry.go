@@ -48,24 +48,34 @@ const ( Lat = 0
 
 
 type Point3D struct {
-	x float64 
-	y float64 
-	z float64 
+	_x float64 
+	_y float64 
+	_z float64 
 }
+func (me *Point3D) X() float64 { return me._x}
+func (me *Point3D) Y() float64 { return me._y}
+func (me *Point3D) Z() float64 { return me._z}
+
+func (me *Point3D) SetLat(lat float64) { me._x = lat}
+func (me *Point3D) SetLon(lon float64) { me._y = lon}
+func (me *Point3D) SetAlt(alt float64) { me._z = alt}
+ 
+
 func (me *Point3D) Set(x, y, z float64){
-	me.x = x
-	me.y = y
-	me.z = z
+	me._x = x
+	me._y = y
+	me._z = z
 }
 func (me *Point3D) Clear(){
-	me.x = 0
-	me.y = 0
-	me.z = 0
+	me._x = 0
+	me._y = 0
+	me._z = 0
 }
+
 
 func (me *Point3D) Length () float64 {
 	//return (sqrt ((m_X * m_X) + (m_Y * m_Y) + (m_Z * m_Z)));
-	return math.Sqrt( (me.x * me.x) + (me.y * me.y) + (me.z * me.z) )
+	return math.Sqrt( (me.X() * me.X()) + (me.Y() * me.Y()) + (me.Z() * me.Z()) )
 }
 
 
@@ -73,7 +83,7 @@ func (me *Point3D) Length () float64 {
 
 func Point3DSubract(p1, p2 Point3D) Point3D{
 	
-	return Point3D{x: p1.x - p2.x, y: p1.y - p2.y, z: p1.z - p2.z}  
+	return Point3D{p1.X() - p2.X(), p1.Y() - p2.Y(), p1.Z() - p2.Z()}  
 	
 }
 
@@ -126,9 +136,9 @@ func SG_CartToGeod ( CartPoint Point3D ) Point3D {
 	//double x = CartPoint[X];
 	//double y = CartPoint[Y];
 	//double z = CartPoint[Z];
-	x := CartPoint.x
-	y := CartPoint.y
-	z := CartPoint.z
+	x := CartPoint.X()
+	y := CartPoint.Y()
+	z := CartPoint.Z()
 	
 	//double XXpYY = x*x+y*y;
 	var XXpYY float64 = (x * x) + (y * y)
@@ -168,15 +178,15 @@ func SG_CartToGeod ( CartPoint Point3D ) Point3D {
 	
 	var GeodPoint Point3D
 	//GeodPoint[Lon] = (2*atan2(y, x+sqrtXXpYY)) * SG_RADIANS_TO_DEGREES;
-	GeodPoint.y = (2 * math.Atan2(y, x + sqrtXXpYY)) * SG_RADIANS_TO_DEGREES
+	GeodPoint.SetLon( (2 * math.Atan2(y, x + sqrtXXpYY)) * SG_RADIANS_TO_DEGREES )
 	
 	//double sqrtDDpZZ = sqrt(D*D+z*z);
 	var sqrtDDpZZ float64 = math.Sqrt( D * D + z * z)
 	//GeodPoint[Lat] = (2*atan2(z, D+sqrtDDpZZ)) * SG_RADIANS_TO_DEGREES;
-	GeodPoint.x = (2* math.Atan2(z, D + sqrtDDpZZ)) * SG_RADIANS_TO_DEGREES
+	GeodPoint.SetLat( (2* math.Atan2(z, D + sqrtDDpZZ)) * SG_RADIANS_TO_DEGREES )
 	
 	//GeodPoint[Alt] = ((k+e2-1)*sqrtDDpZZ/k) * SG_METER_TO_FEET;
-	GeodPoint.z = ((k + e2 - 1) * sqrtDDpZZ / k) * SG_METER_TO_FEET
+	GeodPoint.SetAlt( ((k + e2 - 1) * sqrtDDpZZ / k) * SG_METER_TO_FEET )
 	return GeodPoint
 } // sgCartToGeod()
 
