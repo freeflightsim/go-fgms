@@ -58,7 +58,7 @@ func (me *FG_SERVER) HandleTelnetData(conn net.Conn){
 	//////////////////////////////////////////////////
 	Message  = "# This is " + me.ServerName 
 	Message += "\n"
-	Message += "# FlightGear Multiplayer Server version: " + VERSION
+	Message += "# FlightGear Multiplayer Server version: " + me.Version
 	Message += "\n"
 	Message += "# using protocol version: "
 	Message += flightgear.GetProtocolVerString() // FIX ME PLEASE
