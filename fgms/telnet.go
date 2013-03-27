@@ -130,24 +130,35 @@ func (me *FG_SERVER) HandleTelnetData(conn net.Conn){
 		if CurrentPlayer.Error != "" {
 			line += CurrentPlayer.Error + " "
 		}
+		PlayerPosGeod := SG_CartToGeod (CurrentPlayer.LastPos)
 		//= Last Position
-		// http://golang.org/pkg/strconv/#FormatFloat
 		//Message += NumToStr (CurrentPlayer.LastPos[X], 6)+" ";
-		Message += strconv.FormatFloat( CurrentPlayer.LastPos.X(), 'f', 6, 32)  + " "
-		
 		//Message += NumToStr (CurrentPlayer.LastPos[Y], 6)+" ";
-		Message += strconv.FormatFloat( CurrentPlayer.LastPos.Y(), 'f', 6, 32)  + " "
-		
 		//Message += NumToStr (CurrentPlayer.LastPos[Z], 6)+" ";
+		//
+		// http://golang.org/pkg/strconv/#FormatFloat
+		Message += strconv.FormatFloat( CurrentPlayer.LastPos.X(), 'f', 6, 32)  + " "
+		Message += strconv.FormatFloat( CurrentPlayer.LastPos.Y(), 'f', 6, 32)  + " "
 		Message += strconv.FormatFloat( CurrentPlayer.LastPos.Z(), 'f', 6, 32)  + " "
 		
+		//= Lat/Lon/Alt
 		//Message += NumToStr (PlayerPosGeod[Lat], 6)+" ";
 		//Message += NumToStr (PlayerPosGeod[Lon], 6)+" ";
 		//Message += NumToStr (PlayerPosGeod[Alt], 6)+" ";
+		Message += strconv.FormatFloat( PlayerPosGeod.Lat(), 'f', 6, 32)  + " "
+		Message += strconv.FormatFloat( PlayerPosGeod.Lon(), 'f', 6, 32)  + " "
+		Message += strconv.FormatFloat( PlayerPosGeod.Alt(), 'f', 6, 32)  + " "
+		
 		//Message += NumToStr (CurrentPlayer.LastOrientation[X], 6)+" ";
 		//Message += NumToStr (CurrentPlayer.LastOrientation[Y], 6)+" ";
 		//Message += NumToStr (CurrentPlayer.LastOrientation[Z], 6)+" ";
+		
+		Message += strconv.FormatFloat( CurrentPlayer.LastOrientation.X(), 'f', 6, 32)  + " "
+		Message += strconv.FormatFloat( CurrentPlayer.LastOrientation.Y(), 'f', 6, 32)  + " "
+		Message += strconv.FormatFloat( CurrentPlayer.LastOrientation.Z(), 'f', 6, 32)  + " "
+		
 		//Message += CurrentPlayer.ModelName;
+		Message += CurrentPlayer.ModelName
 		
 		Message += "\n"
 		Message += line

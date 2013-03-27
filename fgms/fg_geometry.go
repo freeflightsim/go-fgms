@@ -56,6 +56,9 @@ func (me *Point3D) X() float64 { return me._x}
 func (me *Point3D) Y() float64 { return me._y}
 func (me *Point3D) Z() float64 { return me._z}
 
+func (me *Point3D) Lat() float64 { return me._x}
+func (me *Point3D) Lon() float64 { return me._y}
+func (me *Point3D) Alt() float64 { return me._z}
 func (me *Point3D) SetLat(lat float64) { me._x = lat}
 func (me *Point3D) SetLon(lon float64) { me._y = lon}
 func (me *Point3D) SetAlt(alt float64) { me._z = alt}
