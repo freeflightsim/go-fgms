@@ -95,8 +95,10 @@ type FG_SERVER struct {
 	BlackList map[string]bool
 	BlackListRejected uint64
 
-	RelayMap map[string]string
-	RelayList []*NetAddress
+	//RelayList map[string]*net.UDPConn
+	Relays map[string]*net.UDPConn
+	//RelayMap map[string]*net.UDPConn
+	//RelayList []*NetAddress
 
 	IsTracked bool
 	Tracker *tracker.FG_TRACKER
@@ -145,8 +147,9 @@ func NewFG_SERVER() *FG_SERVER {
 	ob.PlayerList = make(map[string]*FG_Player)
 	//ob.PlayerList = make([]*FG_Player, 0)
 		
-	ob.RelayList = make([]*NetAddress, 0)
-	ob.RelayMap = make(map[string]string)
+	//ob.RelayList = make([]*NetAddress, 0)
+	//ob.RelayMap = make(map[string]string)
+	ob.Relays = make(map[string]*net.UDPConn, 0)
 	
 	ob.BlackList = make(map[string]bool)
 		
@@ -205,23 +208,36 @@ func (me *FG_SERVER) SetLogfile( log_file_name string){
 
 
 // Insert a new relay server into internal list (does a DNS lookup)
-func (me *FG_SERVER) AddRelay(server string, port int) {
+func (me *FG_SERVER) AddRelay(host_name string, port int) {
 	
-	// First create a relay object, which is a NetAddress
-	NewRelay := NewMT_Relay(server, port)
-	log.Println("> Add Relay = ", server, NewRelay.IpAddress)
+	log.Println("> Add Relay = ", host_name, port)
 	
-	//= Now go and check it exists as IP as a callback
-	go func(addr *NetAddress){
-		err := NewRelay.LookupIP()
-		if err != nil{
-			log.Println("    < Relay FAIL < No IP address for Host ", addr.Host, addr.Port)
-			//return 
-		}else{
-			me.RelayMap[NewRelay.Host] = NewRelay.IpAddress
-			log.Println("    < Relay Added < Lookup OK:  ", addr.Host, NewRelay.IpAddress)
+	//= Now go and do check is background
+	go func(host_name string, port int){
+	
+		//= Get IP address from DNS
+		addrs, err := net.LookupHost(host_name)
+		if err != nil {
+			log.Println("    < Relay FAIL < No IP address for Host ", host_name)
+			return
 		}
-	}(NewRelay)	
+	
+		//= Now resolve with UDP address			
+		s := fmt.Sprintf("%s:%d", host_name, port)
+		//log.Println("    < Relay - DNS Lookup OK:  ", host_name, addrs[0], s)
+		udp_addr, err := net.ResolveUDPAddr("udp", s)
+		if err != nil {
+			log.Println("    < Relay FAIL no UDP:  ", s, udp_addr, err)
+		}
+		
+		//= Now we open socket and listen
+		var err_listen error
+		me.Relays[host_name], err_listen = net.ListenUDP("udp", udp_addr)
+		if err_listen != nil {
+			log.Println("    < Relay FAIL no listen:  ", s, udp_addr, err_listen)
+		}
+		
+	}(host_name, port)	
 	
 } // FG_SERVER::AddRelay()
 
@@ -703,10 +719,10 @@ func (me *FG_SERVER) IsKnownRelay(senderAddress *net.UDPAddr) bool{
 		}
 		CurrentRelay++;
 	}*/
-	_, ok := me.RelayMap[senderAddress.String()]
-	if ok {
-		return true
-	}
+	//_, ok := me.RelayMap[senderAddress.String()]
+	//if ok {
+	//	return true
+	//}
 
 	//string ErrorMsg;
 	//ErrorMsg  = SenderAddress.getHost();
@@ -1073,9 +1089,9 @@ func (me *FG_SERVER) SendToRelays(Msg []byte, Bytes int , SendingPlayer *FG_Play
   }
   //CurrentRelay = m_RelayList.begin();
   //while (CurrentRelay != m_RelayList.end())
-  for idx, relay := me.RelayList {
-    if UpdateInactive || IsInRange(*relay, *SendingPlayer) {
-    
+  for idx, relay := range me.Relays {
+    if UpdateInactive { //|| IsInRange(*relay, *SendingPlayer) {
+    	fmt.Println("relay to=", idx, relay)
       	//if (CurrentRelay->Address.getIP() != SendingPlayer->Address.getIP())
       	//{
       	//  m_DataSocket->sendto(Msg, Bytes, 0, &CurrentRelay->Address);
