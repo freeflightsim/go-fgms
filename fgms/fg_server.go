@@ -23,11 +23,11 @@ const VERSION = "0.1-go-experimental"
 
 const ( 
 	SUCCESS                 = 0
-	ERROR_COMMANDLINE       = 1
-	ERROR_CREATE_SOCKET     = 2
-	ERROR_COULDNT_BIND      = 3
-	ERROR_NOT_LISTENING     = 4
-	ERROR_COULDNT_LISTEN    = 5
+	ERROR_COMMANDLINE       
+	ERROR_CREATE_SOCKET  
+	ERROR_COULDNT_BIND     
+	ERROR_NOT_LISTENING     
+	ERROR_COULDNT_LISTEN   
 )
 
 // other constants
@@ -39,8 +39,8 @@ const RELAY_MAGIC             = 0x53464746    // GSGF
 
 const (
 	SENDER_UNKNOWN  = 0
-	SENDER_KNOWN    = 1 
-	SENDER_DIFF_IP  = 2 // Not sure this is used
+	SENDER_KNOWN   
+	SENDER_DIFF_IP  // Not sure this is used
 )
 		
 // Main Server
