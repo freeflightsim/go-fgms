@@ -218,7 +218,7 @@ func (me *FG_SERVER) AddRelay(host_name string, port int) {
 		//= Get IP address from DNS
 		addrs, err := net.LookupHost(host_name)
 		if err != nil {
-			log.Println("    < Relay FAIL < No IP address for Host ", host_name)
+			log.Println("    < Relay FAIL < No IP address for Host ", host_name, addrs)
 			return
 		}
 	
@@ -234,7 +234,7 @@ func (me *FG_SERVER) AddRelay(host_name string, port int) {
 		var err_listen error
 		me.Relays[host_port], err_listen = net.ListenUDP("udp", udp_addr)
 		if err_listen != nil {
-			log.Println("    < Relay FAIL no listen:  ", s, udp_addr, err_listen)
+			log.Println("    < Relay FAIL no listen:  ", host_port, udp_addr, err_listen)
 		}
 		
 	}(host_name, port)	
