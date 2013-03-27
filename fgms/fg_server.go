@@ -19,6 +19,8 @@ import(
 	"github.com/fgx/go-fgms/flightgear"
 )
 
+const VERSION = "0.1-go-experimental"
+
 const SUCCESS                 = 0
 const ERROR_COMMANDLINE       = 1
 const ERROR_CREATE_SOCKET     = 2
@@ -50,7 +52,7 @@ type FG_SERVER struct {
 	} converter; 
 	converter*    tmp; 
 	*/
-	Version string
+
 	//ServerVersion *Version
 	
 	Initialized bool
@@ -147,7 +149,6 @@ type FG_SERVER struct {
 // Construct and return pointer to new FG_SERVER instance
 func NewFG_SERVER() *FG_SERVER {
 	ob := new(FG_SERVER)
-	ob.Version = "0.1.go-dev"
 	
 	ob.Players = make(map[string]*FG_Player)
 	//ob.PlayerList = make([]*FG_Player, 0)
