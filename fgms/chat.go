@@ -4,31 +4,45 @@ package fgms
 
 import (
 	"fmt"
+	"unsafe"
 )
-
+import(
+	//"github.com/davecgh/go-xdr/xdr"
+	"github.com/fgx/go-fgms/flightgear"
+)
 /**
 * @brief Create a chat message and put it into the internal message queue
 * @param ID int with the ?
 * @param Msg String with the message
 */
-func (me *FG_SERVER) CreateChatMessage(ID int,Msg string){
+func (me *FG_SERVER) CreateChatMessage(ID int, Msg string){
 
 	fmt.Println("CreateChatMessage", ID, Msg)
-	/* T_MsgHdr        MsgHdr;
-	T_ChatMsg       ChatMsg;
-	unsigned int    NextBlockPosition = 0;
-	char*           Message;
-	int             len =  sizeof(T_MsgHdr) + sizeof(T_ChatMsg);
+	//T_MsgHdr        MsgHdr;
+	//T_ChatMsg       ChatMsg;
+	//unsigned int    NextBlockPosition = 0;
+	//char*           Message;
+	//int             len =  sizeof(T_MsgHdr) + sizeof(T_ChatMsg);
 	
-	MsgHdr.Magic            = XDR_encode<uint32_t> (MSG_MAGIC);
-	MsgHdr.Version          = XDR_encode<uint32_t> (PROTO_VER);
-	MsgHdr.MsgId            = XDR_encode<uint32_t> (CHAT_MSG_ID);
-	MsgHdr.MsgLen           = XDR_encode<uint32_t> (len);
-	MsgHdr.ReplyAddress     = 0;
-	MsgHdr.ReplyPort        = XDR_encode<uint32_t> (m_ListenPort);
-	strncpy(MsgHdr.Callsign, "*FGMS*", MAX_CALLSIGN_LEN);
-	MsgHdr.Callsign[MAX_CALLSIGN_LEN - 1] = '\0';
-	*/
+	var MsgHdr flightgear.T_MsgHdr
+	var ChatMsg flightgear.T_ChatMsg
+	
+	var NextBlockPosition uint 
+	var Message []byte //char*           Message;
+	
+	var lenny int =  int( unsafe.Sizeof(MsgHdr) + unsafe.Sizeof(ChatMsg) )
+	
+	
+	MsgHdr.Magic            = flightgear.MSG_MAGIC
+	MsgHdr.Version          = flightgear.PROTO_VER
+	MsgHdr.MsgId            = flightgear.CHAT_MSG_ID
+	//MsgHdr.MsgLen           = XDR_encode<uint32_t> (len);
+	MsgHdr.ReplyAddress     = 0
+	MsgHdr.ReplyPort        = uint32(me.ListenPort)
+	MsgHdr.Callsign = []byte("*FGMS*")
+	//strncpy(MsgHdr.Callsign, "*FGMS*", MAX_CALLSIGN_LEN);
+	//MsgHdr.Callsign[MAX_CALLSIGN_LEN - 1] = '\0';
+	//
 	/*
 	while (NextBlockPosition < Msg.length())
 	{

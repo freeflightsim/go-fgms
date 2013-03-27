@@ -1033,24 +1033,24 @@ func (me *FG_SERVER) AddClient(Sender *net.UDPAddr, MsgHdr flightgear.T_MsgHdr, 
 	if me.NumCurrentClients > me.NumMaxClients {
 		me.NumMaxClients = me.NumCurrentClients;
 	}
+	var Message string = ""
 	if IsLocal {
-		/*Message  = "Welcome to ";
-		Message += m_ServerName;
-		CreateChatMessage (NewPlayer.ClientID , Message);
-		Message = "this is version v" + string(VERSION);
-		Message += " (LazyRelay enabled)";
-		CreateChatMessage (NewPlayer.ClientID , Message);
-		Message  ="using protocol version v";
-		Message += NumToStr (m_ProtoMajorVersion, 0);
-		Message += "." + NumToStr (m_ProtoMinorVersion, 0);
-		if (m_IsTracked)
-		{
-		Message += "This server is tracked.";
-		}
-		CreateChatMessage (NewPlayer.ClientID , Message);
-		UpdateTracker (NewPlayer.Callsign, NewPlayer.Passwd,
-		NewPlayer.ModelName, NewPlayer.Timestamp, CONNECT); 
-		*/
+		Message  = "Welcome to "
+		Message += me.ServerName
+		me.CreateChatMessage (NewPlayer.ClientID , Message)
+		//Message = "this is version v" + string(VERSION)
+		//Message += " (LazyRelay enabled)"
+		//CreateChatMessage (NewPlayer.ClientID , Message)
+		//Message  ="using protocol version v"
+		//Message += NumToStr (m_ProtoMajorVersion, 0)
+		//Message += "." + NumToStr (m_ProtoMinorVersion, 0)
+		//if me.IsTracked {
+		//	Message += "This server is tracked."
+		//}
+		me.CreateChatMessage (NewPlayer.ClientID , Message)
+		//UpdateTracker (NewPlayer.Callsign, NewPlayer.Passwd,
+		//NewPlayer.ModelName, NewPlayer.Timestamp, CONNECT); 
+		
 	}
 	/* Message  = NewPlayer.Callsign;
 	Message += " is now online, using ";
