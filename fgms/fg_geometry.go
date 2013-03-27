@@ -2,6 +2,9 @@
 
 package fgms
 
+import (
+	"math"
+)
 
 // from .hxx
 const SG_180 = 180.0
@@ -60,8 +63,9 @@ func (me *Point3D) Clear(){
 	me.z = 0
 }
 
-func (me *Point3D) Length () int {
-	return 0 //(sqrt ((m_X * m_X) + (m_Y * m_Y) + (m_Z * m_Z)));
+func (me *Point3D) Length () float64 {
+	//return (sqrt ((m_X * m_X) + (m_Y * m_Y) + (m_Z * m_Z)));
+	return math.Sqrt( (me.x * me.x) + (me.y * me.y) + (me.z * me.z) )
 }
 
 

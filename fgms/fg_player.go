@@ -2,19 +2,20 @@ package fgms
 
 import (
 	"time"
+	"net"
 )
 
 type FG_Player struct {
 	//public:
 	Origin string
-	Address *NetAddress    
+	Address *net.UDPAddr    
 	Callsign string
 	Passwd string
 	ModelName string
 	JoinTime int64 //time.Time
 	Timestamp int64 //time.Time
-	LastPos *Point3D
-	LastOrientation *Point3D
+	LastPos Point3D
+	LastOrientation Point3D
 	IsLocal bool
 	Error string //;    // in case of errors
 	HasErrors bool

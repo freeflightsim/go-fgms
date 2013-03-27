@@ -2,12 +2,12 @@
 package fgms
 
 import(
+	"bytes"
 	"fmt"
 	"log"
-	"net"
-	"bytes"
-	//"bufio"
-	//"time"
+	"net"		
+	"strings"
+	"time"
 	"unsafe"
 )
 
@@ -107,6 +107,7 @@ type FG_SERVER struct {
 	TelnetReceived int 
 	BlackRejected int
 	PacketsInvalid int //     = 0;  // invalid packet
+	PktsForwarded int
 	
 	UnknownRelay int //       = 0;  // unknown relay
 	RelayMagic  int //        = 0;  // relay magic packet
@@ -833,6 +834,8 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 	//uint32_t        MsgId;
 	//uint32_t        MsgMagic;
 	//Timestamp time.Time
+	Timestamp := time.Now().Unix()
+	
 	var SenderPosition Point3D
 	var SenderOrientation Point3D
 	//Point3D         PlayerPosGeod;
@@ -965,11 +968,11 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 	//while (CurrentPlayer != m_PlayerList.end())
 	//{ 
 	xCallsign := MsgHdr.CallsignString()
-	isObserver :=  string.ToLower(MsgHdr.CallsignString())[0:3] ==  "obs"
-	for callsign, CurrentPlayer := range me.PlayerList {
+	xIsObserver :=  strings.ToLower(MsgHdr.CallsignString())[0:3] ==  "obs"
+	for loopCallsign, loopPlayer := range me.PlayerList {
 		
 		//= ignore clients with errors
-		if CurrentPlayer.HasErrors {
+		if loopPlayer.HasErrors {
 			continue // Umm is this locked out forever ?
 		}
 		
@@ -980,17 +983,17 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 		           address of Relay and not the client's!
 		          so use a clientID instead
 		*/
-		if callsign == xCallsign { // alterative == CurrentPlayer.Callsign == xCallsign 
-			if MsgHdr.MsgId == POS_DATA_ID 	{
-				CurrentPlayer.LastPos         = SenderPosition
-				CurrentPlayer.LastOrientation = SenderOrientation
+		if loopCallsign == xCallsign { // alterative == CurrentPlayer.Callsign == xCallsign 
+			if MsgHdr.MsgId == flightgear.POS_DATA_ID 	{
+				loopPlayer.LastPos         = SenderPosition
+				loopPlayer.LastOrientation = SenderOrientation
 			}else{
-				SenderPosition    = CurrentPlayer.LastPos
-				SenderOrientation = CurrentPlayer.LastOrientation
+				SenderPosition    = loopPlayer.LastPos
+				SenderOrientation = loopPlayer.LastOrientation
 			}
-			SendingPlayer = CurrentPlayer;
-			CurrentPlayer.Timestamp = Timestamp
-			CurrentPlayer.PktsReceivedFrom++
+			//SendingPlayer = CurrentPlayer
+			loopPlayer.Timestamp = Timestamp
+			loopPlayer.PktsReceivedFrom++
 			//CurrentPlayer++;
 			continue; // don't send packet back to sender
 		}
@@ -998,34 +1001,32 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 		//      origin is an observer, but do send
 		//      chat messages anyway
 		//      FIXME: MAGIC = SFGF!
-		if isObserver && MsgHdr.MsgId != CHAT_MSG_ID {
+		if xIsObserver && MsgHdr.MsgId != flightgear.CHAT_MSG_ID {
 			return
 		}
-		//////////////////////////////////////////////////
-		//
-		//      do not send packet to clients which
-		//      are out of reach.
-		//
-		//////////////////////////////////////////////////
-		if Distance(SenderPosition, CurrentPlayer.LastPos) > me.PlayerIsOutOfReach {
+		
+		// Do not send packet to clients which  are out of reach.
+		if xIsObserver == false && int(Distance(SenderPosition, loopPlayer.LastPos)) > me.PlayerIsOutOfReach {
+			//if ((Distance (SenderPosition, CurrentPlayer->LastPos) > m_PlayerIsOutOfReach)
 			//&&  (CurrentPlayer->Callsign.compare (0, 3, "obs", 3) != 0))
 			//{
-			CurrentPlayer++
+			//CurrentPlayer++ 
 			continue
 		} 
-		//////////////////////////////////////////////////
-		//
+		
 		//  only send packet to local clients
-		//
-		//////////////////////////////////////////////////
-		/* if (CurrentPlayer->IsLocal)
-		{
-		SendChatMessages (CurrentPlayer);
-		m_DataSocket->sendto (Msg, Bytes, 0, &CurrentPlayer->Address);
-		CurrentPlayer->PktsSentTo++;
-		PktsForwarded++;
+		if loopPlayer.IsLocal {
+			//SendChatMessages (CurrentPlayer);
+			//m_DataSocket->sendto (Msg, Bytes, 0, &CurrentPlayer->Address);
+			_, err := me.DataSocket.WriteToUDP(Msg, loopPlayer.Address)
+			if err != nil {
+				// TODO ?
+			}
+			loopPlayer.PktsSentTo++
+			me.PktsForwarded++
 		}
-		CurrentPlayer++; */
+		//CurrentPlayer++; 
+		//
 	} 
 	/* 
 	if (SendingPlayer == m_PlayerList.end())
