@@ -122,6 +122,7 @@ func ReadLoadConfigs(Servant *fgms.FG_SERVER, reInit bool) error {
 	//////////////////////////////////////////////////
 	//      read the list of crossfeeds
 	//////////////////////////////////////////////////
+	Servant.AddCrossfeed ("localhost", 5555)
 	/*
 	MoreToRead  = true;
 	Section = "crossfeed";
