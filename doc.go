@@ -42,6 +42,7 @@ Package main - FlightGear MulitPlyer in go
 		- http://synflood.at/tmp/golang-slides/mrmcd2012.html# 
 		- http://jan.newmarch.name/go/
 		- http://nf.wh3rd.net/10things/
+		- UDP Proxy - https://gist.github.com/horsley/4707013
 */
 package main
 

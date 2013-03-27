@@ -9,6 +9,7 @@ type FG_Player struct {
 	//public:
 	Origin string
 	Address *net.UDPAddr    
+	//Conn *net.UDPConn
 	Callsign string
 	Passwd string
 	ModelName string

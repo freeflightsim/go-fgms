@@ -68,8 +68,11 @@ type FG_SERVER struct {
 	
 
 	//PlayerList []*FG_Player
-	PlayerList map[string]*FG_Player
+	Players map[string]*FG_Player
+	//PlayerList map[string]*FG_Player
 	PlayerExpires int
+	
+	
 
 	Telnet *TelnetServer
 	DataSocket *net.UDPConn
@@ -145,7 +148,7 @@ func NewFG_SERVER() *FG_SERVER {
 	ob := new(FG_SERVER)
 
 	
-	ob.PlayerList = make(map[string]*FG_Player)
+	ob.Players = make(map[string]*FG_Player)
 	//ob.PlayerList = make([]*FG_Player, 0)
 		
 	//ob.RelayList = make([]*NetAddress, 0)
@@ -220,7 +223,7 @@ func (me *FG_SERVER) AddRelay(host_name string, port int) {
 		//= Get IP address from DNS
 		addrs, err := net.LookupHost(host_name)
 		if err != nil {
-			log.Println("    < Relay FAIL < No IP address for Host ", host_name, addrs)
+			log.Println("\tFAIL: Relay - No IP address for Host ", host_name, addrs)
 			return
 		}
 	
@@ -229,7 +232,7 @@ func (me *FG_SERVER) AddRelay(host_name string, port int) {
 		//log.Println("    < Relay - DNS Lookup OK:  ", host_name, addrs[0], s)
 		udp_addr, err := net.ResolveUDPAddr("udp", host_port)
 		if err != nil {
-			log.Println("    < Relay FAIL no UDP:  ", host_port, udp_addr, err)
+			log.Println("\tFAIL: Relay - failed to resolve UDP address  ", host_port, udp_addr, err)
 			return
 		}
 		
@@ -237,7 +240,7 @@ func (me *FG_SERVER) AddRelay(host_name string, port int) {
 		var err_listen error
 		me.Relays[host_port], err_listen = net.ListenUDP("udp", udp_addr)
 		if err_listen != nil {
-			log.Println("    < Relay FAIL no listen:  ", host_port, udp_addr, err_listen)
+			log.Println("\tFAIL: Relay - Cannot listen on UDP  ", host_port, udp_addr, err_listen)
 			return
 		}
 		log.Println("    < Relay Added OK  ", host_port, udp_addr, err_listen)
@@ -245,44 +248,20 @@ func (me *FG_SERVER) AddRelay(host_name string, port int) {
 	
 } // FG_SERVER::AddRelay()
 
+
 //=  Insert a new crossfeed server into internal list
 func (me *FG_SERVER) AddCrossfeed( host_name string, port int){
-  	//mT_Relay        NewRelay
-  	//unsigned int    IP
-  	//string s = Server
-	//#ifdef _MSC_VER
-	//  if (s == "localhost")
-	//  {
-	//    s = "127.0.0.1";
-	//  }
-	//#endif // _MSC_VER
-	//  NewRelay.Name = s;
-	//  NewRelay.Address.set ((char*) s.c_str(), Port);
-	//  IP = NewRelay.Address.getIP();
-	//  if ( IP != INADDR_ANY && IP != INADDR_NONE )
-	//  {
-	//    m_CrossfeedList.push_back (NewRelay);
-	//  }
-	//  else
-	//  {
-	//    SG_ALERT (SG_SYSTEMS, SG_ALERT, "AddCrossfeed: FAILED on " << Server << ", port " << Port);
-	 // }
-	 	//= Now go and do check is background
+
+	log.Println("> Add Crossfeed = ", host_name, port)
+
+	//= Now go and do check is background
 	go func(host_name string, port int){
-	
-		//= Get IP address from DNS
-		//addrs, err := net.LookupHost(host_name)
-		//if err != nil {
-		//	log.Println("    < Relay FAIL < No IP address for Host ", host_name, addrs)
-		//	return
-		//}
-	
+		
 		//= Now resolve with UDP address			
 		host_port := fmt.Sprintf("%s:%d", host_name, port)
-		//log.Println("    < Relay - DNS Lookup OK:  ", host_name, addrs[0], s)
 		udp_addr, err := net.ResolveUDPAddr("udp", host_port)
 		if err != nil {
-			log.Println("    < Crossfeed FAIL on UDP:  ", host_port, udp_addr, err)
+			log.Println("\tFAIL: Crossfeed to resolve UDP address:  ", host_port, err)
 			return
 		}
 		
@@ -290,10 +269,11 @@ func (me *FG_SERVER) AddCrossfeed( host_name string, port int){
 		var err_listen error
 		me.Crossfeeds[host_port], err_listen = net.ListenUDP("udp", udp_addr)
 		if err_listen != nil {
-			log.Println("    < Crossfeed FAIL no listen:  ", host_port, udp_addr, err_listen)
+			log.Println("\tFAIL: Crossfeed FAIL to Open:  ", host_port, udp_addr, err_listen)
 			return
 		}
-		log.Println("    < Crossfeed Added OK  ", host_port, udp_addr, err_listen)
+		log.Println("\tOK:   Crossfeed Added -  ", host_port, udp_addr, err_listen)
+		
 	}(host_name, port)	
 } // FG_SERVER::AddCrossfeed()
 
@@ -345,23 +325,25 @@ func (me *FG_SERVER) AddTracker(host string, port int, isTracked bool){
 // AddBlacklist - Add an IP to the blacklist - (after DNS lookup)
 func (me *FG_SERVER) AddBlacklist(FourDottedIP string) {
 	log.Println("> Add Blacklist = ", FourDottedIP)
+	
+	// Do Checks in background
 	go func(ip_str string){
+		
+		// Check DNS entry
 		addrs, err := net.LookupHost(ip_str)
-		//err := net.LookupHost(ip_str)
 		if err != nil{
-			log.Println("    < Blacklist FAIL: No IP address for address = ", ip_str)
+			log.Println("\tFAIL: Blacklist - No IP address for address = ", ip_str)
 			return 
 		}
-		log.Println("    < Blacklist Added < Lookup OK: ", ip_str, addrs, ip_str == addrs[0])
-		
+		log.Println("\tOK:   Blacklist Added -  DNS Lookup OK: ", ip_str, addrs, ip_str == addrs[0])
 		me.BlackList[ addrs[0] ] = true
 	}(FourDottedIP)
 } 
 
 // Check if the client is black listed. true if blacklisted
 func (me *FG_SERVER) IsBlackListed(SenderAddress *NetAddress) bool {
-	_, ok :=  me.BlackList[SenderAddress.IpAddress]
-	if ok {
+	_, found :=  me.BlackList[SenderAddress.IpAddress]
+	if found {
 		return true
 	}
 	return false
@@ -566,12 +548,9 @@ func (me *FG_SERVER) HandleTelnetData(conn net.Conn){
 	}*/
 	Message += " pilot(s) online\n"
 	
-	//////////////////////////////////////////////////
-	//
-	//      create list of players
-	//
-	//////////////////////////////////////////////////
-	for _, CurrentPlayer := range me.PlayerList {
+
+	//== Create list of players
+	for callsign, CurrentPlayer := range me.Players {
 	//it = 0;
 	//for (;;)
 	//{
@@ -588,7 +567,7 @@ func (me *FG_SERVER) HandleTelnetData(conn net.Conn){
 		//}
 		//pthread_mutex_unlock (& m_PlayerMutex);
 		//TODO sgCartToGeod (CurrentPlayer.LastPos, PlayerPosGeod);
-		line  := CurrentPlayer.Callsign + "@"
+		line  := callsign + "@"
 		//Message += CurrentPlayer.Callsign + "@"
 		if CurrentPlayer.IsLocal {
 			line += "LOCAL: "
@@ -831,13 +810,13 @@ func (me *FG_SERVER) Loop() {
 			go me.HandleTelnetData(conna)
 		}
 	}(me.Telnet.Listen)
-	log.Println("#### Listening Telnet: > ")
+	log.Println("# Listening Telnet > ")
 	
 	
 	//== Startup UDP listener
 	count := 0
 	buf := make([]byte, MAX_PACKET_SIZE)
-	log.Println("#### Listening UDP >", )
+	log.Println("# Listening UDP > ", )
 	for {
 		length, raddr, err := me.DataSocket.ReadFromUDP(buf)
 		if err != nil {
@@ -846,7 +825,7 @@ func (me *FG_SERVER) Loop() {
 		}else {
 			count++
 			//log.Printf("<%s> %q", raddr, buf[:length])
-			log.Println("count", count, raddr, length)
+			//log.Println("count", count, raddr, length)
 			//log.Println(buf[:length])
 			//Msg []byte, Bytes int, SenderAddress *NetAddress){
 			me.HandlePacket( buf[:length], length, raddr)
@@ -861,18 +840,18 @@ func (me *FG_SERVER) Loop() {
 //////////////////////////////////////////////////////////////////////
 // Look if we know the sending client
 // return - 0: Sender is unknown  - 1: Sender is known - 2: Sender is known, but has a different IP
-func (me *FG_SERVER) SenderIsKnown(SenderCallsign string, SenderAddress  *net.UDPAddr) int {
+func (me *FG_SERVER) SenderIsKnown(senderCallsign string) int {
 
-	addr := SenderAddress.String()
-	fmt.Println("Find=", addr)
-	_, ok := me.PlayerList[addr]
+	//addr := SenderAddress.String()
+	fmt.Println("Find=", senderCallsign)
+	_, found := me.Players[senderCallsign]
 	//for _, player := range me.PlayerList {
 	//	if player.Callsign == SenderCallsign {
 	//		//if player.
 	//	}
 	//	
 	//}
-	if ok {
+	if found {
 		return SENDER_KNOWN
 	}
 	/* mT_PlayerListIt CurrentPlayer;
@@ -926,7 +905,7 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 		fmt.Println("XDR Decode Error", err)
 		return
 	}
-	fmt.Println("remain=", len(remainingBytes))
+	fmt.Println("remain=", len(remainingBytes), SenderAddress)
 	
 	//MsgMagic  = XDR_decode<uint32_t> (MsgHdr->Magic);
 	//MsgId     = XDR_decode<uint32_t> (MsgHdr->MsgId);
@@ -947,7 +926,7 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 	//------------------------------------------------------
 	// First of all, send packet to all crossfeed servers.
 	//SendToCrossfeed (Msg, Bytes, SenderAddress); ?? SHould then be send pre vaildation ?
-	//me.SendToCrossfeed(Msg, Bytes, SenderAddress)
+	me.SendToCrossfeed(Msg, Bytes, SenderAddress)
 
 
 	//------------------------------------------------------
@@ -1012,7 +991,7 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 	} 
 	
 	// Add Client to list if its not known
-	senderInList := me.SenderIsKnown(MsgHdr.CallsignString(), SenderAddress)
+	senderInList := me.SenderIsKnown(MsgHdr.CallsignString())
 	fmt.Println ("  <<  senderInList", senderInList)
 	if senderInList == SENDER_UNKNOWN { 
 		// unknown, add to the list
@@ -1041,7 +1020,7 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 	//{ 
 	xCallsign := MsgHdr.CallsignString()
 	xIsObserver :=  strings.ToLower(MsgHdr.CallsignString())[0:3] ==  "obs"
-	for loopCallsign, loopPlayer := range me.PlayerList {
+	for loopCallsign, loopPlayer := range me.Players {
 		
 		//= ignore clients with errors
 		if loopPlayer.HasErrors {
@@ -1051,9 +1030,9 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 		
 		// Sender == CurrentPlayer?
 		/*   FIXME: if Sender is a Relay,
-		            CurrentPlayer->Address will be
-		           address of Relay and not the client's!
-		          so use a clientID instead
+					CurrentPlayer->Address will be
+				address of Relay and not the client's!
+				so use a clientID instead
 		*/
 		if loopCallsign == xCallsign { // alterative == CurrentPlayer.Callsign == xCallsign 
 			if MsgHdr.MsgId == flightgear.POS_DATA_ID 	{
@@ -1122,46 +1101,92 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 // ---------------------------------------------------------
 
 // Send message to all relay servers
- 
-func (me *FG_SERVER) SendToRelays(Msg []byte, Bytes int , SendingPlayer *FG_Player){
-  
-  //T_MsgHdr*       MsgHdr;
-  //uint32_t        MsgMagic;
-  //unsigned int    PktsForwarded = 0;
-  //mT_RelayListIt  CurrentRelay;
-  //time_t          Now;
 
-  if !SendingPlayer.IsLocal && !me.IamHUB {
-    return
-  }
-  //Now   = time (0);
-  Now := time.Now().Unix()
-  //MsgHdr    = (T_MsgHdr *) Msg;
-  //MsgMagic  = XDR_decode<uint32_t> (MsgHdr->Magic);
-  //MsgHdr->Magic = XDR_encode<uint32_t> (RELAY_MAGIC);
-  UpdateInactive := (Now - SendingPlayer.LastRelayedToInactive) > UPDATE_INACTIVE_PERIOD
-  if UpdateInactive {
-    	SendingPlayer.LastRelayedToInactive = Now
-  }
-  //CurrentRelay = m_RelayList.begin();
-  //while (CurrentRelay != m_RelayList.end())
-  for idx, relay := range me.Relays {
-    if UpdateInactive { //|| IsInRange(*relay, *SendingPlayer) {
-    	fmt.Println("relay to=", idx, relay)
-      	//if (CurrentRelay->Address.getIP() != SendingPlayer->Address.getIP())
-      	//{
-      	//  m_DataSocket->sendto(Msg, Bytes, 0, &CurrentRelay->Address);
-      	//  PktsForwarded++;
-     	// }
-    	//}
-    	//CurrentRelay++;
-  	}
-  }
-  //SendingPlayer->PktsForwarded += PktsForwarded;
-  //MsgHdr->Magic = XDR_encode<uint32_t> (MsgMagic);  // restore the magic value
+func (me *FG_SERVER) SendToRelays(Msg []byte, Bytes int , SendingPlayer *FG_Player){
+
+//T_MsgHdr*       MsgHdr;
+//uint32_t        MsgMagic;
+//unsigned int    PktsForwarded = 0;
+//mT_RelayListIt  CurrentRelay;
+//time_t          Now;
+
+if !SendingPlayer.IsLocal && !me.IamHUB {
+	return
+}
+//Now   = time (0);
+Now := time.Now().Unix()
+//MsgHdr    = (T_MsgHdr *) Msg;
+//MsgMagic  = XDR_decode<uint32_t> (MsgHdr->Magic);
+//MsgHdr->Magic = XDR_encode<uint32_t> (RELAY_MAGIC);
+UpdateInactive := (Now - SendingPlayer.LastRelayedToInactive) > UPDATE_INACTIVE_PERIOD
+if UpdateInactive {
+		SendingPlayer.LastRelayedToInactive = Now
+}
+//CurrentRelay = m_RelayList.begin();
+//while (CurrentRelay != m_RelayList.end())
+for idx, relay := range me.Relays {
+	if UpdateInactive { //|| IsInRange(*relay, *SendingPlayer) {
+		fmt.Println("relay to=", idx, relay)
+		//if (CurrentRelay->Address.getIP() != SendingPlayer->Address.getIP())
+		//{
+		//  m_DataSocket->sendto(Msg, Bytes, 0, &CurrentRelay->Address);
+		//  PktsForwarded++;
+		// }
+		//}
+		//CurrentRelay++;
+	}
+}
+//SendingPlayer->PktsForwarded += PktsForwarded;
+//MsgHdr->Magic = XDR_encode<uint32_t> (MsgMagic);  // restore the magic value
 } // FG_SERVER::SendToRelays ()
 
 
+
+/**
+* @brief  Send message to all crossfeed servers.
+*         Crossfeed servers receive all traffic without condition,
+*         mainly used for testing and debugging
+*/
+func (me *FG_SERVER) SendToCrossfeed(Msg []byte, Bytes int, SenderAddress *net.UDPAddr){
+
+	//T_MsgHdr*       MsgHdr;
+	//uint32_t        MsgMagic;
+	//int             sent;
+	
+	//MsgHdr    = (T_MsgHdr *) Msg;
+	//MsgMagic  = MsgHdr->Magic;
+	//MsgHdr->Magic = XDR_encode<uint32_t> (RELAY_MAGIC);
+	
+	// Not sure what is happening, but we create another payload
+	var MsgHdr flightgear.T_MsgHdr
+	_, err := xdr.Unmarshal(Msg, &MsgHdr)
+	if err != nil {
+		fmt.Println("XDR Decode Error in SendToCrossfeed - Should never happen?", err)
+		return
+	}
+	MsgHdr.Magic = RELAY_MAGIC
+	
+	encoded, err := xdr.Marshal(MsgHdr)
+	if err != nil {
+		fmt.Println("XDR Encode Error in SendToCrossfeed - Should never happen?", err)
+		return
+	}
+	//mT_RelayListIt CurrentCrossfeed = m_CrossfeedList.begin();
+	//while (CurrentCrossfeed != m_CrossfeedList.end())
+	//{
+	for _, loopCF := range me.Crossfeeds {
+
+		//if (CurrentCrossfeed->Address.getIP() != SenderAddress.getIP()) ?? But same address different port ??
+		_, err := loopCF.WriteToUDP(encoded, SenderAddress)
+		if err != nil {
+			me.CrossFeedFailed++
+		}else {
+			me.CrossFeedSent++
+		}
+		//CurrentCrossfeed++;
+	}
+	//MsgHdr->Magic = MsgMagic;  // restore the magic value ? umm not used now ?
+} // FG_SERVER::SendToCrossfeed ()
 
 
 //////////////////////////////////////////////////////////////////////
@@ -1187,13 +1212,15 @@ func (me *FG_SERVER) AddClient(Sender *net.UDPAddr, MsgHdr flightgear.T_MsgHdr, 
 	//MsgMagic            = XDR_decode<uint32_t> (MsgHdr->Magic);
 	//IsLocal             = true;
 	
-	fmt.Println (" ADD Client", Sender, len(me.PlayerList))
+	
 	IsLocal := MsgHdr.Magic != RELAY_MAGIC  // not a local client
+	fmt.Println (" ADD Client", Sender, IsLocal,  len(me.Players))
 		
+	var callsign string = MsgHdr.CallsignString()
 	NewPlayer := NewFG_Player()
-	NewPlayer.Callsign  = "FOO" //MsgHdr.CallsignString()
+	NewPlayer.Callsign  = callsign
 	NewPlayer.Passwd    = "test" //MsgHdr->Passwd;
-	NewPlayer.ModelName = "* unknown *"
+	NewPlayer.ModelName = PosMsg.ModelString()
 	//NewPlayer.Timestamp = time.Now().Unix()
 	//NewPlayer.JoinTime  = NewPlayer.Timestamp
 	//NewPlayer.Origin    = Sender.getHost () TODO
@@ -1222,9 +1249,12 @@ func (me *FG_SERVER) AddClient(Sender *net.UDPAddr, MsgHdr flightgear.T_MsgHdr, 
 	//pthread_mutex_lock (& m_PlayerMutex)
 	//m_PlayerList.push_back (NewPlayer)
 	
-	me.PlayerList[Sender.String()] = NewPlayer
+	
 	//me.PlayerList = append(me.PlayerList, NewPlayer)
 	//pthread_mutex_unlock (& m_PlayerMutex);
+	
+	// Add to List
+	me.Players[callsign] = NewPlayer
 	me.NumCurrentClients++
 	if me.NumCurrentClients > me.NumMaxClients {
 		me.NumMaxClients = me.NumCurrentClients;
