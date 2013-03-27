@@ -60,3 +60,31 @@ func (me *Point3D) Clear(){
 	me.z = 0
 }
 
+func (me *Point3D) Length () int {
+	return 0 //(sqrt ((m_X * m_X) + (m_Y * m_Y) + (m_Z * m_Z)));
+}
+
+
+
+
+func Point3DSubract(p1, p2 Point3D) Point3D{
+	
+	return Point3D{x: p1.x - p2.x, y: p1.y - p2.y, z: p1.z - p2.z}  
+	
+}
+
+//////////////////////////////////////////////////////////////////////
+/**
+ * @brief Calculate distance of clients
+ */
+func Distance ( P1, P2 Point3D) float32 {
+	
+	//P = P1 - P2
+	var P Point3D
+	P = Point3DSubract( P1, P2)
+	
+	//return (float)(P.length() / SG_NM_TO_METER);
+	return float32(P.Length() / SG_NM_TO_METER)
+} // Distance ( const Point3D & P1, const Point3D & P2 )
+
+

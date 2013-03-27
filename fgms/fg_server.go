@@ -959,69 +959,60 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 	//      is not already there, add it to the list
 	//
 	//////////////////////////////////////////////////
-	/* MsgHdr->Magic = XDR_encode<uint32_t> (MSG_MAGIC);
-	SendingPlayer = m_PlayerList.end();
-	CurrentPlayer = m_PlayerList.begin();
-	while (CurrentPlayer != m_PlayerList.end())
-	{ */
-		//////////////////////////////////////////////////
-		//
-		//      ignore clients with errors
-		//
-		//////////////////////////////////////////////////
-		//if (CurrentPlayer->HasErrors)
-		//{
-		// CurrentPlayer++;
-		//continue;
-		//}
-		//////////////////////////////////////////////////
-		//        Sender == CurrentPlayer?
-		//////////////////////////////////////////////////
-		//  FIXME: if Sender is a Relay,
-		//         CurrentPlayer->Address will be
-		//         address of Relay and not the client's!
-		//         so use a clientID instead
-		/* if (CurrentPlayer->Callsign == MsgHdr->Callsign)
-		{
-		if (MsgId == POS_DATA_ID)
-		{
-			CurrentPlayer->LastPos         = SenderPosition;
-			CurrentPlayer->LastOrientation = SenderOrientation;
+	// MsgHdr->Magic = XDR_encode<uint32_t> (MSG_MAGIC);
+	//SendingPlayer = m_PlayerList.end();
+	//CurrentPlayer = m_PlayerList.begin();
+	//while (CurrentPlayer != m_PlayerList.end())
+	//{ 
+	xCallsign := MsgHdr.CallsignString()
+	isObserver :=  string.ToLower(MsgHdr.CallsignString())[0:3] ==  "obs"
+	for callsign, CurrentPlayer := range me.PlayerList {
+		
+		//= ignore clients with errors
+		if CurrentPlayer.HasErrors {
+			continue // Umm is this locked out forever ?
 		}
-		else
-		{
-			SenderPosition    = CurrentPlayer->LastPos;
-			SenderOrientation = CurrentPlayer->LastOrientation;
+		
+		
+		// Sender == CurrentPlayer?
+		/*   FIXME: if Sender is a Relay,
+		            CurrentPlayer->Address will be
+		           address of Relay and not the client's!
+		          so use a clientID instead
+		*/
+		if callsign == xCallsign { // alterative == CurrentPlayer.Callsign == xCallsign 
+			if MsgHdr.MsgId == POS_DATA_ID 	{
+				CurrentPlayer.LastPos         = SenderPosition
+				CurrentPlayer.LastOrientation = SenderOrientation
+			}else{
+				SenderPosition    = CurrentPlayer.LastPos
+				SenderOrientation = CurrentPlayer.LastOrientation
+			}
+			SendingPlayer = CurrentPlayer;
+			CurrentPlayer.Timestamp = Timestamp
+			CurrentPlayer.PktsReceivedFrom++
+			//CurrentPlayer++;
+			continue; // don't send packet back to sender
 		}
-		SendingPlayer = CurrentPlayer;
-		CurrentPlayer->Timestamp = Timestamp;
-		CurrentPlayer->PktsReceivedFrom++;
-		CurrentPlayer++;
-		continue; // don't send packet back to sender
-		}*/
-		//////////////////////////////////////////////////
-		//      do not send packets to clients if the
+		///     do not send packets to clients if the
 		//      origin is an observer, but do send
 		//      chat messages anyway
 		//      FIXME: MAGIC = SFGF!
-		//////////////////////////////////////////////////
-		/* if ((strncasecmp(MsgHdr->Callsign, "obs", 3) == 0)
-		&&  (MsgId != CHAT_MSG_ID))
-		{
-		return;
-		} */
+		if isObserver && MsgHdr.MsgId != CHAT_MSG_ID {
+			return
+		}
 		//////////////////////////////////////////////////
 		//
 		//      do not send packet to clients which
 		//      are out of reach.
 		//
 		//////////////////////////////////////////////////
-		/* if ((Distance (SenderPosition, CurrentPlayer->LastPos) > m_PlayerIsOutOfReach)
-		&&  (CurrentPlayer->Callsign.compare (0, 3, "obs", 3) != 0))
-		{
-		CurrentPlayer++;
-		continue;
-		} */
+		if Distance(SenderPosition, CurrentPlayer.LastPos) > me.PlayerIsOutOfReach {
+			//&&  (CurrentPlayer->Callsign.compare (0, 3, "obs", 3) != 0))
+			//{
+			CurrentPlayer++
+			continue
+		} 
 		//////////////////////////////////////////////////
 		//
 		//  only send packet to local clients
@@ -1034,8 +1025,8 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 		CurrentPlayer->PktsSentTo++;
 		PktsForwarded++;
 		}
-		CurrentPlayer++;
-	} */
+		CurrentPlayer++; */
+	} 
 	/* 
 	if (SendingPlayer == m_PlayerList.end())
 	{ // player not yet in our list
