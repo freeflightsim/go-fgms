@@ -1039,12 +1039,55 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 		return;
 	}
 	DeleteMessageQueue ();
-	SendToRelays (Msg, Bytes, SendingPlayer);
 	*/
+	SendingPlayer := NewFG_Player() // placleholder 
+	me.SendToRelays (Msg, Bytes, SendingPlayer)
+	
 } // FG_SERVER::HandlePacket ( char* sMsg[MAX_PACKET_SIZE] )
 
 
 
+// ---------------------------------------------------------
+
+// Send message to all relay servers
+ 
+func (me *FG_SERVER) SendToRelays(Msg []byte, Bytes int , SendingPlayer *FG_Player){
+  
+  //T_MsgHdr*       MsgHdr;
+  //uint32_t        MsgMagic;
+  //unsigned int    PktsForwarded = 0;
+  //mT_RelayListIt  CurrentRelay;
+  //time_t          Now;
+
+  if !SendingPlayer.IsLocal && !me.IamHUB {
+    return
+  }
+  //Now   = time (0);
+  Now := time.Now().Unix()
+  //MsgHdr    = (T_MsgHdr *) Msg;
+  //MsgMagic  = XDR_decode<uint32_t> (MsgHdr->Magic);
+  //MsgHdr->Magic = XDR_encode<uint32_t> (RELAY_MAGIC);
+  UpdateInactive := (Now - SendingPlayer.LastRelayedToInactive) > UPDATE_INACTIVE_PERIOD
+  if UpdateInactive {
+    	SendingPlayer.LastRelayedToInactive = Now
+  }
+  //CurrentRelay = m_RelayList.begin();
+  //while (CurrentRelay != m_RelayList.end())
+  for idx, relay := me.RelayList {
+    if UpdateInactive || IsInRange(*relay, *SendingPlayer) {
+    
+      	//if (CurrentRelay->Address.getIP() != SendingPlayer->Address.getIP())
+      	//{
+      	//  m_DataSocket->sendto(Msg, Bytes, 0, &CurrentRelay->Address);
+      	//  PktsForwarded++;
+     	// }
+    	//}
+    	//CurrentRelay++;
+  	}
+  }
+  //SendingPlayer->PktsForwarded += PktsForwarded;
+  //MsgHdr->Magic = XDR_encode<uint32_t> (MsgMagic);  // restore the magic value
+} // FG_SERVER::SendToRelays ()
 
 
 
