@@ -6,12 +6,10 @@ import (
 
 import (
 	"github.com/fgx/go-fgms/simgear"
-	//"github.com/davecgh/go-xdr/xdr"
 )
 
 // INFO: http://wiki.flightgear.org/Multiplayer_protocol
 
-// TODO:  XDR decoding should be here ?
 
 // magic value for messages 
 const MSG_MAGIC = 0x46474653  // "FGFS"
@@ -71,13 +69,13 @@ const MAX_PROPERTY_LEN   = 52
     // Absolute length of message
     MsgLen uint32 //xdr_data_t   
     
-    //  Player's receiver address 
+    // DEPRECEATED: Player's receiver address 
     ReplyAddress uint32 //xdr_data_t   
     
-    // Player's receiver port
+    // DEPRECEATED: Player's receiver port
     ReplyPort uint32 //xdr_data_t   
     
-    /// Callsign used by the player 
+    // Callsign used by the player 
     Callsign [MAX_CALLSIGN_LEN]byte //Callsign[MAX_CALLSIGN_LEN] 
 }
 

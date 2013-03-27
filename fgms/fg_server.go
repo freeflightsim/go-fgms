@@ -16,8 +16,6 @@ import(
 
 	"github.com/fgx/go-fgms/tracker"
 	"github.com/fgx/go-fgms/flightgear"
-	
-	
 )
 
 const SUCCESS                 = 0
@@ -653,60 +651,11 @@ func (me *FG_SERVER) AddBadClient(Sender *net.UDPAddr , ErrorMsg string, IsLocal
 } // FG_SERVER::AddBadClient ()
 
 
-//////////////////////////////////////////////////////////////////////
-//  Check if the sender is a known relay, return true if known relay
-func (me *FG_SERVER) IsKnownRelay(senderAddress *net.UDPAddr) bool{
-	fmt.Println("IsKnownRelay", senderAddress.String())
-	/*mT_RelayListIt  CurrentRelay = m_RelayList.begin();
-	while (CurrentRelay != m_RelayList.end())
-	{
-		if (CurrentRelay->Address.getIP() == SenderAddress.getIP())
-		{
-		return (true);
-		}
-		CurrentRelay++;
-	}*/
-	//_, ok := me.RelayMap[senderAddress.String()]
-	//if ok {
-	//	return true
-	//}
-
-	//string ErrorMsg;
-	//ErrorMsg  = SenderAddress.getHost();
-	//ErrorMsg += " is not a valid relay!";
-	//me.AddBlacklist(senderAddress.IpAddress)
-	//SG_LOG (SG_SYSTEMS, SG_ALERT, "UNKNOWN RELAY: " << ErrorMsg);
-	return false
-} // FG_SERVER::IsKnownRelay ()
 
 
 
 
-//////////////////////////////////////////////////////////////////////
-/**
-* @brief Send any message in m_MessageList to client
-* @param CurrentPlayer Player to send message to
-*/
-func (me *FG_SERVER) SendChatMessages() {
 
-	//mT_MessageIt  CurrentMessage;
-		/*
-	if ((CurrentPlayer->IsLocal) && (m_MessageList.size()))
-	{
-		CurrentMessage = m_MessageList.begin();
-		while (CurrentMessage != m_MessageList.end())
-		{
-		if ((CurrentMessage->Target == 0)
-		||  (CurrentMessage->Target == CurrentPlayer->ClientID))
-		{
-			int len = sizeof(T_MsgHdr) + sizeof(T_ChatMsg);
-			m_DataSocket->sendto (CurrentMessage->Msg, len, 0,
-			&CurrentPlayer->Address);
-		}
-		CurrentMessage++;
-		}
-	} */
-} // FG_SERVER::SendChatMessages ()
 
 
 // Main Loop

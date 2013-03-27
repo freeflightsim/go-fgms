@@ -49,6 +49,32 @@ func (me *FG_SERVER) AddRelay(host_name string, port int) {
 
 
 
+//////////////////////////////////////////////////////////////////////
+//  Check if the sender is a known relay, return true if known relay
+func (me *FG_SERVER) IsKnownRelay(senderAddress *net.UDPAddr) bool{
+	fmt.Println("IsKnownRelay", senderAddress.String())
+	/*mT_RelayListIt  CurrentRelay = m_RelayList.begin();
+	while (CurrentRelay != m_RelayList.end())
+	{
+		if (CurrentRelay->Address.getIP() == SenderAddress.getIP())
+		{
+		return (true);
+		}
+		CurrentRelay++;
+	}*/
+	//_, ok := me.RelayMap[senderAddress.String()]
+	//if ok {
+	//	return true
+	//}
+
+	//string ErrorMsg;
+	//ErrorMsg  = SenderAddress.getHost();
+	//ErrorMsg += " is not a valid relay!";
+	//me.AddBlacklist(senderAddress.IpAddress)
+	//SG_LOG (SG_SYSTEMS, SG_ALERT, "UNKNOWN RELAY: " << ErrorMsg);
+	return false
+} // FG_SERVER::IsKnownRelay ()
+
 
 
 
@@ -58,40 +84,41 @@ func (me *FG_SERVER) AddRelay(host_name string, port int) {
 
 func (me *FG_SERVER) SendToRelays(Msg []byte, Bytes int , SendingPlayer *FG_Player){
 
-//T_MsgHdr*       MsgHdr;
-//uint32_t        MsgMagic;
-//unsigned int    PktsForwarded = 0;
-//mT_RelayListIt  CurrentRelay;
-//time_t          Now;
+	//T_MsgHdr*       MsgHdr;
+	//uint32_t        MsgMagic;
+	var PktsForwarded uint = 0
+	//mT_RelayListIt  CurrentRelay;
+	//time_t          Now;
 
-if !SendingPlayer.IsLocal && !me.IamHUB {
-	return
-}
-//Now   = time (0);
-Now := time.Now().Unix()
-//MsgHdr    = (T_MsgHdr *) Msg;
-//MsgMagic  = XDR_decode<uint32_t> (MsgHdr->Magic);
-//MsgHdr->Magic = XDR_encode<uint32_t> (RELAY_MAGIC);
-UpdateInactive := (Now - SendingPlayer.LastRelayedToInactive) > UPDATE_INACTIVE_PERIOD
-if UpdateInactive {
-		SendingPlayer.LastRelayedToInactive = Now
-}
-//CurrentRelay = m_RelayList.begin();
-//while (CurrentRelay != m_RelayList.end())
-for idx, relay := range me.Relays {
-	if UpdateInactive { //|| IsInRange(*relay, *SendingPlayer) {
-		fmt.Println("relay to=", idx, relay)
-		//if (CurrentRelay->Address.getIP() != SendingPlayer->Address.getIP())
-		//{
-		//  m_DataSocket->sendto(Msg, Bytes, 0, &CurrentRelay->Address);
-		//  PktsForwarded++;
-		// }
-		//}
-		//CurrentRelay++;
+	if !SendingPlayer.IsLocal && !me.IamHUB {
+		return
 	}
-}
-//SendingPlayer->PktsForwarded += PktsForwarded;
-//MsgHdr->Magic = XDR_encode<uint32_t> (MsgMagic);  // restore the magic value
+	//Now   = time (0);
+	Now := time.Now().Unix()
+	//MsgHdr    = (T_MsgHdr *) Msg;
+	//MsgMagic  = XDR_decode<uint32_t> (MsgHdr->Magic);
+	//MsgHdr->Magic = XDR_encode<uint32_t> (RELAY_MAGIC);
+	UpdateInactive := (Now - SendingPlayer.LastRelayedToInactive) > UPDATE_INACTIVE_PERIOD
+	if UpdateInactive {
+		SendingPlayer.LastRelayedToInactive = Now
+	}
+	//CurrentRelay = m_RelayList.begin();
+	//while (CurrentRelay != m_RelayList.end())
+	for idx, relayConn := range me.Relays {
+		if UpdateInactive { //|| IsInRange(*relay, *SendingPlayer) {
+			fmt.Println("relay to=", idx, relayConn)
+			//if (CurrentRelay->Address.getIP() != SendingPlayer->Address.getIP())
+			//{
+			//  m_DataSocket->sendto(Msg, Bytes, 0, &CurrentRelay->Address);
+			relayConn.WriteToUDP(Msg, SendingPlayer.Address)
+			me.PktsForwarded++
+			// }
+			//}
+			//CurrentRelay++;
+		}
+	}
+	SendingPlayer.PktsForwarded += PktsForwarded
+	//MsgHdr->Magic = XDR_encode<uint32_t> (MsgMagic);  // restore the magic value
 } // FG_SERVER::SendToRelays ()
 
 
