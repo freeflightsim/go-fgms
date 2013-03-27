@@ -98,7 +98,7 @@ type T_ChatMsg struct {
 	
 	// Text of chat message 
     //string Text //char Text[MAX_CHAT_MSG_LEN];  
-    Text [MAX_CALLSIGN_LEN]byte
+    Text [MAX_CHAT_MSG_LEN]byte
 }
 
 

@@ -27,36 +27,63 @@ func (me *FG_SERVER) CreateChatMessage(ID int, Msg string){
 	var MsgHdr flightgear.T_MsgHdr
 	var ChatMsg flightgear.T_ChatMsg
 	
-	var NextBlockPosition uint 
+	var NextBlockPosition uint  = 0
 	var Message []byte //char*           Message;
 	
 	var lenny int =  int( unsafe.Sizeof(MsgHdr) + unsafe.Sizeof(ChatMsg) )
 	
+	fmt.Println(NextBlockPosition, lenny, Message)
 	
 	MsgHdr.Magic            = flightgear.MSG_MAGIC
 	MsgHdr.Version          = flightgear.PROTO_VER
 	MsgHdr.MsgId            = flightgear.CHAT_MSG_ID
 	//MsgHdr.MsgLen           = XDR_encode<uint32_t> (len);
+	
+	// Depreciated
 	MsgHdr.ReplyAddress     = 0
 	MsgHdr.ReplyPort        = uint32(me.ListenPort)
-	MsgHdr.Callsign = []byte("*FGMS*")
+	
+	//MsgHdr.Callsign = [8]byte ("*FGMS*") + [0] + [0]
 	//strncpy(MsgHdr.Callsign, "*FGMS*", MAX_CALLSIGN_LEN);
 	//MsgHdr.Callsign[MAX_CALLSIGN_LEN - 1] = '\0';
-	//
-	/*
-	while (NextBlockPosition < Msg.length())
-	{
-		strncpy (ChatMsg.Text, 
-		Msg.substr (NextBlockPosition, MAX_CHAT_MSG_LEN - 1).c_str(),
-		MAX_CHAT_MSG_LEN);
-		ChatMsg.Text[MAX_CHAT_MSG_LEN - 1] = '\0';
-		Message = new char[len];
-		memcpy (Message, &MsgHdr, sizeof(T_MsgHdr));
-		memcpy (Message + sizeof(T_MsgHdr), &ChatMsg,
-		sizeof(T_ChatMsg));
-		m_MessageList.push_back (mT_ChatMsg(ID,Message));
-		NextBlockPosition += MAX_CHAT_MSG_LEN - 1;
-	}*/
+	//	
+	
+	// MsgHdr.Callsign is  Callsign [8]byte 
+	// There's got to be an easier way to do this in GO!
+	cs_bytes := [8]byte{0,0,0,0,0,0,0,0} 
+	for idx, char := range("*FGMS*") {
+	 	cs_bytes[idx] = byte(char)
+	}
+	MsgHdr.Callsign = cs_bytes 
+	
+
+	
+	//while (NextBlockPosition < Msg.length())
+	//{
+		//strncpy (ChatMsg.Text, 
+		//Msg.substr (NextBlockPosition, MAX_CHAT_MSG_LEN - 1).c_str(),
+		//MAX_CHAT_MSG_LEN);
+		//ChatMsg.Text[MAX_CHAT_MSG_LEN - 1] = '\0';
+		//Message = new char[len];
+		//memcpy (Message, &MsgHdr, sizeof(T_MsgHdr));
+		//memcpy (Message + sizeof(T_MsgHdr), &ChatMsg,
+		//sizeof(T_ChatMsg));
+		//m_MessageList.push_back (mT_ChatMsg(ID,Message));
+		//NextBlockPosition += MAX_CHAT_MSG_LEN - 1;
+	//}
+	//while (NextBlockPosition < Msg.length())
+	//{
+		//strncpy (ChatMsg.Text, 
+		           //Msg.substr (NextBlockPosition, MAX_CHAT_MSG_LEN - 1).c_str(),
+		           //MAX_CHAT_MSG_LEN);
+		//ChatMsg.Text[MAX_CHAT_MSG_LEN - 1] = '\0';
+		//Message = new char[len];
+		//memcpy (Message, &MsgHdr, sizeof(T_MsgHdr));
+		//memcpy (Message + sizeof(T_MsgHdr), &ChatMsg,
+		//sizeof(T_ChatMsg));
+		//m_MessageList.push_back (mT_ChatMsg(ID,Message));
+		//NextBlockPosition += MAX_CHAT_MSG_LEN - 1;
+	//}
 
 } // FG_SERVER::CreateChatMessage ()
 
