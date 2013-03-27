@@ -9,7 +9,7 @@ import(
 	"strings"
 	//"strconv"
 	//"time"
-	//"unsafe"
+	"unsafe"
 )
 
 import(
@@ -17,6 +17,8 @@ import(
 
 	"github.com/fgx/go-fgms/flightgear"
 )
+
+
 //------------------------------------------------------------------------
 
 // Handle client connections
@@ -241,3 +243,61 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 	
 } // FG_SERVER::HandlePacket ( char* sMsg[MAX_PACKET_SIZE] )
 
+
+
+func (me *FG_SERVER) PacketIsValid(	Bytes int, MsgHdr flightgear.T_MsgHdr, SenderAddress *net.UDPAddr ) bool {
+
+	var ErrorMsg string
+
+	// Check header Packet size
+	s := int(unsafe.Sizeof(MsgHdr))
+	if Bytes <  s {
+		ErrorMsg  = SenderAddress.String()
+		ErrorMsg += " packet size is too small!"
+		fmt.Println("ERROR: PacketIsValid()", ErrorMsg)
+		me.AddBadClient(SenderAddress, ErrorMsg, true)
+		return false
+	}
+	
+	//= Check magic
+	if MsgHdr.Magic != flightgear.MSG_MAGIC && MsgHdr.Magic != RELAY_MAGIC {
+		ErrorMsg  = SenderAddress.String();
+		ErrorMsg += " BAD magic number: "
+		//ErrorMsg += MsgHdr.Magic // TODO
+		//fmt.Println("TODO: Handle Wrong Magic")
+		fmt.Println("ERROR: PacketIsValid()", ErrorMsg)
+		me.AddBadClient(SenderAddress, ErrorMsg, true)
+		return false
+	}
+	
+	// Check Protocol Version
+	if MsgHdr.Version != flightgear.PROTO_VER {
+		ErrorMsg  = SenderAddress.String()
+		ErrorMsg += " BAD protocol version! Should be "
+		// TODO bitshift
+		//converter*    tmp;
+		//tmp = (converter*) (& PROTO_VER);
+		//ErrorMsg += NumToStr (tmp->High, 0);
+		//ErrorMsg += "." + NumToStr (tmp->Low, 0);
+		//ErrorMsg += " but is ";
+		//tmp = (converter*) (& MsgHdr->Version);
+		//ErrorMsg += NumToStr (tmp->Low, 0);
+		//ErrorMsg += "." + NumToStr (tmp->High, 0);
+		fmt.Println("ERROR: PacketIsValid()", ErrorMsg)
+		me.AddBadClient(SenderAddress, ErrorMsg, true);
+		return false
+	} 
+	
+	if MsgHdr.MsgId == flightgear.POS_DATA_ID {
+		lenny := uint32( unsafe.Sizeof(MsgHdr) + unsafe.Sizeof(&flightgear.T_PositionMsg{}) )
+		if MsgHdr.MsgLen < lenny {
+			ErrorMsg  = SenderAddress.String()
+			ErrorMsg += " Client sends insufficient position data, "
+			ErrorMsg += fmt.Sprintf( "should be %d", lenny)
+			ErrorMsg += fmt.Sprintf(" is: %d", MsgHdr.MsgLen)
+			me.AddBadClient (SenderAddress, ErrorMsg, true);
+			return false
+		}
+	}
+	return true
+} // FG_SERVER::PacketIsValid ()

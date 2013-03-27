@@ -9,7 +9,7 @@ import(
 	//"strings"
 	//"strconv"
 	//"time"
-	"unsafe"
+	//"unsafe"
 )
 
 import(
@@ -21,12 +21,14 @@ import(
 
 const VERSION = "0.1-go-experimental"
 
-const SUCCESS                 = 0
-const ERROR_COMMANDLINE       = 1
-const ERROR_CREATE_SOCKET     = 2
-const ERROR_COULDNT_BIND      = 3
-const ERROR_NOT_LISTENING     = 4
-const ERROR_COULDNT_LISTEN    = 5
+const ( 
+	SUCCESS                 = 0
+	ERROR_COMMANDLINE       = 1
+	ERROR_CREATE_SOCKET     = 2
+	ERROR_COULDNT_BIND      = 3
+	ERROR_NOT_LISTENING     = 4
+	ERROR_COULDNT_LISTEN    = 5
+)
 
 // other constants
 const MAX_PACKET_SIZE         = 1024
@@ -36,9 +38,9 @@ const RELAY_MAGIC             = 0x53464746    // GSGF
 
 
 const (
-	SENDER_UNKNOWN  = iota
-	SENDER_KNOWN  
-	SENDER_DIFF_IP
+	SENDER_UNKNOWN  = 0
+	SENDER_KNOWN    = 1 
+	SENDER_DIFF_IP  = 2 // Not sure this is used
 )
 		
 // Main Server
@@ -407,64 +409,6 @@ func (me *FG_SERVER) Init() error {
 
 
 
-
-
-func (me *FG_SERVER) PacketIsValid(	Bytes int, MsgHdr flightgear.T_MsgHdr, SenderAddress *net.UDPAddr ) bool {
-
-	var ErrorMsg string
-
-	// Check header Packet size
-	s := int(unsafe.Sizeof(MsgHdr))
-	if Bytes <  s {
-		ErrorMsg  = SenderAddress.String()
-		ErrorMsg += " packet size is too small!"
-		fmt.Println("ERROR: PacketIsValid()", ErrorMsg)
-		me.AddBadClient(SenderAddress, ErrorMsg, true)
-		return false
-	}
-	
-	//= Check magic
-	if MsgHdr.Magic != flightgear.MSG_MAGIC && MsgHdr.Magic != RELAY_MAGIC {
-		ErrorMsg  = SenderAddress.String();
-		ErrorMsg += " BAD magic number: "
-		//ErrorMsg += MsgHdr.Magic // TODO
-		//fmt.Println("TODO: Handle Wrong Magic")
-		fmt.Println("ERROR: PacketIsValid()", ErrorMsg)
-		me.AddBadClient(SenderAddress, ErrorMsg, true)
-		return false
-	}
-	
-	// Check Protocol Version
-	if MsgHdr.Version != flightgear.PROTO_VER {
-		ErrorMsg  = SenderAddress.String()
-		ErrorMsg += " BAD protocol version! Should be "
-		// TODO bitshift
-		//converter*    tmp;
-		//tmp = (converter*) (& PROTO_VER);
-		//ErrorMsg += NumToStr (tmp->High, 0);
-		//ErrorMsg += "." + NumToStr (tmp->Low, 0);
-		//ErrorMsg += " but is ";
-		//tmp = (converter*) (& MsgHdr->Version);
-		//ErrorMsg += NumToStr (tmp->Low, 0);
-		//ErrorMsg += "." + NumToStr (tmp->High, 0);
-		fmt.Println("ERROR: PacketIsValid()", ErrorMsg)
-		me.AddBadClient(SenderAddress, ErrorMsg, true);
-		return false
-	} 
-	
-	if MsgHdr.MsgId == flightgear.POS_DATA_ID {
-		lenny := uint32( unsafe.Sizeof(MsgHdr) + unsafe.Sizeof(&flightgear.T_PositionMsg{}) )
-		if MsgHdr.MsgLen < lenny {
-			ErrorMsg  = SenderAddress.String()
-			ErrorMsg += " Client sends insufficient position data, "
-			ErrorMsg += fmt.Sprintf( "should be %d", lenny)
-			ErrorMsg += fmt.Sprintf(" is: %d", MsgHdr.MsgLen)
-			me.AddBadClient (SenderAddress, ErrorMsg, true);
-			return false
-		}
-	}
-	return true
-} // FG_SERVER::PacketIsValid ()
 
 
 //////////////////////////////////////////////////////////////////////
