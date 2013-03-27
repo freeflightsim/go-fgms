@@ -113,37 +113,37 @@ type T_PositionMsg struct{
 
     // Time when this packet was generated
     // - xdr_data2_t time;
-    time uint64
+    Time uint64
 	
 	/// Time offset for network lag ? 
     // - xdr_data2_t lag;
-    lag uint64
+    Lag uint64
 
     // Position wrt the earth centered frame
     // - xdr_data2_t position[3];
-    position [3]uint64
+    Position [3]uint64
 	
 	
     // Orientation wrt the earth centered frame, stored in the angle axis
     // representation where the angle is coded into the axis length
     // - xdr_data_t orientation[3];
-    orientation [3]float32 //uint32
+    Orientation [3]float32 //uint32
 
 	// Linear velocity wrt the earth centered frame measured in the earth centered frame
     // - xdr_data_t linearVel[3];
-    linearVel [3]float32 //uint32
+    LinearVel [3]float32 //uint32
 	
     // Angular velocity wrt the earth centered frame measured in the earth centered frame
     // - xdr_data_t angularVel[3];
-    angularVel [3]float32 // uint32
+    AngularVel [3]float32 // uint32
 
 	// Linear acceleration wrt the earth centered frame measured in the earth centered frame
     // - xdr_data_t linearAccel[3];
-    linearAccel [3]float32 // uint32
+    LinearAccel [3]float32 // uint32
 	
     // Angular acceleration wrt the earth centered frame measured in the earth centered frame
     // - xdr_data_t angularAccel[3];
-    angularAccel [3]float32 //uint32
+    AngularAccel [3]float32 //uint32
 }
 
 // TODO There has Got to be a better way

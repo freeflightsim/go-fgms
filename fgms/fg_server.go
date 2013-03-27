@@ -824,13 +824,17 @@ func (me *FG_SERVER) SenderIsKnown(SenderCallsign string, SenderAddress  *net.UD
 
 // Handle client connections
 func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPAddr){
+	
 	//T_MsgHdr*       MsgHdr;
+	var MsgHdr flightgear.T_MsgHdr
 	//T_PositionMsg*  PosMsg;
+	var PosMsg flightgear.T_PositionMsg
+	
 	//uint32_t        MsgId;
 	//uint32_t        MsgMagic;
 	//Timestamp time.Time
-	SenderPosition Point3D
-	SenderOrientation Point3D
+	var SenderPosition Point3D
+	var SenderOrientation Point3D
 	//Point3D         PlayerPosGeod;
 	//mT_PlayerListIt CurrentPlayer;
 	//mT_PlayerListIt SendingPlayer;
@@ -841,7 +845,7 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 	//MsgHdr :=  
 	
 	//fmt.Println("MSG=", len(Msg))
-	var MsgHdr flightgear.T_MsgHdr
+	
 	remainingBytes, err := xdr.Unmarshal(Msg, &MsgHdr)
 	if err != nil{
 		fmt.Println("XDR Decode Error", err)
@@ -901,7 +905,6 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 	//////////////////////////////////////////////////
 	if MsgHdr.MsgId == flightgear.POS_DATA_ID	{
 		me.PositionData++
-		var PosMsg flightgear.T_PositionMsg
 		remainingBytes2, errPos := xdr.Unmarshal(remainingBytes, &PosMsg)
 		if err != nil{
 			fmt.Println("XDR Decode Position Error", errPos)
@@ -909,19 +912,24 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 		}
 		fmt.Println("remain2=", len(remainingBytes2), PosMsg.Model)
 	
-		/*PosMsg = (T_PositionMsg *) (Msg + sizeof(T_MsgHdr));
-		double x = XDR_decode64<double> (PosMsg->position[X]);
-		double y = XDR_decode64<double> (PosMsg->position[Y]);
-		double z = XDR_decode64<double> (PosMsg->position[Z]);
-		if ( (x == 0.0) || (y == 0.0) || (z == 0.0) ){ // ignore while position is not settled
+		//PosMsg = (T_PositionMsg *) (Msg + sizeof(T_MsgHdr));
+		//double x = XDR_decode64<double> (PosMsg->position[X]);
+		//double y = XDR_decode64<double> (PosMsg->position[Y]);
+		//double z = XDR_decode64<double> (PosMsg->position[Z]);
+		x := PosMsg.Position[X]
+		y := PosMsg.Position[Y]
+		z := PosMsg.Position[Z]
+		if x == 0.0 || y == 0.0 || z == 0.0 { // ignore while position is not settled
 			return
 		}
 		SenderPosition.Set (x, y, z);
-		SenderOrientation.Set (
-		XDR_decode<float> (PosMsg->orientation[X]),
-		XDR_decode<float> (PosMsg->orientation[Y]),
-		XDR_decode<float> (PosMsg->orientation[Z])
+		
+		/* SenderOrientation.Set (
+			XDR_decode<float> (PosMsg->orientation[X]),
+			XDR_decode<float> (PosMsg->orientation[Y]),
+			XDR_decode<float> (PosMsg->orientation[Z])
 		)*/
+		SenderOrientation.Set(PosMsg.Orientation[X], PosMsg.Orientation[Y],	PosMsg.Orientation[Z])
 	} else {
 		me.NotPosData++
 	} 

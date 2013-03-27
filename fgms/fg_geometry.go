@@ -34,13 +34,26 @@ const SG_METER_TO_FEET  = 3.28083989501312335958
 const SGD_PI_2    = 1.57079632679489661923
 
 
+const ( X = 0 
+		Y 
+		Z 
+)
+const ( Lat = 0 
+		Lon 
+		Alt
+)
+
 
 type Point3D struct {
-	x float32 
-	y float32 
-	z float32 
+	x uint64 
+	y uint64 
+	z uint64 
 }
-
+func (me *Point3D) Set(x, y, z uint64){
+	me.x = x
+	me.y = y
+	me.z = z
+}
 func (me *Point3D) Clear(){
 	me.x = 0
 	me.y = 0
