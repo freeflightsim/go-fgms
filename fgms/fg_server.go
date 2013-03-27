@@ -577,6 +577,7 @@ func (me *FG_SERVER) PacketIsValid(	Bytes int, MsgHdr flightgear.T_MsgHdr, Sende
 	if Bytes <  s {
 		ErrorMsg  = SenderAddress.String()
 		ErrorMsg += " packet size is too small!"
+		fmt.Println("ERROR: PacketIsValid()", ErrorMsg)
 		me.AddBadClient(SenderAddress, ErrorMsg, true)
 		return false
 	}
@@ -586,7 +587,8 @@ func (me *FG_SERVER) PacketIsValid(	Bytes int, MsgHdr flightgear.T_MsgHdr, Sende
 		ErrorMsg  = SenderAddress.String();
 		ErrorMsg += " BAD magic number: "
 		//ErrorMsg += MsgHdr.Magic // TODO
-		fmt.Println("TODO: Handle Wrong Magic")
+		//fmt.Println("TODO: Handle Wrong Magic")
+		fmt.Println("ERROR: PacketIsValid()", ErrorMsg)
 		me.AddBadClient(SenderAddress, ErrorMsg, true)
 		return false
 	}
@@ -604,6 +606,7 @@ func (me *FG_SERVER) PacketIsValid(	Bytes int, MsgHdr flightgear.T_MsgHdr, Sende
 		//tmp = (converter*) (& MsgHdr->Version);
 		//ErrorMsg += NumToStr (tmp->Low, 0);
 		//ErrorMsg += "." + NumToStr (tmp->High, 0);
+		fmt.Println("ERROR: PacketIsValid()", ErrorMsg)
 		me.AddBadClient(SenderAddress, ErrorMsg, true);
 		return false
 	} 
@@ -915,7 +918,7 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 	//////////////////////////////////////////////////
 	if MsgHdr.MsgId == flightgear.POS_DATA_ID	{
 		me.PositionData++
-		var PosMsg flightgear.T_PositionMessage
+		var PosMsg flightgear.T_PositionMsg
 		remainingBytes2, errPos := xdr.Unmarshal(remainingBytes, &PosMsg)
 		if err != nil{
 			fmt.Println("XDR Decode Position Error", errPos)
