@@ -212,70 +212,8 @@ func (me *FG_SERVER) SetLogfile( log_file_name string){
 
 
 
-// Insert a new relay server into internal list (does a DNS lookup)
-func (me *FG_SERVER) AddRelay(host_name string, port int) {
-	
-	log.Println("> Add Relay = ", host_name, port)
-	
-	//= Now go and do check is background
-	go func(host_name string, port int){
-	
-		//= Get IP address from DNS
-		addrs, err := net.LookupHost(host_name)
-		if err != nil {
-			log.Println("\tFAIL: Relay - No IP address for Host ", host_name, addrs)
-			return
-		}
-	
-		//= Now resolve with UDP address			
-		host_port := fmt.Sprintf("%s:%d", host_name, port)
-		//log.Println("    < Relay - DNS Lookup OK:  ", host_name, addrs[0], s)
-		udp_addr, err := net.ResolveUDPAddr("udp", host_port)
-		if err != nil {
-			log.Println("\tFAIL: Relay - failed to resolve UDP address  ", host_port, udp_addr, err)
-			return
-		}
-		
-		//= Now we open socket and listen
-		var err_listen error
-		me.Relays[host_port], err_listen = net.ListenUDP("udp", udp_addr)
-		if err_listen != nil {
-			log.Println("\tFAIL: Relay - Cannot listen on UDP  ", host_port, udp_addr, err_listen)
-			return
-		}
-		log.Println("    < Relay Added OK  ", host_port, udp_addr, err_listen)
-	}(host_name, port)	
-	
-} // FG_SERVER::AddRelay()
 
 
-//=  Insert a new crossfeed server into internal list
-func (me *FG_SERVER) AddCrossfeed( host_name string, port int){
-
-	log.Println("> Add Crossfeed = ", host_name, port)
-
-	//= Now go and do check is background
-	go func(host_name string, port int){
-		
-		//= Now resolve with UDP address			
-		host_port := fmt.Sprintf("%s:%d", host_name, port)
-		udp_addr, err := net.ResolveUDPAddr("udp", host_port)
-		if err != nil {
-			log.Println("\tFAIL: Crossfeed to resolve UDP address:  ", host_port, err)
-			return
-		}
-		
-		//= Now we open socket and listen
-		var err_listen error
-		me.Crossfeeds[host_port], err_listen = net.ListenUDP("udp", udp_addr)
-		if err_listen != nil {
-			log.Println("\tFAIL: Crossfeed FAIL to Open:  ", host_port, udp_addr, err_listen)
-			return
-		}
-		log.Println("\tOK:   Crossfeed Added -  ", host_port, udp_addr, err_listen)
-		
-	}(host_name, port)	
-} // FG_SERVER::AddCrossfeed()
 
 
 //////////////////////////////////////////////////////////////////////
@@ -320,34 +258,8 @@ func (me *FG_SERVER) AddTracker(host string, port int, isTracked bool){
 } // FG_SERVER::AddTracker()
 
 
-// --------------------------------------------------------
 
-// AddBlacklist - Add an IP to the blacklist - (after DNS lookup)
-func (me *FG_SERVER) AddBlacklist(FourDottedIP string) {
-	log.Println("> Add Blacklist = ", FourDottedIP)
-	
-	// Do Checks in background
-	go func(ip_str string){
-		
-		// Check DNS entry
-		addrs, err := net.LookupHost(ip_str)
-		if err != nil{
-			log.Println("\tFAIL: Blacklist - No IP address for address = ", ip_str)
-			return 
-		}
-		log.Println("\tOK:   Blacklist Added -  DNS Lookup OK: ", ip_str, addrs, ip_str == addrs[0])
-		me.BlackList[ addrs[0] ] = true
-	}(FourDottedIP)
-} 
 
-// Check if the client is black listed. true if blacklisted
-func (me *FG_SERVER) IsBlackListed(SenderAddress *NetAddress) bool {
-	_, found :=  me.BlackList[SenderAddress.IpAddress]
-	if found {
-		return true
-	}
-	return false
-} 
 
 // ---------------------------------------------------------------------------
 
@@ -1098,95 +1010,8 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 
 
 
-// ---------------------------------------------------------
-
-// Send message to all relay servers
-
-func (me *FG_SERVER) SendToRelays(Msg []byte, Bytes int , SendingPlayer *FG_Player){
-
-//T_MsgHdr*       MsgHdr;
-//uint32_t        MsgMagic;
-//unsigned int    PktsForwarded = 0;
-//mT_RelayListIt  CurrentRelay;
-//time_t          Now;
-
-if !SendingPlayer.IsLocal && !me.IamHUB {
-	return
-}
-//Now   = time (0);
-Now := time.Now().Unix()
-//MsgHdr    = (T_MsgHdr *) Msg;
-//MsgMagic  = XDR_decode<uint32_t> (MsgHdr->Magic);
-//MsgHdr->Magic = XDR_encode<uint32_t> (RELAY_MAGIC);
-UpdateInactive := (Now - SendingPlayer.LastRelayedToInactive) > UPDATE_INACTIVE_PERIOD
-if UpdateInactive {
-		SendingPlayer.LastRelayedToInactive = Now
-}
-//CurrentRelay = m_RelayList.begin();
-//while (CurrentRelay != m_RelayList.end())
-for idx, relay := range me.Relays {
-	if UpdateInactive { //|| IsInRange(*relay, *SendingPlayer) {
-		fmt.Println("relay to=", idx, relay)
-		//if (CurrentRelay->Address.getIP() != SendingPlayer->Address.getIP())
-		//{
-		//  m_DataSocket->sendto(Msg, Bytes, 0, &CurrentRelay->Address);
-		//  PktsForwarded++;
-		// }
-		//}
-		//CurrentRelay++;
-	}
-}
-//SendingPlayer->PktsForwarded += PktsForwarded;
-//MsgHdr->Magic = XDR_encode<uint32_t> (MsgMagic);  // restore the magic value
-} // FG_SERVER::SendToRelays ()
 
 
-
-/**
-* @brief  Send message to all crossfeed servers.
-*         Crossfeed servers receive all traffic without condition,
-*         mainly used for testing and debugging
-*/
-func (me *FG_SERVER) SendToCrossfeed(Msg []byte, Bytes int, SenderAddress *net.UDPAddr){
-
-	//T_MsgHdr*       MsgHdr;
-	//uint32_t        MsgMagic;
-	//int             sent;
-	
-	//MsgHdr    = (T_MsgHdr *) Msg;
-	//MsgMagic  = MsgHdr->Magic;
-	//MsgHdr->Magic = XDR_encode<uint32_t> (RELAY_MAGIC);
-	
-	// Not sure what is happening, but we create another payload
-	var MsgHdr flightgear.T_MsgHdr
-	_, err := xdr.Unmarshal(Msg, &MsgHdr)
-	if err != nil {
-		fmt.Println("XDR Decode Error in SendToCrossfeed - Should never happen?", err)
-		return
-	}
-	MsgHdr.Magic = RELAY_MAGIC
-	
-	encoded, err := xdr.Marshal(MsgHdr)
-	if err != nil {
-		fmt.Println("XDR Encode Error in SendToCrossfeed - Should never happen?", err)
-		return
-	}
-	//mT_RelayListIt CurrentCrossfeed = m_CrossfeedList.begin();
-	//while (CurrentCrossfeed != m_CrossfeedList.end())
-	//{
-	for _, loopCF := range me.Crossfeeds {
-
-		//if (CurrentCrossfeed->Address.getIP() != SenderAddress.getIP()) ?? But same address different port ??
-		_, err := loopCF.WriteToUDP(encoded, SenderAddress)
-		if err != nil {
-			me.CrossFeedFailed++
-		}else {
-			me.CrossFeedSent++
-		}
-		//CurrentCrossfeed++;
-	}
-	//MsgHdr->Magic = MsgMagic;  // restore the magic value ? umm not used now ?
-} // FG_SERVER::SendToCrossfeed ()
 
 
 //////////////////////////////////////////////////////////////////////
