@@ -859,7 +859,7 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 	//		cs += string(ele)
 	//	}
 	//}    
-	fmt.Println ("=callsign=", MsgHdr.Callsign, MsgHdr.CallsignString())
+	fmt.Println ("=Got Header=", MsgHdr.Callsign, MsgHdr.CallsignString())
 	
 	/*
 	dec := xdr.NewDecoder(Msg)
@@ -915,6 +915,14 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 	//////////////////////////////////////////////////
 	if MsgHdr.MsgId == flightgear.POS_DATA_ID	{
 		me.PositionData++
+		var PosMsg flightgear.T_PositionMessage
+		remainingBytes2, errPos := xdr.Unmarshal(remainingBytes, &PosMsg)
+		if err != nil{
+			fmt.Println("XDR Decode Position Error", errPos)
+			return
+		}
+		fmt.Println("remain2=", len(remainingBytes2), PosMsg.Model)
+	
 		/*PosMsg = (T_PositionMsg *) (Msg + sizeof(T_MsgHdr));
 		double x = XDR_decode64<double> (PosMsg->position[X]);
 		double y = XDR_decode64<double> (PosMsg->position[Y]);

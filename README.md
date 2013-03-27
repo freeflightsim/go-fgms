@@ -16,25 +16,6 @@ API Documentation:
 FGMS
 =======================================================
 Is a relay packet server for FlightGear Sim
-
-------------------------------------------
-Goals
-------------------------------------------
-- Make it and easy to use and install fgms package 
-	(on correct platform no wind atmo)
-- Make it easy to run a server and compile
-- Server needs to
-  = Relay message
-  = Provide data on 5001
-  = Provide an ajax interface fo state via ajax
-  = Be administered from a mobile
-  = Global World domination with WebSockets, XMPP interfaces and alike
-  = Geo-Spacial service for navaids
-  = More to follow in a dream ;-)
-
-------------------------------------------------
-You can only "Go" so far as...
-------------------------------------------------
 Its a port from Olivers, 
 	code is cut and paste, 
 	then c to go translate
@@ -48,7 +29,7 @@ Currently  and tested using a localhost:
 		eg conf.Server.TelnetPort << yes and int
 		
 		
-	- Relays and Clacklists are added, not via an entry but via
+	- Relays and Blacklists are added, not via an entry but via
 	  a dns lookup, so address needs to exists
 	
 	- a telnet port listneing and reposnding on 5001

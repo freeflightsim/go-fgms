@@ -104,52 +104,43 @@ type T_ChatMsg struct {
 // T_PositionMsg - Position Message
 type T_PositionMsg struct{
 	
-	/** @brief  Name of the aircraft model */
-    //char Model[MAX_MODEL_NAME_LEN]; 
+	/// Name of the aircraft model 
+    // - char Model[MAX_MODEL_NAME_LEN]; 
     Model [MAX_MODEL_NAME_LEN]byte
 
-    /** @brief Time when this packet was generated */
-    //xdr_data2_t time;
+    // Time when this packet was generated
+    // - xdr_data2_t time;
     time uint64
 	
-	/** @brief Time when this packet was generated */
-    //xdr_data2_t lag;
+	/// Time offset for network lag ? 
+    // - xdr_data2_t lag;
     lag uint64
 
-    /** @brief Position wrt the earth centered frame */
-    //xdr_data2_t position[3];
+    // Position wrt the earth centered frame
+    // - xdr_data2_t position[3];
     position [3]uint64
 	
 	
-    /** @brief Orientation wrt the earth centered frame, stored in the angle axis
-     *         representation where the angle is coded into the axis length
-	 */
-    //xdr_data_t orientation[3];
-    orientation [3]uint32
+    // Orientation wrt the earth centered frame, stored in the angle axis
+    // representation where the angle is coded into the axis length
+    // - xdr_data_t orientation[3];
+    orientation [3]float32 //uint32
 
-	/** @brief Linear velocity wrt the earth centered frame measured in
-     *         the earth centered frame
-	 */
-    //xdr_data_t linearVel[3];
-    linearVel [3]uint32
+	// Linear velocity wrt the earth centered frame measured in the earth centered frame
+    // - xdr_data_t linearVel[3];
+    linearVel [3]float32 //uint32
 	
-    /** @brief Angular velocity wrt the earth centered frame measured in
-     *          the earth centered frame
-	 */
-    //xdr_data_t angularVel[3];
-    angularVel [3]uint32
+    // Angular velocity wrt the earth centered frame measured in the earth centered frame
+    // - xdr_data_t angularVel[3];
+    angularVel [3]float32 // uint32
 
-	/** @brief Linear acceleration wrt the earth centered frame measured in
-     *         the earth centered frame
-	 */
-    //xdr_data_t linearAccel[3];
-    linearAccel [3]uint32
+	// Linear acceleration wrt the earth centered frame measured in the earth centered frame
+    // - xdr_data_t linearAccel[3];
+    linearAccel [3]float32 // uint32
 	
-    /** @brief Angular acceleration wrt the earth centered frame measured in
-     *         the earth centered frame
-	 */
-    //xdr_data_t angularAccel[3];
-    angularAccel [3]uint32
+    // Angular acceleration wrt the earth centered frame measured in the earth centered frame
+    // - xdr_data_t angularAccel[3];
+    angularAccel [3]float32 //uint32
 }
 
 // TODO There has Got to be a better way
