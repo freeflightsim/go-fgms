@@ -96,9 +96,10 @@ type FG_SERVER struct {
 	BlackListRejected uint64
 
 	//RelayList map[string]*net.UDPConn
-	Relays map[string]*net.UDPConn
 	//RelayMap map[string]*net.UDPConn
 	//RelayList []*NetAddress
+	Relays map[string]*net.UDPConn
+	Crossfeeds map[string]*net.UDPConn
 
 	IsTracked bool
 	Tracker *tracker.FG_TRACKER
@@ -150,6 +151,7 @@ func NewFG_SERVER() *FG_SERVER {
 	//ob.RelayList = make([]*NetAddress, 0)
 	//ob.RelayMap = make(map[string]string)
 	ob.Relays = make(map[string]*net.UDPConn, 0)
+	ob.Crossfeeds = make(map[string]*net.UDPConn, 0)
 	
 	ob.BlackList = make(map[string]bool)
 		
@@ -228,6 +230,7 @@ func (me *FG_SERVER) AddRelay(host_name string, port int) {
 		udp_addr, err := net.ResolveUDPAddr("udp", host_port)
 		if err != nil {
 			log.Println("    < Relay FAIL no UDP:  ", host_port, udp_addr, err)
+			return
 		}
 		
 		//= Now we open socket and listen
@@ -235,11 +238,64 @@ func (me *FG_SERVER) AddRelay(host_name string, port int) {
 		me.Relays[host_port], err_listen = net.ListenUDP("udp", udp_addr)
 		if err_listen != nil {
 			log.Println("    < Relay FAIL no listen:  ", host_port, udp_addr, err_listen)
+			return
 		}
-		
+		log.Println("    < Relay Added OK  ", host_port, udp_addr, err_listen)
 	}(host_name, port)	
 	
 } // FG_SERVER::AddRelay()
+
+//=  Insert a new crossfeed server into internal list
+func (me *FG_SERVER) AddCrossfeed( host_name string, port int){
+  	//mT_Relay        NewRelay
+  	//unsigned int    IP
+  	//string s = Server
+	//#ifdef _MSC_VER
+	//  if (s == "localhost")
+	//  {
+	//    s = "127.0.0.1";
+	//  }
+	//#endif // _MSC_VER
+	//  NewRelay.Name = s;
+	//  NewRelay.Address.set ((char*) s.c_str(), Port);
+	//  IP = NewRelay.Address.getIP();
+	//  if ( IP != INADDR_ANY && IP != INADDR_NONE )
+	//  {
+	//    m_CrossfeedList.push_back (NewRelay);
+	//  }
+	//  else
+	//  {
+	//    SG_ALERT (SG_SYSTEMS, SG_ALERT, "AddCrossfeed: FAILED on " << Server << ", port " << Port);
+	 // }
+	 	//= Now go and do check is background
+	go func(host_name string, port int){
+	
+		//= Get IP address from DNS
+		//addrs, err := net.LookupHost(host_name)
+		//if err != nil {
+		//	log.Println("    < Relay FAIL < No IP address for Host ", host_name, addrs)
+		//	return
+		//}
+	
+		//= Now resolve with UDP address			
+		host_port := fmt.Sprintf("%s:%d", host_name, port)
+		//log.Println("    < Relay - DNS Lookup OK:  ", host_name, addrs[0], s)
+		udp_addr, err := net.ResolveUDPAddr("udp", host_port)
+		if err != nil {
+			log.Println("    < Crossfeed FAIL on UDP:  ", host_port, udp_addr, err)
+			return
+		}
+		
+		//= Now we open socket and listen
+		var err_listen error
+		me.Crossfeeds[host_port], err_listen = net.ListenUDP("udp", udp_addr)
+		if err_listen != nil {
+			log.Println("    < Crossfeed FAIL no listen:  ", host_port, udp_addr, err_listen)
+			return
+		}
+		log.Println("    < Crossfeed Added OK  ", host_port, udp_addr, err_listen)
+	}(host_name, port)	
+} // FG_SERVER::AddCrossfeed()
 
 
 //////////////////////////////////////////////////////////////////////

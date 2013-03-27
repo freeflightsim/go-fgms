@@ -19,12 +19,14 @@
 		{"host": "mpserver01.flightgear.org", "port": 5000, "comment": "Oliver Schroeder, Berlin, Germany"},
 		{"host": "mpserver02.flightgear.org", "port": 5000, "comment": ""},
 		{"host": "mpserver03.flightgear.org", "port": 5000, "comment": ""},
-		{"host": "mpserver0s7.flightgear.org", "port": 5000, "comment": ""},
+		{"host": "i_no_exists.flightgear.org", "port": 5000, "comment": ""},
 		{"host": "mpserver14.flightgear.org", "port": 5000, "comment": "FGx Zurich"}
     ],
 
 	"crossfeeds": [
-		{"host": "localhost", "port": 5002, "comment": "Where is the tracker"}
+		{"host": "not_exist.geo.uk.com", "port": 5055, "comment": "foo"},
+		{"host": "lsm.geo.uk.com", "port": 5055, "comment": "bar"},
+		{"host": "localhost", "port": 5055, "comment": "bar"}
     ],
     
 	"blacklists": [

@@ -4,7 +4,7 @@ package main
 
 // source = http://gitorious.org/fgms/fgms-0-x/blobs/master/src/server/main.cxx
 import(
-	//"fmt"
+	"fmt"
 	//"strconv"
 	"log"
 	"io/ioutil"
@@ -116,13 +116,15 @@ func ReadLoadConfigs(Servant *fgms.FG_SERVER, reInit bool) error {
 	
 	// Read the list of relays
 	for _, relay := range Config.Relays {
-		Servant.AddRelay(relay.Host, relay.Port);
+		//Servant.AddRelay(relay.Host, relay.Port)
+		fmt.Println(relay)
 	}
 
-	//////////////////////////////////////////////////
-	//      read the list of crossfeeds
-	//////////////////////////////////////////////////
-	Servant.AddCrossfeed ("localhost", 5555)
+	// Read the list of crossfeeds
+	for _, cf := range Config.Crossfeeds {
+		Servant.AddCrossfeed(cf.Host, cf.Port)
+	}
+
 	/*
 	MoreToRead  = true;
 	Section = "crossfeed";
