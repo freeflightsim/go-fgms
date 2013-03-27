@@ -829,8 +829,8 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 	//uint32_t        MsgId;
 	//uint32_t        MsgMagic;
 	//Timestamp time.Time
-	//Point3D         SenderPosition;
-	//Point3D         SenderOrientation;
+	SenderPosition Point3D
+	SenderOrientation Point3D
 	//Point3D         PlayerPosGeod;
 	//mT_PlayerListIt CurrentPlayer;
 	//mT_PlayerListIt SendingPlayer;
@@ -864,24 +864,7 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 	//}    
 	fmt.Println ("=Got Header=", MsgHdr.Callsign, MsgHdr.CallsignString())
 	
-	/*
-	dec := xdr.NewDecoder(Msg)
-	//fmt.Println( dec )
-	
-	magic, err := dec.DecodeUint()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Println("magic=", magic)
-	
-	mid, err := dec.DecodeUint()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Println("mid=", mid)
-	*/
+
 	//------------------------------------------------------
 	// First of all, send packet to all crossfeed servers.
 	//SendToCrossfeed (Msg, Bytes, SenderAddress); ?? SHould then be send pre vaildation ?
@@ -909,7 +892,7 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 			me.UnknownRelay++ 
 			return
 		}else{
-		me.RelayMagic++ // bump relay magic packet
+			me.RelayMagic++ // bump relay magic packet
 		}
 	}
 	

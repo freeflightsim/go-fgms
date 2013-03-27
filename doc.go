@@ -31,6 +31,9 @@ Package main - FlightGear MulitPlyer in go
    TODO 
    		- Everything else
    	
+   Project Info:
+   		- http://wiki.flightgear.org/Multiplayer_protocol	
+   	
    Externals:
    		- XDR - http://godoc.org/github.com/davecgh/go-xdr/xdr
    		- Yaml - github.com/kylelemons/go-gypsy/yaml	

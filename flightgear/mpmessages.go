@@ -9,6 +9,8 @@ import (
 	//"github.com/davecgh/go-xdr/xdr"
 )
 
+// INFO: http://wiki.flightgear.org/Multiplayer_protocol
+
 // TODO:  XDR decoding should be here ?
 
 // magic value for messages 
@@ -19,10 +21,11 @@ const MSG_MAGIC = 0x46474653  // "FGFS"
 const PROTO_VER = 0x00010001  // 1.1
 const PROTO_VER_STR = "1.1"
 
+// pete FAIL FAIL FAIL's 
 func GetProtocolVerString() string {
 	major := PROTO_VER >> 16
 	minor := PROTO_VER >> 4
-	return fmt.Sprintf("%d.%d", major, minor) // FAIL FAIL FAIL 
+	return fmt.Sprintf("%d.%d", major, minor) 
 }
 
 
