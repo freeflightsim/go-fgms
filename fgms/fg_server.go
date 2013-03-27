@@ -223,16 +223,16 @@ func (me *FG_SERVER) AddRelay(host_name string, port int) {
 		}
 	
 		//= Now resolve with UDP address			
-		s := fmt.Sprintf("%s:%d", host_name, port)
+		host_port := fmt.Sprintf("%s:%d", host_name, port)
 		//log.Println("    < Relay - DNS Lookup OK:  ", host_name, addrs[0], s)
-		udp_addr, err := net.ResolveUDPAddr("udp", s)
+		udp_addr, err := net.ResolveUDPAddr("udp", host_port)
 		if err != nil {
-			log.Println("    < Relay FAIL no UDP:  ", s, udp_addr, err)
+			log.Println("    < Relay FAIL no UDP:  ", host_port, udp_addr, err)
 		}
 		
 		//= Now we open socket and listen
 		var err_listen error
-		me.Relays[host_name], err_listen = net.ListenUDP("udp", udp_addr)
+		me.Relays[host_port], err_listen = net.ListenUDP("udp", udp_addr)
 		if err_listen != nil {
 			log.Println("    < Relay FAIL no listen:  ", s, udp_addr, err_listen)
 		}
