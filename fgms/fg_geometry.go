@@ -92,8 +92,24 @@ func Distance ( P1, P2 Point3D) float32 {
 } // Distance ( const Point3D & P1, const Point3D & P2 )
 
 
+
+//-------------------------------------------------------------------
+
+//#define _EQURAD     (6378137.0)
 const _EQURAD = 6378137.0
-var ra2 float64 =  1/ (_EQURAD *_EQURAD)
+
+//#define E2 fabs(1 - SQUASH*SQUASH)
+var e2 float64  = math.Abs( 1 - SQUASH * SQUASH )
+
+//static double ra2 = 1/(_EQURAD*_EQURAD);
+var ra2 float64 =  1 / (_EQURAD *_EQURAD)
+
+//static double e2 = E2;
+//static double e4 = E2*E2;
+var e4 float64 = e2 * e2
+
+
+
 
 /* 
  Convert a cartexian XYZ coordinate to a geodetic lat/lon/alt.
@@ -133,7 +149,7 @@ func SG_CartToGeod ( CartPoint Point3D ) Point3D {
 	var s float64 = e4 * p * q / (4 * r * r * r)
 	
 	//double t = pow(1+s+sqrt(s*(2+s)), 1/3.0);
-	var t float64 = pow(1 + s + math.Sqrt(s * (2 + s)), 1 / 3.0)
+	var t float64 = math.Pow(1 + s + math.Sqrt(s * (2 + s)), 1 / 3.0)
 	
 	//double u = r*(1+t+1/t);
 	var u float64 = r * (1 + t + 1 / t)
@@ -150,13 +166,17 @@ func SG_CartToGeod ( CartPoint Point3D ) Point3D {
 	//double D = k*sqrtXXpYY/(k+e2);
 	var D float64 = k * sqrtXXpYY / (k + e2)
 	
-	var GeodPoint Point3D;
-	GeodPoint[Lon] = (2*atan2(y, x+sqrtXXpYY)) * SG_RADIANS_TO_DEGREES;
+	var GeodPoint Point3D
+	//GeodPoint[Lon] = (2*atan2(y, x+sqrtXXpYY)) * SG_RADIANS_TO_DEGREES;
+	GeodPoint.y = (2 * math.Atan2(y, x + sqrtXXpYY)) * SG_RADIANS_TO_DEGREES
 	
 	//double sqrtDDpZZ = sqrt(D*D+z*z);
 	var sqrtDDpZZ float64 = math.Sqrt( D * D + z * z)
-	GeodPoint[Lat] = (2*atan2(z, D+sqrtDDpZZ)) * SG_RADIANS_TO_DEGREES;
-	GeodPoint[Alt] = ((k+e2-1)*sqrtDDpZZ/k) * SG_METER_TO_FEET;
-	return GeoPoint
+	//GeodPoint[Lat] = (2*atan2(z, D+sqrtDDpZZ)) * SG_RADIANS_TO_DEGREES;
+	GeodPoint.x = (2* math.Atan2(z, D + sqrtDDpZZ)) * SG_RADIANS_TO_DEGREES
+	
+	//GeodPoint[Alt] = ((k+e2-1)*sqrtDDpZZ/k) * SG_METER_TO_FEET;
+	GeodPoint.z = ((k + e2 - 1) * sqrtDDpZZ / k) * SG_METER_TO_FEET
+	return GeodPoint
 } // sgCartToGeod()
 
