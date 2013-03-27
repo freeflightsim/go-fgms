@@ -73,6 +73,17 @@ func (me *FG_SERVER) CreateChatMessage(ID int, Msg string){
 	//}
 	//while (NextBlockPosition < Msg.length())
 	//{
+	var idx uint = 0
+	for x, cha := range Msg {
+		
+		ChatMsg.Text[x] = byte(cha)
+		
+		idx++
+		
+		if idx == flightgear.MAX_CHAT_MSG_LEN - 1 {
+			// DO somethings
+			me.MessageList = append(me.MessageList, ChatMsg)
+		}
 		//strncpy (ChatMsg.Text, 
 		           //Msg.substr (NextBlockPosition, MAX_CHAT_MSG_LEN - 1).c_str(),
 		           //MAX_CHAT_MSG_LEN);
@@ -83,8 +94,9 @@ func (me *FG_SERVER) CreateChatMessage(ID int, Msg string){
 		//sizeof(T_ChatMsg));
 		//m_MessageList.push_back (mT_ChatMsg(ID,Message));
 		//NextBlockPosition += MAX_CHAT_MSG_LEN - 1;
-	//}
-
+	}
+	me.MessageList = append(me.MessageList, ChatMsg)
+	
 } // FG_SERVER::CreateChatMessage ()
 
 

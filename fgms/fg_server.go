@@ -105,6 +105,8 @@ type FG_SERVER struct {
 	IsTracked bool
 	Tracker *tracker.FG_TRACKER
 
+	MessageList []flightgear.T_ChatMsg
+
 	//UpdateSecs          = DEF_UPDATE_SECS;
 	// clear stats - should show what type of packet was received
 	PacketsReceived int
@@ -157,6 +159,8 @@ func NewFG_SERVER() *FG_SERVER {
 	ob.BlackList = make(map[string]bool)
 		
 	ob.Telnet = NewTelnetServer()
+	
+	ob.MessageList = make([]flightgear.T_ChatMsg, 0)
 		
 	return ob
 }
@@ -477,6 +481,7 @@ func (me *FG_SERVER) HandleTelnetData(conn net.Conn){
 		//}
 		//pthread_mutex_unlock (& m_PlayerMutex);
 		//TODO sgCartToGeod (CurrentPlayer.LastPos, PlayerPosGeod);
+		
 		line  := callsign + "@"
 		//Message += CurrentPlayer.Callsign + "@"
 		if CurrentPlayer.IsLocal {
