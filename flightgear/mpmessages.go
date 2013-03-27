@@ -121,7 +121,7 @@ type T_PositionMsg struct{
 
     // Position wrt the earth centered frame
     // - xdr_data2_t position[3];
-    Position [3]uint64
+    Position [3]float64
 	
 	
     // Orientation wrt the earth centered frame, stored in the angle axis

@@ -929,7 +929,9 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 			XDR_decode<float> (PosMsg->orientation[Y]),
 			XDR_decode<float> (PosMsg->orientation[Z])
 		)*/
-		SenderOrientation.Set(PosMsg.Orientation[X], PosMsg.Orientation[Y],	PosMsg.Orientation[Z])
+		//TODO Wrong TYPE wtf!
+		//SenderOrientation.Set(PosMsg.Orientation[X], PosMsg.Orientation[Y],	PosMsg.Orientation[Z])
+		SenderOrientation.Set(0,0,0)
 	} else {
 		me.NotPosData++
 	} 
@@ -942,8 +944,8 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 		if MsgHdr.MsgId != flightgear.POS_DATA_ID {
 			return // ignore client until we have a valid position
 		}
-		tempPosMsg := flightgear.T_PositionMsg{}
-		me.AddClient(SenderAddress, MsgHdr, tempPosMsg)
+		//tempPosMsg := flightgear.T_PositionMsg{}
+		me.AddClient(SenderAddress, MsgHdr, PosMsg)
 		
 	}else if senderInList == SENDER_DIFF_IP {
 		return // known, but different IP => ignore

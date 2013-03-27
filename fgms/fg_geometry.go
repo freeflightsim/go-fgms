@@ -45,11 +45,11 @@ const ( Lat = 0
 
 
 type Point3D struct {
-	x uint64 
-	y uint64 
-	z uint64 
+	x float64 
+	y float64 
+	z float64 
 }
-func (me *Point3D) Set(x, y, z uint64){
+func (me *Point3D) Set(x, y, z float64){
 	me.x = x
 	me.y = y
 	me.z = z
