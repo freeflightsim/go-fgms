@@ -19,7 +19,6 @@ import(
 	"github.com/fgx/go-fgms/flightgear"
 )
 
-const VERSION = "0.1-go-experimental"
 
 const ( 
 	SUCCESS                 = 0
@@ -105,8 +104,15 @@ type FG_SERVER struct {
 	//RelayMap map[string]*net.UDPConn
 	//RelayList []*NetAddress
 	Relays map[string]*net.UDPConn
+	
+	
 	Crossfeeds map[string]*net.UDPConn
+	CrossFeedFailed int
+	CrossFeedSent int
+	MT_CrossFeedFailed int
+	MT_CrossFeedSent int
 
+	
 	IsTracked bool
 	Tracker *tracker.FG_TRACKER
 
@@ -115,9 +121,11 @@ type FG_SERVER struct {
 	//UpdateSecs          = DEF_UPDATE_SECS;
 	// clear stats - should show what type of packet was received
 	PacketsReceived int
-	TelnetReceived int 
-	BlackRejected int
 	PacketsInvalid int //     = 0;  // invalid packet
+	
+	TelnetReceived int 
+	//BlackRejected int
+	
 	PktsForwarded int
 	
 	UnknownRelay int //       = 0;  // unknown relay
@@ -135,11 +143,7 @@ type FG_SERVER struct {
 	MT_RelayMagic int
 	MT_NotPosData int
 
-	CrossFeedFailed int
-	CrossFeedSent int
 
-	MT_CrossFeedFailed int
-	MT_CrossFeedSent int
 	TrackerConnect int
 	TrackerDisconnect int
 	TrackerPostion int // Tracker messages queued
@@ -587,9 +591,10 @@ func (me *FG_SERVER) AddClient(Sender *net.UDPAddr, MsgHdr flightgear.T_MsgHdr, 
 	
 	
 	IsLocal := MsgHdr.Magic != RELAY_MAGIC  // not a local client
-	fmt.Println (" ADD Client", Sender, IsLocal,  len(me.Players))
-		
 	var callsign string = MsgHdr.CallsignString()
+	
+	log.Println (" ADD Client ", callsign, Sender, IsLocal,  len(me.Players))
+	
 	NewPlayer := NewFG_Player()
 	NewPlayer.Callsign  = callsign
 	NewPlayer.Passwd    = "test" //MsgHdr->Passwd;
@@ -606,46 +611,53 @@ func (me *FG_SERVER) AddClient(Sender *net.UDPAddr, MsgHdr flightgear.T_MsgHdr, 
 	//NewPlayer.PktsSentTo       = 0
 	//NewPlayer.PktsForwarded    = 0
 	//NewPlayer.LastRelayedToInactive = 0 
+	
+	
 	/* NewPlayer.LastPos.Set (
 		XDR_decode64<double> (PosMsg->position[X]),
 		XDR_decode64<double> (PosMsg->position[Y]),
 		XDR_decode64<double> (PosMsg->position[Z])
 	); */
+	NewPlayer.LastPos.Set( PosMsg.Position[X], PosMsg.Position[Y], PosMsg.Position[Z])
+	 
 	/*NewPlayer.LastOrientation.Set (
 		XDR_decode<float> (PosMsg->orientation[X]),
 		XDR_decode<float> (PosMsg->orientation[Y]),
 		XDR_decode<float> (PosMsg->orientation[Z])
 	);*/
+	NewPlayer.LastOrientation.Set( float64(PosMsg.Orientation[X]), float64(PosMsg.Orientation[Y]), float64(PosMsg.Orientation[Z]))
+	
 	//NewPlayer.ModelName = PosMsg.ModelString()
-	//m_MaxClientID++
+	me.MaxClientID++
 	NewPlayer.ClientID = me.MaxClientID
+	
 	//pthread_mutex_lock (& m_PlayerMutex)
 	//m_PlayerList.push_back (NewPlayer)
-	
-	
-	//me.PlayerList = append(me.PlayerList, NewPlayer)
 	//pthread_mutex_unlock (& m_PlayerMutex);
 	
-	// Add to List
+	// Add to Map, and increment counters
 	me.Players[callsign] = NewPlayer
 	me.NumCurrentClients++
 	if me.NumCurrentClients > me.NumMaxClients {
-		me.NumMaxClients = me.NumCurrentClients;
+		me.NumMaxClients = me.NumCurrentClients
 	}
+	
 	var Message string = ""
 	if IsLocal {
 		Message  = "Welcome to "
 		Message += me.ServerName
 		me.CreateChatMessage (NewPlayer.ClientID , Message)
-		//Message = "this is version v" + string(VERSION)
-		//Message += " (LazyRelay enabled)"
-		//CreateChatMessage (NewPlayer.ClientID , Message)
-		//Message  ="using protocol version v"
+		
+		Message = "this is version v" + VERSION
+		Message += " (LazyRelay enabled)"
+		me.CreateChatMessage (NewPlayer.ClientID , Message)
+		
+		Message  ="using protocol version v" + flightgear.GetProtocolVerString()
 		//Message += NumToStr (m_ProtoMajorVersion, 0)
 		//Message += "." + NumToStr (m_ProtoMinorVersion, 0)
-		//if me.IsTracked {
-		//	Message += "This server is tracked."
-		//}
+		if me.IsTracked {
+			Message += "This server is tracked."
+		}
 		me.CreateChatMessage (NewPlayer.ClientID , Message)
 		//UpdateTracker (NewPlayer.Callsign, NewPlayer.Passwd,
 		//NewPlayer.ModelName, NewPlayer.Timestamp, CONNECT); 
