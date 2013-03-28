@@ -57,7 +57,7 @@ func (me *FG_SERVER) SendToCrossfeed(Msg []byte, Bytes int, SenderAddress *net.U
 	//MsgMagic  = MsgHdr->Magic;
 	//MsgHdr->Magic = XDR_encode<uint32_t> (RELAY_MAGIC);
 	
-	// Not sure what is happening, but we create another payload
+	// Not sure what is happening, but we create another payload, by unmarshalling Msg again ?
 	var MsgHdr flightgear.T_MsgHdr
 	_, err := xdr.Unmarshal(Msg, &MsgHdr)
 	if err != nil {
