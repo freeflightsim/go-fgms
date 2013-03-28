@@ -80,7 +80,7 @@ func (me *FG_SERVER) CreateChatMessage(ID int, Msg string){
 		idx++
 		
 		if idx == flightgear.MAX_CHAT_MSG_LEN - 1 {
-			// DO somethings
+			// this message is too long so send this part ?
 			me.MessageList = append(me.MessageList, ChatMsg)
 		}
 		//strncpy (ChatMsg.Text, 
@@ -94,16 +94,16 @@ func (me *FG_SERVER) CreateChatMessage(ID int, Msg string){
 		//m_MessageList.push_back (mT_ChatMsg(ID,Message));
 		//NextBlockPosition += MAX_CHAT_MSG_LEN - 1;
 	}
+	// We got a message to send anyway ?
 	me.MessageList = append(me.MessageList, ChatMsg)
 	
 } // FG_SERVER::CreateChatMessage ()
 
 
 
-//////////////////////////////////////////////////////////////////////
-/**
-* @brief Send any message in m_MessageList to client
-* @param CurrentPlayer Player to send message to
+
+/* Send any message in m_MessageList to client
+	 @param CurrentPlayer Player to send message to
 */
 func (me *FG_SERVER) SendChatMessages() {
 
@@ -124,4 +124,5 @@ func (me *FG_SERVER) SendChatMessages() {
 		CurrentMessage++;
 		}
 	} */
+	
 } // FG_SERVER::SendChatMessages ()

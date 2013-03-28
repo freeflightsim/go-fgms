@@ -7,6 +7,7 @@ import(
 
 //= Returns an int64 with epoch (should be UTC ?)
 func Now() int64{
+	//time.UTC().unix() ??
 	return time.Now().Unix()
 } 
 

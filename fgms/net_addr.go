@@ -2,9 +2,10 @@
 package fgms
 
 import(
-	"net"
+	//"net"
 )
 // Represent a Network address
+
 type NetAddress struct {
 	NickName string
 	Host string
@@ -13,7 +14,7 @@ type NetAddress struct {
 	Family int
 	Broadcast bool
 }
-
+/*
 func (me *NetAddress) LookupIP() error {
 	addrs, err := net.LookupHost(me.Host)
 	if err != nil {
@@ -22,3 +23,4 @@ func (me *NetAddress) LookupIP() error {
 	me.IpAddress = addrs[0]
 	return nil
 }
+*/

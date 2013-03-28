@@ -34,7 +34,7 @@ type JSON_ServerConf struct{
 	TrackingServer string `json:"tracking_server"`
 		
 }
-//= Whole Payload
+//= Whole Payload from File
 type JSON_ConfAll struct {
 	Server JSON_ServerConf `json:"server"`
 	Relays []JSON_HostConf `json:"relays"`
@@ -43,16 +43,3 @@ type JSON_ConfAll struct {
 }
 
 
-/*func LoadJSONConfig(filename string) (conf JSON_ConfAll, err error){
-	
-	filebyte, err := ioutil.ReadFile(filename) 
-    if err != nil { 
-        log.Fatal("Could not read file " + filename + " to parse")
-        return 
-    } 
-	var conf JSON_ConfAll
-    
-    json.Unmarshal(filebyte, &conf)
-    return 
-    
-}*/
