@@ -7,13 +7,12 @@ import (
 	"unsafe"
 )
 import(
-	//"github.com/davecgh/go-xdr/xdr"
 	"github.com/fgx/go-fgms/flightgear"
 )
-/**
-* @brief Create a chat message and put it into the internal message queue
-* @param ID int with the ?
-* @param Msg String with the message
+
+/*  Create a chat message and put it into the internal message queue
+
+	This needs completing
 */
 func (me *FG_SERVER) CreateChatMessage(ID int, Msg string){
 
