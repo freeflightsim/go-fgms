@@ -10,7 +10,7 @@ import(
 )
 
  import(
-	"github.com/fgx/go-fgms/flightgear"
+	//"github.com/fgx/go-fgms/flightgear"
 )
 
 
@@ -61,7 +61,7 @@ func (me *FG_SERVER) HandleTelnetData(conn net.Conn){
 	Message += "# FlightGear Multiplayer Server version: " + VERSION
 	Message += "\n"
 	Message += "# using protocol version: "
-	Message += flightgear.GetProtocolVerString() // FIX ME PLEASE
+	Message += GetProtocolVersionString() // FIX ME PLEASE
 	Message += " (LazyRelay enabled)"
 	Message += "\n"
 	//buf.Add

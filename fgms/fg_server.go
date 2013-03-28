@@ -56,17 +56,17 @@ type FG_SERVER struct {
 
 	//ServerVersion *Version
 	
-	Initialized bool
+	Initialized bool `json:"initialised"`
 	
 	ReinitData bool
 
 	Listening bool
 
 
-	ServerName  string
+	ServerName  string `json:"server_name"`
 	BindAddress string
 	ListenPort int
-	IamHUB bool
+	IamHUB bool `json:"is_hub"`
 	
 
 	//PlayerList []*FG_Player
@@ -611,7 +611,7 @@ func (me *FG_SERVER) AddClient(Sender *net.UDPAddr, MsgHdr flightgear.T_MsgHdr, 
 		Message += " (LazyRelay enabled)"
 		me.CreateChatMessage (NewPlayer.ClientID , Message)
 		
-		Message  ="using protocol version v" + flightgear.GetProtocolVerString()
+		Message  ="using protocol version v" + GetProtocolVersionString()
 		//Message += NumToStr (m_ProtoMajorVersion, 0)
 		//Message += "." + NumToStr (m_ProtoMinorVersion, 0)
 		if me.IsTracked {

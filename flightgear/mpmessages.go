@@ -1,8 +1,7 @@
 package flightgear
 
 import (
-	"fmt"
-	//"path/filepath"
+	//"fmt"
 )
 
 import (
@@ -26,13 +25,6 @@ const MSG_MAGIC = 0x46474653  // "FGFS"
 // Protocol Version - currently 1.1
 const PROTO_VER = 0x00010001  // 1.1
 
-// pete FAIL FAIL FAIL's 
-func GetProtocolVerString() string {
-	return "1.1"
-	major := PROTO_VER >> 16
-	minor := PROTO_VER >> 4
-	return fmt.Sprintf("%d.%d", major, minor) 
-}
 
 
 // Message Types
