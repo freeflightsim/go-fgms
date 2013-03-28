@@ -15,7 +15,7 @@ import(
 	Address NetAddress // TODO = netAddress  Address
 }
 */
-func NewMT_Relay(hostName string, port int) *NetAddress {
+func DEADNewMT_Relay(hostName string, port int) *NetAddress {
 	ob := new(NetAddress)
 	ob.Host = hostName
 	ob.Port = port

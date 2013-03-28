@@ -11,7 +11,8 @@
 		"out_of_reach": 100,
 		
 		"tracked": true,
-		"tracking_server": "62.112.194.20:8000"
+		"tracking_server": "62.112.194.20",
+		"tracking_port": 6000
 	},
 
 

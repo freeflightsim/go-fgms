@@ -2,20 +2,29 @@ package flightgear
 
 import (
 	"fmt"
+	//"path/filepath"
 )
 
 import (
 	"github.com/fgx/go-fgms/simgear"
 )
 
-// INFO: http://wiki.flightgear.org/Multiplayer_protocol
+/*
+	This section is used as the Protocol. .for more info
+	- Original Sources between
+		fgms: http://gitorious.org/fgms/fgms-0-x/blobs/master/src/flightgear/MultiPlayer/mpmessages.hxx
+		fg:  http://gitorious.org/fg/flightgear/trees/next/src/MultiPlayer/
+	- INFO: http://wiki.flightgear.org/Multiplayer_protocol
+		
+	Note the xdr part is currently in the fgms and not here. Although that is a possible
+	- This lib external = http://godoc.org/github.com/davecgh/go-xdr/xdr
+*/	
 
-
-// magic value for messages 
+// Magic value for messages - currently FGFS
 const MSG_MAGIC = 0x46474653  // "FGFS"
 
 
-// Protocol Version 
+// Protocol Version - currently 1.1
 const PROTO_VER = 0x00010001  // 1.1
 
 // pete FAIL FAIL FAIL's 
@@ -27,29 +36,26 @@ func GetProtocolVerString() string {
 }
 
 
-const CHAT_MSG_ID = 1
-const RESET_DATA_ID = 6
-const POS_DATA_ID = 7
+// Message Types
+const (
+	CHAT_MSG_ID = 1
+	RESET_DATA_ID = 6
+	POS_DATA_ID = 7
+)
 
 
-/** @brief Internal Constants */
-//enum FG_SERVER_CONSTANTS
-//{
-// return values
-
-	
 
 /* 
-XDR demands 4 byte alignment, but some compilers use8 byte alignment
-so it's safe to let the overall size of a network message be a 
-multiple of 8!
+	XDR demands 4 byte alignment, but some compilers use8 byte alignment
+	so it's safe to let the overall size of a network message be a 
+	multiple of 8!
 */
-const MAX_CALLSIGN_LEN 	 = 8
-const MAX_CHAT_MSG_LEN   = 256
-const MAX_MODEL_NAME_LEN = 96
-const MAX_PROPERTY_LEN   = 52
-
-// External = http://godoc.org/github.com/davecgh/go-xdr/xdr
+const ( 
+	MAX_CALLSIGN_LEN 	 = 8
+	MAX_CHAT_MSG_LEN   = 256
+	MAX_MODEL_NAME_LEN = 96
+	MAX_PROPERTY_LEN   = 52
+)
 
 
 // T_MsgHdr - Header for use with all messages sent 
@@ -144,7 +150,8 @@ type T_PositionMsg struct{
     AngularAccel [3]float32 //uint32
 }
 
-// TODO There has Got to be a better way
+// Returns the Model as a string 
+// - TODO There has Got to be a better way
 func (me *T_PositionMsg) ModelString() string{
 	s := ""
 	for _, ele := range me.Model {
@@ -157,10 +164,11 @@ func (me *T_PositionMsg) ModelString() string{
 }
 
 
-/** 
- * @struct T_PropertyMsg 
- *  @brief Property Message 
- */
+
+
+
+
+// Represents a Property Message for XDR 
 type T_PropertyMsg struct{
     //xdr_data_t id;
     //xdr_data_t value;

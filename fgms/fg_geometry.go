@@ -4,6 +4,7 @@ package fgms
 
 import (
 	"math"
+	"strconv"
 )
 
 
@@ -65,6 +66,14 @@ func (me *Point3D) SetLat(lat float64) { me._x = lat}
 func (me *Point3D) SetLon(lon float64) { me._y = lon}
 func (me *Point3D) SetAlt(alt float64) { me._z = alt}
  
+ // returns values to 6 digits with a space between
+func (me *Point3D) ToSpacedString() string {	
+	Message := strconv.FormatFloat( me.X(), 'f', 6, 32)  + " "
+	Message += strconv.FormatFloat( me.Y(), 'f', 6, 32)  + " "
+	Message += strconv.FormatFloat( me.Z(), 'f', 6, 32)
+	return Message
+}
+			
 
 func (me *Point3D) Set(x, y, z float64){
 	me._x = x

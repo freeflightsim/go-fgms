@@ -6,9 +6,9 @@ import (
 )
 
 
-// --------------------------------------------------------
-// AddBlacklist - Add an IP to the blacklist - (after DNS lookup)
+// AddBlAdds an IP to the blacklist after a succesful go DNS lookup
 func (me *FG_SERVER) AddBlacklist(FourDottedIP string) {
+	
 	log.Println("> Add Blacklist = ", FourDottedIP)
 	
 	// Do Checks in background

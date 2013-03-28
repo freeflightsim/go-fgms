@@ -114,7 +114,7 @@ type FG_SERVER struct {
 
 	
 	IsTracked bool
-	Tracker *tracker.FG_TRACKER
+	Tracker *tracker.FG_Tracker
 
 	MessageList []flightgear.T_ChatMsg
 
@@ -228,47 +228,6 @@ func (me *FG_SERVER) SetLogfile( log_file_name string){
 
 
 
-
-//////////////////////////////////////////////////////////////////////
-/**
-* @brief Add a tracking server
-* @param Server String with server
-* @param Port The port number
-* @param IsTracked Is Stracked
-* @retval int -1 for fail or SUCCESS
-*/
-func (me *FG_SERVER) AddTracker(host string, port int, isTracked bool){
-	me.IsTracked = isTracked
-	me.Tracker = tracker.NewFG_TRACKER(host, port, 0)
-	
-	/* TODO
-	#ifndef NO_TRACKER_PORT
-	#ifdef USE_TRACKER_PORT
-	if ( m_Tracker )
-	{
-		delete m_Tracker;
-	}
-	m_Tracker = new FG_TRACKER(Port,Server,0);
-	#else // !#ifdef USE_TRACKER_PORT
-	if ( m_Tracker )
-	{
-		msgctl(m_ipcid,IPC_RMID,NULL);
-		delete m_Tracker;
-		m_Tracker = 0; // just deleted
-	}
-	printf("Establishing IPC\n");
-	m_ipcid         = msgget(IPC_PRIVATE,IPCPERMS);
-	if (m_ipcid <= 0)
-	{
-		perror("msgget getting ipc id failed");
-		return -1;
-	}
-	m_Tracker = new FG_TRACKER(Port,Server,m_ipcid);
-	#endif // #ifdef USE_TRACKER_PORT y/n
-	#endif // NO_TRACKER_PORT
-	return (SUCCESS);
-	*/
-} // FG_SERVER::AddTracker()
 
 
 
@@ -659,8 +618,8 @@ func (me *FG_SERVER) AddClient(Sender *net.UDPAddr, MsgHdr flightgear.T_MsgHdr, 
 			Message += "This server is tracked."
 		}
 		me.CreateChatMessage (NewPlayer.ClientID , Message)
-		//UpdateTracker (NewPlayer.Callsign, NewPlayer.Passwd,
-		//NewPlayer.ModelName, NewPlayer.Timestamp, CONNECT); 
+		//me.UpdateTracker(NewPlayer.Callsign, NewPlayer.Passwd, NewPlayer.ModelName, NewPlayer.Timestamp, tracker.CONNECT)
+		 me.UpdateTracker(NewPlayer, tracker.CONNECT)
 		
 	}
 	/* Message  = NewPlayer.Callsign;
