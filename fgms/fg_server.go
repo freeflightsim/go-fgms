@@ -106,7 +106,7 @@ type FG_SERVER struct {
 	Relays map[string]*net.UDPConn
 	
 	
-	Crossfeeds map[string]*net.UDPConn
+	Crossfeeds map[string]*FG_Conn //*net.UDPConn
 	CrossFeedFailed int
 	CrossFeedSent int
 	MT_CrossFeedFailed int
@@ -162,7 +162,8 @@ func NewFG_SERVER() *FG_SERVER {
 	//ob.RelayList = make([]*NetAddress, 0)
 	//ob.RelayMap = make(map[string]string)
 	ob.Relays = make(map[string]*net.UDPConn, 0)
-	ob.Crossfeeds = make(map[string]*net.UDPConn, 0)
+	//ob.Crossfeeds = make(map[string]*net.UDPConn, 0)
+	ob.Crossfeeds = make(map[string]*FG_Conn, 0)
 	
 	ob.BlackList = make(map[string]bool)
 		
