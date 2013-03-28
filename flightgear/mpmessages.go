@@ -57,9 +57,9 @@ const (
 )
 
 
-/* 
-	T_MsgHdr - The Header used for all messages sent 
-	http://gitorious.org/fgms/fgms-0-x/blobs/master/src/flightgear/MultiPlayer/mpmessages.hxx#line62
+/* T_MsgHdr - The Header At start of all messages sent 
+	
+	Original: http://gitorious.org/fgms/fgms-0-x/blobs/master/src/flightgear/MultiPlayer/mpmessages.hxx#line62
 */
  type T_MsgHdr struct {
 	
@@ -106,7 +106,15 @@ type T_ChatMsg struct {
 }
 
 
-// T_PositionMsg - Position Message
+/* T_PositionMsg - Position Message
+	
+	Original Source: http://gitorious.org/fgms/fgms-0-x/blobs/master/src/flightgear/MultiPlayer/mpmessages.hxx#line78
+	Note:
+		all the important values are float32 
+		with the exception of position which is float64
+		This caused a clash with Point3D which needs to be either 32 or 64
+		- For now the 32's are converted to 64's
+*/
 type T_PositionMsg struct{
 	
 	/// Name of the aircraft model 
