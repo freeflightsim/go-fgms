@@ -461,6 +461,11 @@ func (me *FG_SERVER) Loop() {
 	log.Println("# Listening Telnet > ")
 	
 	
+	
+	//== Start loop to check ocassinally crossfeed server conentions
+	go me.StartCrossfeedCheckTimer()
+
+	
 	//== Startup UDP listener
 	count := 0
 	buf := make([]byte, MAX_PACKET_SIZE)

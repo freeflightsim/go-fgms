@@ -52,6 +52,21 @@ func (me *FG_SERVER) AddCrossfeed( host_name string, port int){
 	
 } // FG_SERVER::AddCrossfeed()
 
+func (me *FG_SERVER) StartCrossfeedCheckTimer( conn *FG_Conn){
+	// We need to check every so often..  for test every 60 secs
+	ticker := time.NewTicker(time.Millisecond * 60000)
+    go func() {
+    	
+		for _ = range ticker.C {	
+			for _, conn := me.Crossfeeds {
+				if conn.Active == false {
+					go me.InitCheckCrossfeed(conn)
+				}
+			}
+		}
+	}()
+
+}	
 //  Insert a new crossfeed server into internal list - after resolution of address
 func (me *FG_SERVER) InitCheckCrossfeed( conn *FG_Conn){
 
