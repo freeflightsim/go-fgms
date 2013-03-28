@@ -166,7 +166,7 @@ func (me *T_PositionMsg) ModelString() string{
 
 
 
-// Represents a Property Message for XDR 
+// Represents a Property Message 
 type T_PropertyMsg struct{
     //xdr_data_t id;
     //xdr_data_t value;
@@ -175,10 +175,7 @@ type T_PropertyMsg struct{
 }
 
 
-/**
- * @struct FGFloatPropertyData  
- * @brief Property Data 
- */
+  
 type FGFloatPropertyData struct{
   //unsigned id;
   id uint32
@@ -186,7 +183,7 @@ type FGFloatPropertyData struct{
   value float32
 }
 
-/** @brief Position Message */
+
 type FGExternalMotionData struct {
 	
   /** 
