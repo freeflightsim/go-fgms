@@ -11,6 +11,8 @@ import(
 	"github.com/davecgh/go-xdr/xdr"
 	"github.com/fgx/go-fgms/flightgear"
 )
+
+
 //  Insert a new crossfeed server into internal list - after resolution of address
 func (me *FG_SERVER) AddCrossfeed( host_name string, port int){
 
@@ -37,6 +39,7 @@ func (me *FG_SERVER) AddCrossfeed( host_name string, port int){
 		log.Println("\tOK:   Crossfeed Added -  ", host_port, udp_addr, err_listen)
 		
 	}(host_name, port)	
+	
 } // FG_SERVER::AddCrossfeed()
 
 
