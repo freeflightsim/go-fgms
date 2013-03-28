@@ -5,6 +5,7 @@ import(
 	"fmt"
 	"log"
 	"net"
+	"time"
 )
 
 import(
@@ -13,74 +14,51 @@ import(
 )
 
 
-//  Insert a new crossfeed server into internal list - after resolution of address
+
+//  Adds a new crossfeed server into internal list - after resolution of address etc
 func (me *FG_SERVER) AddCrossfeed( host_name string, port int){
 
-	log.Println("> Add Crossfeed = ", host_name, port)
-
-	//= Now go and do check is background
-	//go func(host_name string, port int){
-		
-		conn := NewFG_Conn(host_name, port)
-		//host_port := conn.ConnectString()
-		me.Crossfeeds[conn.Url] = conn
-		
-		go me.InitCheckCrossfeed(conn)
-		//host_port := conn.ConnectString()
-		
-		//me.Crossfeeds[host_port] = conn
-		
-		
-		//= Now resolve with UDP address			
-		//host_port := fmt.Sprintf("%s:%d", host_name, port)
-		//udp_addr, err := net.ResolveUDPAddr("udp", host_port)
-		//if err != nil {
-		//	log.Println("\tFAIL: Crossfeed to resolve UDP address:  ", host_port, err)
-		//	return
-		//}
-		
-		//= Now we open socket and listen
-		//var err_listen error
-		//conn.Conn, err_listen = net.ListenUDP("udp", udp_addr)
-		//if err_listen != nil {
-		//	log.Println("\tFAIL: Crossfeed FAIL to Open:  ", host_port, udp_addr, err_listen)
-		//	return
-		//}
-		//log.Println("\tOK:   Crossfeed Added -  ", host_port, udp_addr, err_listen)
-		
-	//}(host_name, port)	
+	log.Println("> Add Crossfeed = ", host_name, port)		
 	
-} // FG_SERVER::AddCrossfeed()
+	// Create object
+	conn := NewFG_Conn(host_name, port)
+	me.Crossfeeds[conn.Url] = conn
+	
+	// Go check and setup
+	go me.InitSetupCrossfeed(conn)
+	
+} 
 
-func (me *FG_SERVER) StartCrossfeedCheckTimer( conn *FG_Conn){
-	// We need to check every so often..  for test every 60 secs
+
+//= Starts a timer to check servers that are down ie Active = false (currently every 60 secs)
+// this is started in Loop() as a goroutine go me.StartCrossfeedCheckTimer()
+func (me *FG_SERVER) StartCrossfeedCheckTimer(){
+	
 	ticker := time.NewTicker(time.Millisecond * 60000)
     go func() {
-    	
 		for _ = range ticker.C {	
-			for _, conn := me.Crossfeeds {
+			for _, conn := range me.Crossfeeds {			
 				if conn.Active == false {
-					go me.InitCheckCrossfeed(conn)
+					log.Println("> Attempt Reconnect Crossfeed = ", conn.Url )
+					go me.InitSetupCrossfeed(conn)
 				}
 			}
 		}
 	}()
-
 }	
-//  Insert a new crossfeed server into internal list - after resolution of address
-func (me *FG_SERVER) InitCheckCrossfeed( conn *FG_Conn){
 
-	log.Println("> InitCheckCrossfeed = ", conn.Url )
+// Attempt to connect and setup a Crossfeed Connection
+// Should dns fail, address not exist or not able to connect
+// the connection witll be marked as conn.Active = false with conn.LastError
+func (me *FG_SERVER) InitSetupCrossfeed( conn *FG_Conn){
+
+	log.Println("> InitSetupCrossfeed = ", conn.Url )
 		
-	//host_port := conn.ConnectString()
-		
-		//me.Crossfeeds[host_port] = conn
 	if conn.Active {
 		return // we need to define when its inactive, eg connection dropped
 	}		
 		
-	//= Now resolve with UDP address			
-	//host_port := fmt.Sprintf("%s:%d", host_name, port)
+	//= resolve with UDP address			
 	udp_addr, err := net.ResolveUDPAddr("udp", conn.Url)
 	if err != nil {
 		conn.Active = false
@@ -88,9 +66,8 @@ func (me *FG_SERVER) InitCheckCrossfeed( conn *FG_Conn){
 		log.Println("\tFAIL: Crossfeed to resolve UDP address:  ", conn.Url, err)
 		return
 	}
-	//log.Println("> UDP = ", udp_addr + "@" )
 		
-	//= Now we open socket and listen
+	//= open socket and listen
 	var err_listen error
 	conn.Conn, err_listen = net.ListenUDP("udp", udp_addr)
 	if err_listen != nil {
@@ -102,10 +79,9 @@ func (me *FG_SERVER) InitCheckCrossfeed( conn *FG_Conn){
 	conn.Active = true
 	conn.LastError = ""
 	log.Println("\tOK:   Crossfeed Added -  ", conn.Url, udp_addr, err_listen)
-		
-	//}(host_name, port)	
 	
 } // FG_SERVER::AddCrossfeed()
+
 
 
 /*   Send message to all crossfeed servers.
