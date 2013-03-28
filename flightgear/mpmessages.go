@@ -23,7 +23,6 @@ import (
 // Magic value for messages - currently FGFS
 const MSG_MAGIC = 0x46474653  // "FGFS"
 
-
 // Protocol Version - currently 1.1
 const PROTO_VER = 0x00010001  // 1.1
 
@@ -38,7 +37,7 @@ func GetProtocolVerString() string {
 
 // Message Types
 const (
-	CHAT_MSG_ID = 1
+	CHAT_MSG_ID = 1 //= is this used ??
 	RESET_DATA_ID = 6
 	POS_DATA_ID = 7
 )
@@ -46,7 +45,7 @@ const (
 
 
 /* 
-	XDR demands 4 byte alignment, but some compilers use8 byte alignment
+	XDR demands 4 byte alignment, but some compilers use 8 byte alignment
 	so it's safe to let the overall size of a network message be a 
 	multiple of 8!
 */
@@ -58,9 +57,10 @@ const (
 )
 
 
-// T_MsgHdr - Header for use with all messages sent 
-// typedef uint32_t    xdr_data_t;      /* 4 Bytes */
-// typedef uint64_t    xdr_data2_t;     /* 8 Bytes */
+/* 
+	T_MsgHdr - The Header used for all messages sent 
+	http://gitorious.org/fgms/fgms-0-x/blobs/master/src/flightgear/MultiPlayer/mpmessages.hxx#line62
+*/
  type T_MsgHdr struct {
 	
 	// Magic Value
@@ -85,6 +85,7 @@ const (
     Callsign [MAX_CALLSIGN_LEN]byte //Callsign[MAX_CALLSIGN_LEN] 
 }
 
+// Returns the Callsign as a String 
 // TODO There has Got to be a better way
 func (me *T_MsgHdr) CallsignString() string{
 	s := ""
@@ -99,11 +100,8 @@ func (me *T_MsgHdr) CallsignString() string{
 
 
 
-// T_ChatMsg - Chat message
+// T_ChatMsg - A Chat message
 type T_ChatMsg struct {
-	
-	// Text of chat message 
-    //string Text //char Text[MAX_CHAT_MSG_LEN];  
     Text [MAX_CHAT_MSG_LEN]byte
 }
 
