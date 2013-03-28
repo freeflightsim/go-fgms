@@ -11,7 +11,7 @@ import(
 	"github.com/davecgh/go-xdr/xdr"
 	"github.com/fgx/go-fgms/flightgear"
 )
-//=  Insert a new crossfeed server into internal list
+//  Insert a new crossfeed server into internal list - after resolution of address
 func (me *FG_SERVER) AddCrossfeed( host_name string, port int){
 
 	log.Println("> Add Crossfeed = ", host_name, port)
@@ -42,10 +42,10 @@ func (me *FG_SERVER) AddCrossfeed( host_name string, port int){
 
 
 
-/**
-* @brief  Send message to all crossfeed servers.
-*         Crossfeed servers receive all traffic without condition,
-*         mainly used for testing and debugging
+/*   Send message to all crossfeed servers.
+	Crossfeed servers receive all traffic without condition,
+	mainly used for testing and debugging, and crossfeed.fgx.ch
+	http://gitorious.org/fgms/fgms-0-x/blobs/master/src/server/fg_server.cxx#line1154
 */
 func (me *FG_SERVER) SendToCrossfeed(Msg []byte, Bytes int, SenderAddress *net.UDPAddr){
 
