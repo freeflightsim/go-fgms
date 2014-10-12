@@ -7,7 +7,7 @@ import(
 )
 //  Add a tracking server
 //  int -1 for fail or SUCCESS
-func (me *FG_SERVER) AddTracker(host string, port int, isTracked bool){
+func (me *FgServer) AddTracker(host string, port int, isTracked bool){
 
 	me.IsTracked = isTracked
 	me.Tracker = tracker.NewFG_Tracker(host, port, 0)
@@ -39,13 +39,13 @@ func (me *FG_SERVER) AddTracker(host string, port int, isTracked bool){
 	#endif // NO_TRACKER_PORT
 	return (SUCCESS);
 	*/
-} // FG_SERVER::AddTracker()
+} // FgServer::AddTracker()
 
 
 
 // Updates the remote tracker  ?
-//func (me *FG_SERVER) UpdateTracker(Callsign string, Passwd string, Modelname string, Timestamp int64, messType int) int {
-func (me *FG_SERVER) UpdateTracker( player *FG_Player, messType int) int {
+//func (me *FgServer) UpdateTracker(Callsign string, Passwd string, Modelname string, Timestamp int64, messType int) int {
+func (me *FgServer) UpdateTracker( player *FG_Player, messType int) int {
 	//#ifndef NO_TRACKER_PORT
 	//char            TimeStr[100];
 	//mT_PlayerListIt CurrentPlayer;

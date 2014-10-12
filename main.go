@@ -23,10 +23,7 @@ func main(){
 	var iconfig *string = flag.String("c", "./fgms_example.json", "Path to config file")
 	flag.Parse()
 	
-	// Initialize the beest
-	var Servant *fgms.FG_SERVER
-	
-	Servant = fgms.NewFG_SERVER()
+
 	
 	//ReadLoadConfigs(Servant, false)
 	config, err := fgms.LoadConfig(*iconfig)
@@ -34,16 +31,21 @@ func main(){
 		log.Println("Cannot load config")
 		return
 	}
-	Servant.SetConfig(config)
 
-	err_init := Servant.Init()
+	// Initialize the beest
+	var server *fgms.FgServer
+
+	server = fgms.NewFgServer()
+	server.SetConfig(config)
+
+	err_init := server.Init()
 	if err_init != nil {
 		//Servant.CloseTracker()
 		log.Println("INIT Error", err_init)
 		return
 	}
-	
-	Servant.Loop()
+
+	server.Loop()
 	/*
 	I = Servant.Loop();
 	if (I != 0)

@@ -22,7 +22,7 @@ import(
 //------------------------------------------------------------------------
 
 // Handle client connections
-func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPAddr){
+func (me *FgServer) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPAddr){
 	
 	//T_MsgHdr*       MsgHdr;
 	var MsgHdr flightgear.T_MsgHdr
@@ -241,11 +241,11 @@ func (me *FG_SERVER) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPA
 	SendingPlayer := NewFG_Player() // placleholder 
 	me.SendToRelays (Msg, Bytes, SendingPlayer)
 	
-} // FG_SERVER::HandlePacket ( char* sMsg[MAX_PACKET_SIZE] )
+} // FgServer::HandlePacket ( char* sMsg[MAX_PACKET_SIZE] )
 
 
 
-func (me *FG_SERVER) PacketIsValid(	Bytes int, MsgHdr flightgear.T_MsgHdr, SenderAddress *net.UDPAddr ) bool {
+func (me *FgServer) PacketIsValid(	Bytes int, MsgHdr flightgear.T_MsgHdr, SenderAddress *net.UDPAddr ) bool {
 
 	var ErrorMsg string
 
@@ -300,4 +300,4 @@ func (me *FG_SERVER) PacketIsValid(	Bytes int, MsgHdr flightgear.T_MsgHdr, Sende
 		}
 	}
 	return true
-} // FG_SERVER::PacketIsValid ()
+} // FgServer::PacketIsValid ()

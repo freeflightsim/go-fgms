@@ -36,7 +36,7 @@ func NewTelnetServer() *TelnetServer {
 
 //  Handle a telnet session. if a telnet connection is opened, this 
 // method outputs a list  of all known clients.
-func (me *FG_SERVER) HandleTelnetData(conn net.Conn){
+func (me *FgServer) HandleTelnetData(conn net.Conn){
 
 	//var errno int = 0
 	var Message string  = ""
@@ -77,7 +77,7 @@ func (me *FG_SERVER) HandleTelnetData(conn net.Conn){
 	{
 		if ((errno != EAGAIN) && (errno != EPIPE))
 		{
-		SG_LOG (SG_SYSTEMS, SG_ALERT, "FG_SERVER::HandleTelnet() - " << strerror (errno));
+		SG_LOG (SG_SYSTEMS, SG_ALERT, "FgServer::HandleTelnet() - " << strerror (errno));
 		}
 		return (0);
 	} */
@@ -89,7 +89,7 @@ func (me *FG_SERVER) HandleTelnetData(conn net.Conn){
 	{
 		if ((errno != EAGAIN) && (errno != EPIPE))
 		{
-		SG_LOG (SG_SYSTEMS, SG_ALERT, "FG_SERVER::HandleTelnet() - " << strerror (errno));
+		SG_LOG (SG_SYSTEMS, SG_ALERT, "FgServer::HandleTelnet() - " << strerror (errno));
 		}
 		return (0);
 	}*/
@@ -167,7 +167,7 @@ func (me *FG_SERVER) HandleTelnetData(conn net.Conn){
 		{
 			if ((errno != EAGAIN) && (errno != EPIPE))
 			{
-				SG_LOG (SG_SYSTEMS, SG_ALERT, "FG_SERVER::HandleTelnet() - " << strerror (errno));
+				SG_LOG (SG_SYSTEMS, SG_ALERT, "FgServer::HandleTelnet() - " << strerror (errno));
 			}
 			return (0);
 		}*/
@@ -181,5 +181,5 @@ func (me *FG_SERVER) HandleTelnetData(conn net.Conn){
 	}
 	conn.Close()
 	//return (0);
-} // FG_SERVER::HandleTelnet ()
+} // FgServer::HandleTelnet ()
 

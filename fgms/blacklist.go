@@ -7,7 +7,7 @@ import (
 
 
 // AddBlAdds an IP to the blacklist after a succesful go DNS lookup
-func (me *FG_SERVER) AddBlacklist(host_name string) {
+func (me *FgServer) AddBlacklist(host_name string) {
 	
 	log.Println("> Add Blacklist = ", host_name)
 	
@@ -28,7 +28,7 @@ func (me *FG_SERVER) AddBlacklist(host_name string) {
 
 
 // Check if the client is black listed. true if blacklisted TODO Fix ME
-func (me *FG_SERVER) IsBlackListed(SenderAddress *NetAddress) bool {
+func (me *FgServer) IsBlackListed(SenderAddress *NetAddress) bool {
 	_, found :=  me.BlackList[SenderAddress.IpAddress]
 	if found {
 		return true

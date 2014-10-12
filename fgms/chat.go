@@ -14,7 +14,7 @@ import(
 
 	This needs completing
 */
-func (me *FG_SERVER) CreateChatMessage(ID int, Msg string){
+func (me *FgServer) CreateChatMessage(ID int, Msg string){
 
 	fmt.Println("CreateChatMessage", ID, Msg)
 	//T_MsgHdr        MsgHdr;
@@ -97,7 +97,7 @@ func (me *FG_SERVER) CreateChatMessage(ID int, Msg string){
 	// We got a message to send anyway ?
 	me.MessageList = append(me.MessageList, ChatMsg)
 	
-} // FG_SERVER::CreateChatMessage ()
+} // FgServer::CreateChatMessage ()
 
 
 
@@ -105,7 +105,7 @@ func (me *FG_SERVER) CreateChatMessage(ID int, Msg string){
 /* Send any message in m_MessageList to client
 	 @param CurrentPlayer Player to send message to
 */
-func (me *FG_SERVER) SendChatMessages() {
+func (me *FgServer) SendChatMessages() {
 
 	//mT_MessageIt  CurrentMessage;
 		/*
@@ -125,4 +125,4 @@ func (me *FG_SERVER) SendChatMessages() {
 		}
 	} */
 	
-} // FG_SERVER::SendChatMessages ()
+} // FgServer::SendChatMessages ()

@@ -43,7 +43,7 @@ const (
 )
 		
 // Main Server
-type FG_SERVER struct {
+type FgServer struct {
 
 	/*typedef union
 	{
@@ -93,7 +93,7 @@ type FG_SERVER struct {
 	//tmp                   = (converter*) (& PROTO_VER);
 	//ProtoMinorVersion   = tmp->High;
 	//ProtoMajorVersion   = tmp->Low;
-	//LogFileName         = DEF_SERVER_LOG; // "fg_server.log";
+	//LogFileName         = DEF_SERVER_LOG; // "FgServer.log";
 	//wp                  = fopen("wp.txt", "w");
 
 	//= maybe this could be a slice
@@ -152,9 +152,9 @@ type FG_SERVER struct {
 
 
 
-// Construct and return pointer to new FG_SERVER instance
-func NewFG_SERVER() *FG_SERVER {
-	ob := new(FG_SERVER)
+// Construct and return pointer to new FgServer instance
+func NewFgServer() *FgServer {
+	ob := new(FgServer)
 	
 	ob.Players = make(map[string]*FG_Player)
 	//ob.PlayerList = make([]*FG_Player, 0)
@@ -179,46 +179,46 @@ func NewFG_SERVER() *FG_SERVER {
 
 //--------------------------------------------------------------------------
 
-func (me *FG_SERVER) SetServerName(name string){
+func (me *FgServer) SetServerName(name string){
 	me.ServerName = name
 }
-func (me *FG_SERVER) SetBindAddress(addr string){
+func (me *FgServer) SetBindAddress(addr string){
 	me.BindAddress = addr
 }
 
-func (me *FG_SERVER) SetDataPort(port int){
+func (me *FgServer) SetDataPort(port int){
 	log.Println("> SetDataPort=", port)
 	me.ListenPort = port
 	me.ReinitData = true
 }
 
-func (me *FG_SERVER) SetTelnetPort(port int){
+func (me *FgServer) SetTelnetPort(port int){
 	log.Println("> SetTelnetPort=", port)
 	me.Telnet.Port = port
 	me.Telnet.Reinit = true
 }
 
 // Set nautical miles two players must be apart to be out of reach
-func (me *FG_SERVER) SetOutOfReach(nm int){
+func (me *FgServer) SetOutOfReach(nm int){
 	log.Println("> SetOutOfReach=", nm, " nm")
 	me.PlayerIsOutOfReach = nm
 }
 
 // Set time in seconds. if no packet arrives from a client
 // within this time, the connection is dropped.  
-func (me *FG_SERVER) SetPlayerExpires(secs int){
+func (me *FgServer) SetPlayerExpires(secs int){
 	log.Println("> SetPlayerExpires=", secs, " secs")
 	me.PlayerExpires = secs
 }
 
 // Set if we are running as a Hubserver
-func (me *FG_SERVER) SetHub(am_hub bool){
+func (me *FgServer) SetHub(am_hub bool){
 	log.Println("> SetHub=", am_hub)
 	me.IamHUB = am_hub
 }
 
 // Set the logfile - TODO LOg FIle writing etc
-func (me *FG_SERVER) SetLogfile( log_file_name string){
+func (me *FgServer) SetLogfile( log_file_name string){
 	log.Println("> SetLogfile=", log_file_name)
 	me.LogFileName = log_file_name
 	//TODO after research of simgear
@@ -239,7 +239,7 @@ func (me *FG_SERVER) SetLogfile( log_file_name string){
 // Basic initialization. 
 // - TODO: If we are already initialized, close
 // all connections and re-init all variables
-func (me *FG_SERVER) Init() error {
+func (me *FgServer) Init() error {
 	//if LogFile != "" {
 	// m_LogFile.open (m_LogFileName.c_str(), ios::out|ios::app);
 		//sglog().setLogLevels( SG_ALL, SG_INFO );
@@ -273,7 +273,7 @@ func (me *FG_SERVER) Init() error {
 		}
 				
 		//=== UDP ===
-		addr, err := net.ResolveUDPAddr("udp", "127.0.0.1:5000")
+		addr, err := net.ResolveUDPAddr("udp", "192.168.50.5:5000")
 		var erru error
 		me.DataSocket, erru = net.ListenUDP("udp", addr)
 		if erru != nil {
@@ -367,12 +367,12 @@ func (me *FG_SERVER) Init() error {
 	return (SUCCESS);
 	*/
 	return nil
-} // FG_SERVER::Init()
+} // FgServer::Init()
 
 
 // Read a config file and set internal variables accordingly.
 
-func (me *FG_SERVER) SetConfig(conf Config) error {
+func (me *FgServer) SetConfig(conf Config) error {
 
 
 // Server Name
@@ -424,10 +424,11 @@ func (me *FG_SERVER) SetConfig(conf Config) error {
 	}
 
 	// Read the list of crossfeeds
-	for _, cf := range conf.Crossfeeds {
-		me.AddCrossfeed(cf.Host, cf.Port)
+	if true == false {
+		for _, cf := range conf.Crossfeeds {
+			me.AddCrossfeed(cf.Host, cf.Port)
+		}
 	}
-
 
 	// read the list of blacklisted IPs
 	for _, blackList := range conf.Blacklists {
@@ -452,7 +453,7 @@ func (me *FG_SERVER) SetConfig(conf Config) error {
 * @param ErrorMsg
 * @param IsLocal
 */
-func (me *FG_SERVER) AddBadClient(Sender *net.UDPAddr , ErrorMsg string, IsLocal bool){
+func (me *FgServer) AddBadClient(Sender *net.UDPAddr , ErrorMsg string, IsLocal bool){
 	//TODO
 	//string                  Message;
 	//FG_Player               NewPlayer;
@@ -491,7 +492,7 @@ func (me *FG_SERVER) AddBadClient(Sender *net.UDPAddr , ErrorMsg string, IsLocal
 	//NewPlayer.PktsSentTo            = 0
 	//NewPlayer.PktsForwarded         = 0
 	//NewPlayer.LastRelayedToInactive = 0
-	//SG_LOG (SG_SYSTEMS, SG_ALERT, "FG_SERVER::AddBadClient() - " << ErrorMsg);
+	//SG_LOG (SG_SYSTEMS, SG_ALERT, "FgServer::AddBadClient() - " << ErrorMsg);
 	//Message = "bad client connected: ";
 	//Message += Sender.getHost() + string(": ");
 	//Message += ErrorMsg;
@@ -502,7 +503,7 @@ func (me *FG_SERVER) AddBadClient(Sender *net.UDPAddr , ErrorMsg string, IsLocal
 	//pthread_mutex_unlock (& m_PlayerMutex);
 	//*/
 	//me.PlayerList[Sender.Ip] = NewPlayer
-} // FG_SERVER::AddBadClient ()
+} // FgServer::AddBadClient ()
 
 
 
@@ -513,7 +514,7 @@ func (me *FG_SERVER) AddBadClient(Sender *net.UDPAddr , ErrorMsg string, IsLocal
 
 
 // Main Loop
-func (me *FG_SERVER) Loop() {
+func (me *FgServer) Loop() {
 
 	//== Startup Telnet Listener
 	go func(lisTel net.Listener){
@@ -545,7 +546,7 @@ func (me *FG_SERVER) Loop() {
 		}else {
 			count++
 			//log.Printf("<%s> %q", raddr, buf[:length])
-			//log.Println("count", count, raddr, length)
+			log.Println("count", count, raddr, length)
 			//log.Println(buf[:length])
 			//Msg []byte, Bytes int, SenderAddress *NetAddress){
 			me.HandlePacket( buf[:length], length, raddr)
@@ -560,7 +561,7 @@ func (me *FG_SERVER) Loop() {
 //////////////////////////////////////////////////////////////////////
 // Look if we know the sending client
 // return - 0: Sender is unknown  - 1: Sender is known - 2: Sender is known, but has a different IP
-func (me *FG_SERVER) SenderIsKnown(senderCallsign string) int {
+func (me *FgServer) SenderIsKnown(senderCallsign string) int {
 
 	//addr := SenderAddress.String()
 	fmt.Println("Find=", senderCallsign)
@@ -590,7 +591,7 @@ func (me *FG_SERVER) SenderIsKnown(senderCallsign string) int {
 	} */
 	// Sender is unkown
 	return SENDER_UNKNOWN
-} // FG_SERVER::SenderIsKnown ()
+} // FgServer::SenderIsKnown ()
 
 
 
@@ -600,7 +601,7 @@ func (me *FG_SERVER) SenderIsKnown(senderCallsign string) int {
 
 //////////////////////////////////////////////////////////////////////
 //  Insert a new client to internal list
-func (me *FG_SERVER) AddClient(Sender *net.UDPAddr, MsgHdr flightgear.T_MsgHdr, PosMsg flightgear.T_PositionMsg) {
+func (me *FgServer) AddClient(Sender *net.UDPAddr, MsgHdr flightgear.T_MsgHdr, PosMsg flightgear.T_PositionMsg) {
 	//time_t          Timestamp;
 	//uint32_t        MsgLen;
 	//uint32_t        MsgId;
@@ -629,7 +630,7 @@ func (me *FG_SERVER) AddClient(Sender *net.UDPAddr, MsgHdr flightgear.T_MsgHdr, 
 	
 	NewPlayer := NewFG_Player()
 	NewPlayer.Callsign  = callsign
-	NewPlayer.Passwd    = "test" //MsgHdr->Passwd;
+	//NewPlayer.Passwd    = "test" //MsgHdr->Passwd;
 	NewPlayer.ModelName = PosMsg.ModelString()
 	//NewPlayer.Timestamp = time.Now().Unix()
 	//NewPlayer.JoinTime  = NewPlayer.Timestamp
@@ -675,14 +676,14 @@ func (me *FG_SERVER) AddClient(Sender *net.UDPAddr, MsgHdr flightgear.T_MsgHdr, 
 	}
 	
 	var Message string = ""
-	if IsLocal {
+	if 1 ==2 && IsLocal {
 		Message  = "Welcome to "
 		Message += me.ServerName
-		me.CreateChatMessage (NewPlayer.ClientID , Message)
+		//me.CreateChatMessage (NewPlayer.ClientID , Message)
 		
 		Message = "this is version v" + VERSION
 		Message += " (LazyRelay enabled)"
-		me.CreateChatMessage (NewPlayer.ClientID , Message)
+		//me.CreateChatMessage (NewPlayer.ClientID , Message)
 		
 		Message  ="using protocol version v" + GetProtocolVersionString()
 		//Message += NumToStr (m_ProtoMajorVersion, 0)
@@ -719,4 +720,4 @@ func (me *FG_SERVER) AddClient(Sender *net.UDPAddr, MsgHdr flightgear.T_MsgHdr, 
 		<< " current clients: "
 		<< m_NumCurrentClients << " max: " << m_NumMaxClients
 	); */
-} // FG_SERVER::AddClient()
+} // FgServer::AddClient()

@@ -16,7 +16,7 @@ import(
 
 
 //  Adds a new crossfeed server into internal list - after resolution of address etc
-func (me *FG_SERVER) AddCrossfeed( host_name string, port int){
+func (me *FgServer) AddCrossfeed( host_name string, port int){
 
 	log.Println("> Add Crossfeed = ", host_name, port)		
 	
@@ -32,7 +32,7 @@ func (me *FG_SERVER) AddCrossfeed( host_name string, port int){
 
 //= Starts a timer to check servers that are down ie Active = false (currently every 60 secs)
 // this is started in Loop() as a goroutine go me.StartCrossfeedCheckTimer()
-func (me *FG_SERVER) StartCrossfeedCheckTimer(){
+func (me *FgServer) StartCrossfeedCheckTimer(){
 	
 	ticker := time.NewTicker(time.Millisecond * 60000)
     go func() {
@@ -50,7 +50,7 @@ func (me *FG_SERVER) StartCrossfeedCheckTimer(){
 // Attempt to connect and setup a Crossfeed Connection
 // Should dns fail, address not exist or not able to connect
 // the connection witll be marked as conn.Active = false with conn.LastError
-func (me *FG_SERVER) InitSetupCrossfeed( conn *FG_Conn){
+func (me *FgServer) InitSetupCrossfeed( conn *FG_Conn){
 
 	log.Println("> InitSetupCrossfeed = ", conn.Url )
 		
@@ -80,16 +80,16 @@ func (me *FG_SERVER) InitSetupCrossfeed( conn *FG_Conn){
 	conn.LastError = ""
 	log.Println("\tOK:   Crossfeed Added -  ", conn.Url, udp_addr, err_listen)
 	
-} // FG_SERVER::AddCrossfeed()
+} // FgServer::AddCrossfeed()
 
 
 
 /*   Send message to all crossfeed servers.
 	Crossfeed servers receive all traffic without condition,
 	mainly used for testing and debugging, and crossfeed.fgx.ch
-	http://gitorious.org/fgms/fgms-0-x/blobs/master/src/server/fg_server.cxx#line1154
+	http://gitorious.org/fgms/fgms-0-x/blobs/master/src/server/FgServer.cxx#line1154
 */
-func (me *FG_SERVER) SendToCrossfeed(Msg []byte, Bytes int, SenderAddress *net.UDPAddr){
+func (me *FgServer) SendToCrossfeed(Msg []byte, Bytes int, SenderAddress *net.UDPAddr){
 
 	//T_MsgHdr*       MsgHdr;
 	//uint32_t        MsgMagic;
@@ -128,5 +128,5 @@ func (me *FG_SERVER) SendToCrossfeed(Msg []byte, Bytes int, SenderAddress *net.U
 		//CurrentCrossfeed++;
 	}
 	//MsgHdr->Magic = MsgMagic;  // restore the magic value ? umm not used now ?
-} // FG_SERVER::SendToCrossfeed ()
+} // FgServer::SendToCrossfeed ()
 

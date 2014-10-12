@@ -11,7 +11,7 @@ import(
 
 
 // Insert a new relay server into internal list (does a DNS lookup)
-func (me *FG_SERVER) AddRelay(host_name string, port int) {
+func (me *FgServer) AddRelay(host_name string, port int) {
 	
 	log.Println("> Add Relay = ", host_name, port)
 	
@@ -44,14 +44,14 @@ func (me *FG_SERVER) AddRelay(host_name string, port int) {
 		log.Println("    < Relay Added OK  ", host_port, udp_addr, err_listen)
 	}(host_name, port)	
 	
-} // FG_SERVER::AddRelay()
+} // FgServer::AddRelay()
 
 
 
 
 //////////////////////////////////////////////////////////////////////
 //  Check if the sender is a known relay, return true if known relay
-func (me *FG_SERVER) IsKnownRelay(senderAddress *net.UDPAddr) bool{
+func (me *FgServer) IsKnownRelay(senderAddress *net.UDPAddr) bool{
 	fmt.Println("IsKnownRelay", senderAddress.String())
 	/*mT_RelayListIt  CurrentRelay = m_RelayList.begin();
 	while (CurrentRelay != m_RelayList.end())
@@ -73,7 +73,7 @@ func (me *FG_SERVER) IsKnownRelay(senderAddress *net.UDPAddr) bool{
 	//me.AddBlacklist(senderAddress.IpAddress)
 	//SG_LOG (SG_SYSTEMS, SG_ALERT, "UNKNOWN RELAY: " << ErrorMsg);
 	return false
-} // FG_SERVER::IsKnownRelay ()
+} // FgServer::IsKnownRelay ()
 
 
 
@@ -82,7 +82,7 @@ func (me *FG_SERVER) IsKnownRelay(senderAddress *net.UDPAddr) bool{
 
 // Send message to all relay servers
 
-func (me *FG_SERVER) SendToRelays(Msg []byte, Bytes int , SendingPlayer *FG_Player){
+func (me *FgServer) SendToRelays(Msg []byte, Bytes int , SendingPlayer *FG_Player){
 
 	//T_MsgHdr*       MsgHdr;
 	//uint32_t        MsgMagic;
@@ -119,7 +119,7 @@ func (me *FG_SERVER) SendToRelays(Msg []byte, Bytes int , SendingPlayer *FG_Play
 	}
 	SendingPlayer.PktsForwarded += PktsForwarded
 	//MsgHdr->Magic = XDR_encode<uint32_t> (MsgMagic);  // restore the magic value
-} // FG_SERVER::SendToRelays ()
+} // FgServer::SendToRelays ()
 
 
 

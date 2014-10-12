@@ -1,7 +1,7 @@
 {
 	"server": { 
 		"name": "albert",
-		"address": "127.0.0.1",
+		"address": "192.168.50.5",
 		"port": 5000,
 		"telnet_port": 5001,
 		"logfile": "fgms.log",
