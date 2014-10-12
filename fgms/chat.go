@@ -53,7 +53,7 @@ func (me *FgServer) CreateChatMessage(ID int, Msg string){
 	for idx, char := range("*FGMS*") {
 	 	cs_bytes[idx] = byte(char)
 	}
-	MsgHdr.Callsign = cs_bytes 
+	MsgHdr.CallsignBytes = cs_bytes
 	
 
 	

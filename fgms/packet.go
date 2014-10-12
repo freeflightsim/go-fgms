@@ -67,7 +67,7 @@ func (me *FgServer) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPAd
 	//		cs += string(ele)
 	//	}
 	//}    
-	fmt.Println ("=Got Header=", MsgHdr.Callsign, MsgHdr.CallsignString())
+	fmt.Println ("Header=", MsgHdr.Callsign())
 	
 
 	//------------------------------------------------------
@@ -111,8 +111,9 @@ func (me *FgServer) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPAd
 			fmt.Println("XDR Decode Position Error", errPos)
 			return
 		}
-		fmt.Println("remain2=", len(remainingBytes2), PosMsg.Model)
-	
+		if 1 == 2 {
+			fmt.Println("remain2=", len(remainingBytes2), PosMsg.Model)
+		}
 		//PosMsg = (T_PositionMsg *) (Msg + sizeof(T_MsgHdr));
 		//double x = XDR_decode64<double> (PosMsg->position[X]);
 		//double y = XDR_decode64<double> (PosMsg->position[Y]);
@@ -138,7 +139,7 @@ func (me *FgServer) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPAd
 	} 
 	
 	// Add Client to list if its not known
-	senderInList := me.SenderIsKnown(MsgHdr.CallsignString())
+	senderInList := me.SenderIsKnown(MsgHdr.Callsign())
 	fmt.Println ("  <<  senderInList", senderInList)
 	if senderInList == SENDER_UNKNOWN { 
 		// unknown, add to the list
@@ -165,8 +166,8 @@ func (me *FgServer) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPAd
 	//CurrentPlayer = m_PlayerList.begin();
 	//while (CurrentPlayer != m_PlayerList.end())
 	//{ 
-	xCallsign := MsgHdr.CallsignString()
-	xIsObserver :=  strings.ToLower(MsgHdr.CallsignString())[0:3] ==  "obs"
+	xCallsign := MsgHdr.Callsign()
+	xIsObserver :=  strings.ToLower(MsgHdr.Callsign())[0:3] ==  "obs"
 	for loopCallsign, loopPlayer := range me.Players {
 		
 		//= ignore clients with errors

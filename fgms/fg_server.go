@@ -564,8 +564,9 @@ func (me *FgServer) Loop() {
 func (me *FgServer) SenderIsKnown(senderCallsign string) int {
 
 	//addr := SenderAddress.String()
-	fmt.Println("Find=", senderCallsign)
+
 	_, found := me.Players[senderCallsign]
+	fmt.Println("Find=", senderCallsign, "found=",found)
 	//for _, player := range me.PlayerList {
 	//	if player.Callsign == SenderCallsign {
 	//		//if player.
@@ -601,7 +602,8 @@ func (me *FgServer) SenderIsKnown(senderCallsign string) int {
 
 //////////////////////////////////////////////////////////////////////
 //  Insert a new client to internal list
-func (me *FgServer) AddClient(Sender *net.UDPAddr, MsgHdr flightgear.T_MsgHdr, PosMsg flightgear.T_PositionMsg) {
+//func (me *FgServer) AddClient(Sender *net.UDPAddr, MsgHdr flightgear.T_MsgHdr, PosMsg flightgear.T_PositionMsg) {
+func (me *FgServer) AddClient(SenderAddress *net.UDPAddr, MsgHdr flightgear.T_MsgHdr, PosMsg flightgear.T_PositionMsg) {
 	//time_t          Timestamp;
 	//uint32_t        MsgLen;
 	//uint32_t        MsgId;
@@ -624,9 +626,9 @@ func (me *FgServer) AddClient(Sender *net.UDPAddr, MsgHdr flightgear.T_MsgHdr, P
 	
 	
 	IsLocal := MsgHdr.Magic != RELAY_MAGIC  // not a local client
-	var callsign string = MsgHdr.CallsignString()
+	var callsign string = MsgHdr.Callsign()
 	
-	log.Println (" ADD Client ", callsign, Sender, IsLocal,  len(me.Players))
+	log.Println (" ADD Client ", callsign, SenderAddress, IsLocal,  len(me.Players))
 	
 	NewPlayer := NewFG_Player()
 	NewPlayer.Callsign  = callsign
@@ -638,6 +640,7 @@ func (me *FgServer) AddClient(Sender *net.UDPAddr, MsgHdr flightgear.T_MsgHdr, P
 	NewPlayer.HasErrors = false
 	// NewPlayer.Address   = Sender
 	NewPlayer.IsLocal   = IsLocal
+
 	//NewPlayer.LastPos.Clear()
 	//NewPlayer.LastOrientation.Clear()
 	//NewPlayer.PktsReceivedFrom = 0
@@ -663,7 +666,7 @@ func (me *FgServer) AddClient(Sender *net.UDPAddr, MsgHdr flightgear.T_MsgHdr, P
 	//NewPlayer.ModelName = PosMsg.ModelString()
 	me.MaxClientID++
 	NewPlayer.ClientID = me.MaxClientID
-	
+	NewPlayer.Address = SenderAddress
 	//pthread_mutex_lock (& m_PlayerMutex)
 	//m_PlayerList.push_back (NewPlayer)
 	//pthread_mutex_unlock (& m_PlayerMutex);

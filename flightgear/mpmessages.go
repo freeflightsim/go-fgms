@@ -74,20 +74,13 @@ const (
     ReplyPort uint32 //xdr_data_t   
     
     // Callsign used by the player 
-    Callsign [MAX_CALLSIGN_LEN]byte //Callsign[MAX_CALLSIGN_LEN] 
+	 CallsignBytes [MAX_CALLSIGN_LEN]byte //Callsign[MAX_CALLSIGN_LEN]
 }
 
-// Returns the Callsign as a String 
-// TODO There has Got to be a better way
-func (me *T_MsgHdr) CallsignString() string{
-	s := ""
-	for _, ele := range me.Callsign {
-		if ele == 0 {
-			return s
-		}
-		s += string(ele)
-	}
-	return s   
+// Returns the Callsign as a String
+func (me *T_MsgHdr) Callsign() string{
+	return string(me.CallsignBytes[:])
+
 }
 
 
