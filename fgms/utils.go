@@ -6,7 +6,7 @@ import(
 	"time"
 )
  import(
-	"github.com/fgx/go-fgms/flightgear"
+	"github.com/FreeFlightSim/go-fgms/flightgear"
 )
 //= Returns an int64 with epoch (should be UTC ?)
 func Now() int64{

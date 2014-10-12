@@ -5,7 +5,7 @@ import (
 )
 
 import (
-	"github.com/fgx/go-fgms/simgear"
+	"github.com/FreeFlightSim/go-fgms/simgear"
 )
 
 /*
@@ -42,10 +42,10 @@ const (
 	multiple of 8!
 */
 const ( 
-	MAX_CALLSIGN_LEN 	 = 8
-	MAX_CHAT_MSG_LEN   = 256
-	MAX_MODEL_NAME_LEN = 96
-	MAX_PROPERTY_LEN   = 52
+	MAX_CALLSIGN_LEN	= 8
+	MAX_CHAT_MSG_LEN   	= 256
+	MAX_MODEL_NAME_LEN 	= 96
+	MAX_PROPERTY_LEN   	= 52
 )
 
 

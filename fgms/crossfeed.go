@@ -10,7 +10,7 @@ import(
 
 import(
 	"github.com/davecgh/go-xdr/xdr"
-	"github.com/fgx/go-fgms/flightgear"
+	"github.com/FreeFlightSim/go-fgms/flightgear"
 )
 
 

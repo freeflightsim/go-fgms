@@ -3,9 +3,9 @@
 package fgms
 
 import(
-	//"encoding/json"
-	//"ioutil"
-	//"log"
+	"encoding/json"
+	"io/ioutil"
+	"log"
 	
 )
 //= A Host Row
@@ -35,11 +35,36 @@ type JSON_ServerConf struct{
 		
 }
 //= Whole Payload from File
-type JSON_ConfAll struct {
+type Config struct {
 	Server JSON_ServerConf `json:"server"`
 	Relays []JSON_HostConf `json:"relays"`
 	Crossfeeds []JSON_HostConf	 `json:"crossfeeds"`
 	Blacklists []string		 `json:"blacklists"`
+}
+
+
+// Read a config file and set internal variables accordingly.
+func LoadConfig(config_path string)(Config, error) {
+
+	var conf Config
+	
+	//configFilePath := "/home/gogo/src/github.com/FreeFLighSim/go-fgms/fgms_example.json"
+	
+	// Read file
+	filebyte, err := ioutil.ReadFile(config_path) 
+    if err != nil { 
+        log.Fatal("Could not read JSON config file: `" + config_path + "` ")
+        return conf, err
+    } 
+    // Parse JSON
+	
+    err = json.Unmarshal(filebyte, &conf)
+    if err != nil{
+    	log.Fatalln("JSON Decode Error from: ", config_path,  err)
+    	return conf, err
+    }
+		
+	return conf, nil
 }
 
 

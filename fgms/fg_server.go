@@ -15,8 +15,8 @@ import(
 import(
 	//"github.com/davecgh/go-xdr/xdr"
 
-	"github.com/fgx/go-fgms/tracker"
-	"github.com/fgx/go-fgms/flightgear"
+	"github.com/FreeFlightSim/go-fgms/tracker"
+	"github.com/FreeFlightSim/go-fgms/flightgear"
 )
 
 
@@ -369,6 +369,73 @@ func (me *FG_SERVER) Init() error {
 	return nil
 } // FG_SERVER::Init()
 
+
+// Read a config file and set internal variables accordingly.
+
+func (me *FG_SERVER) SetConfig(conf Config) error {
+
+
+// Server Name
+	me.SetServerName(conf.Server.Name)
+
+	// Address
+	me.SetBindAddress(conf.Server.Address)
+
+	// UDP Port No
+	me.SetDataPort(conf.Server.Port)
+
+	// Telnet Port
+	me.SetTelnetPort(conf.Server.TelnetPort)
+
+	// Outta Reach
+	me.SetOutOfReach(conf.Server.OutOfReachNm)
+
+	// Player Expires
+	me.SetPlayerExpires(conf.Server.PlayerExpiresSecs)
+
+	// Server is hub
+	me.SetHub( conf.Server.IsHub )
+
+	// Log File
+	me.SetLogfile(conf.Server.LogFile);
+
+	// Tracked
+	/*
+	Val, err = conf.Get ("server.tracked")
+	if Val != "" {
+		tracked, _ := strconv.ParseBool(Val)
+		if tracked {
+			trkServer, err := conf.Get("server.tracking_server")
+			if err != nil {
+				log.Fatalln("Error", "Missing `server.tracking_server`", trkServer)
+				return err
+			}
+			fmt.Println("TRK", trkServer,  tracked)
+			me.AddTracker(trkServer, pii, tracked)
+
+		}
+	}
+	*/
+
+	// Read the list of relays
+	for _, relay := range conf.Relays {
+		//me.AddRelay(relay.Host, relay.Port)
+		fmt.Println(relay)
+	}
+
+	// Read the list of crossfeeds
+	for _, cf := range conf.Crossfeeds {
+		me.AddCrossfeed(cf.Host, cf.Port)
+	}
+
+
+	// read the list of blacklisted IPs
+	for _, blackList := range conf.Blacklists {
+		me.AddBlacklist(blackList)
+	}
+
+	return nil
+}
 
 
 
