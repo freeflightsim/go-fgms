@@ -4,14 +4,15 @@ package message
 import (
 )
 
-// Magic value for messages - currently FGFS
+// Magic value for fgfs messages - currently FGFS
 const MSG_MAGIC = 0x46474653  // "FGFS"
-//const MSG_MAGIC = "SFGF"  // "FGFS"
+
+// Relay magix
 const RELAY_MAGIC             = 0x53464746    // GSGF
 
 
-// Protocol Version - currently 1.1
-const PROTOCOL_VER = 0x00010001  // 1.1
+// Protocol Version is currently 1.1
+const PROTOCOL_VER = 0x00010001
 
 // Message Types
 const (
@@ -33,4 +34,3 @@ const (
 	MAX_MODEL_NAME_LEN 	= 96
 	MAX_PROPERTY_LEN   	= 52
 )
-
