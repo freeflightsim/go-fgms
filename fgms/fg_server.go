@@ -16,31 +16,11 @@ import(
 	//"github.com/davecgh/go-xdr/xdr"
 
 	"github.com/FreeFlightSim/go-fgms/tracker"
+	"github.com/FreeFlightSim/go-fgms/message"
 	"github.com/FreeFlightSim/go-fgms/flightgear"
 )
 
 
-const ( 
-	SUCCESS                 = 0
-	ERROR_COMMANDLINE       
-	ERROR_CREATE_SOCKET  
-	ERROR_COULDNT_BIND     
-	ERROR_NOT_LISTENING     
-	ERROR_COULDNT_LISTEN   
-)
-
-// other constants
-const MAX_PACKET_SIZE         = 1024
-const UPDATE_INACTIVE_PERIOD  = 1
-const MAX_TELNETS             = 5
-const RELAY_MAGIC             = 0x53464746    // GSGF
-
-
-const (
-	SENDER_UNKNOWN  = 0
-	SENDER_KNOWN   
-	SENDER_DIFF_IP  // Not sure this is used
-)
 		
 // Main Server
 type FgServer struct {
@@ -64,8 +44,8 @@ type FgServer struct {
 
 
 	ServerName  string `json:"server_name"`
-	BindAddress string
-	ListenPort int
+	BindAddress string `json:"address"`
+	ListenPort int `json:"port"`
 	IamHUB bool `json:"is_hub"`
 	
 
@@ -536,10 +516,10 @@ func (me *FgServer) Loop() {
 	
 	//== Startup UDP listener
 	count := 0
-	buf := make([]byte, MAX_PACKET_SIZE)
+	buffer := make([]byte, MAX_PACKET_SIZE)
 	log.Println("# Listening UDP > ", )
 	for {
-		length, raddr, err := me.DataSocket.ReadFromUDP(buf)
+		length, raddr, err := me.DataSocket.ReadFromUDP(buffer)
 		if err != nil {
 				log.Printf("ReadFrom: %v", err)
 				//break
@@ -549,7 +529,7 @@ func (me *FgServer) Loop() {
 			log.Println("count", count, raddr, length)
 			//log.Println(buf[:length])
 			//Msg []byte, Bytes int, SenderAddress *NetAddress){
-			me.HandlePacket( buf[:length], length, raddr)
+			me.HandlePacket( buffer[:length], length, raddr)
 			
 		}
 	}
@@ -603,7 +583,7 @@ func (me *FgServer) SenderIsKnown(senderCallsign string) int {
 //////////////////////////////////////////////////////////////////////
 //  Insert a new client to internal list
 //func (me *FgServer) AddClient(Sender *net.UDPAddr, MsgHdr flightgear.T_MsgHdr, PosMsg flightgear.T_PositionMsg) {
-func (me *FgServer) AddClient(SenderAddress *net.UDPAddr, MsgHdr flightgear.T_MsgHdr, PosMsg flightgear.T_PositionMsg) {
+func (me *FgServer) AddClient(SenderAddress *net.UDPAddr, MsgHdr message.HeaderMsg, PosMsg message.PositionMsg) {
 	//time_t          Timestamp;
 	//uint32_t        MsgLen;
 	//uint32_t        MsgId;
@@ -623,17 +603,17 @@ func (me *FgServer) AddClient(SenderAddress *net.UDPAddr, MsgHdr flightgear.T_Ms
 	//MsgLen              = XDR_decode<uint32_t> (MsgHdr->MsgLen);
 	//MsgMagic            = XDR_decode<uint32_t> (MsgHdr->Magic);
 	//IsLocal             = true;
-	
+	log.Println (" ADD Client ", callsign, SenderAddress, IsLocal,  len(me.Players))
 	
 	IsLocal := MsgHdr.Magic != RELAY_MAGIC  // not a local client
 	var callsign string = MsgHdr.Callsign()
 	
-	log.Println (" ADD Client ", callsign, SenderAddress, IsLocal,  len(me.Players))
+
 	
 	NewPlayer := NewFG_Player()
 	NewPlayer.Callsign  = callsign
 	//NewPlayer.Passwd    = "test" //MsgHdr->Passwd;
-	NewPlayer.ModelName = PosMsg.ModelString()
+	NewPlayer.ModelName = PosMsg.Model()
 	//NewPlayer.Timestamp = time.Now().Unix()
 	//NewPlayer.JoinTime  = NewPlayer.Timestamp
 	//NewPlayer.Origin    = Sender.getHost () TODO

@@ -36,6 +36,7 @@ func main(){
 	var server *fgms.FgServer
 
 	server = fgms.NewFgServer()
+
 	server.SetConfig(config)
 
 	err_init := server.Init()

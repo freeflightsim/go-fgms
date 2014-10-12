@@ -15,24 +15,25 @@ import(
 import(
 	"github.com/davecgh/go-xdr/xdr"
 
-	"github.com/FreeFlightSim/go-fgms/flightgear"
+	"github.com/FreeFlightSim/go-fgms/message"
+	//"github.com/FreeFlightSim/go-fgms/flightgear"
 )
 
 
 //------------------------------------------------------------------------
 
 // Handle client connections
-func (me *FgServer) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPAddr){
+func (me *FgServer) HandlePacket(xdr_bytes []byte, Bytes int, SenderAddress *net.UDPAddr){
 	
 	//T_MsgHdr*       MsgHdr;
-	var MsgHdr flightgear.T_MsgHdr
+	//var MsgHdr message.T_MsgHdr
 	//T_PositionMsg*  PosMsg;
-	var PosMsg flightgear.T_PositionMsg
+	//var PosMsg flightgear.T_PositionMsg
 	
 	//uint32_t        MsgId;
 	//uint32_t        MsgMagic;
 	//Timestamp time.Time
-	Timestamp := Now()
+	timestamp := Now()
 	
 	var SenderPosition Point3D
 	var SenderOrientation Point3D
@@ -46,13 +47,15 @@ func (me *FgServer) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPAd
 	//MsgHdr :=  
 	
 	//fmt.Println("MSG=", len(Msg))
-	
-	remainingBytes, err := xdr.Unmarshal(Msg, &MsgHdr)
+	//var header message.HeaderMsg
+	header, remainingBytes, err := message.DecodeHeader(xdr_bytes)
+
+	//remainingBytes, err := xdr.Unmarshal(Msg, &MsgHdr)
 	if err != nil{
 		fmt.Println("XDR Decode Error", err)
 		return
 	}
-	fmt.Println("remain=", len(remainingBytes), SenderAddress)
+	fmt.Println("remain=", len(remainingBytes), SenderAddress, header)
 	
 	//MsgMagic  = XDR_decode<uint32_t> (MsgHdr->Magic);
 	//MsgId     = XDR_decode<uint32_t> (MsgHdr->MsgId);
@@ -67,13 +70,14 @@ func (me *FgServer) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPAd
 	//		cs += string(ele)
 	//	}
 	//}    
-	fmt.Println ("Header=", MsgHdr.Callsign())
+	//fmt.Println ("Header=", MsgHdr.Callsign())
 	
 
 	//------------------------------------------------------
 	// First of all, send packet to all crossfeed servers.
 	//SendToCrossfeed (Msg, Bytes, SenderAddress); ?? SHould then be send pre vaildation ?
-	me.SendToCrossfeed(Msg, Bytes, SenderAddress)
+	//me.SendToCrossfeed(Msg, Bytes, SenderAddress)
+
 
 
 	//------------------------------------------------------
@@ -85,14 +89,14 @@ func (me *FgServer) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPAd
 	
 	// Check packet is valid
 	fmt.Println (" > checkvalid")
-	if !me.PacketIsValid(Bytes, MsgHdr, SenderAddress) {
+	if !me.PacketIsValid(Bytes, header, SenderAddress) {
 		me.PacketsInvalid++
 		fmt.Println ("  <<  NO checkvalid")
 		return
 	} 
 	fmt.Println ("  <<  YES checkvalid")
 	
-	if MsgHdr.Magic == RELAY_MAGIC { // not a local client
+	if header.Magic == RELAY_MAGIC { // not a local client
 		if !me.IsKnownRelay(SenderAddress) {
 			me.UnknownRelay++ 
 			return
@@ -104,8 +108,10 @@ func (me *FgServer) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPAd
 	//////////////////////////////////////////////////
 	//    Store senders position
 	//////////////////////////////////////////////////
-	if MsgHdr.MsgId == flightgear.POS_DATA_ID	{
+	var PosMsg message.PositionMsg
+	if header.Type == message.TYPE_POS	{
 		me.PositionData++
+
 		remainingBytes2, errPos := xdr.Unmarshal(remainingBytes, &PosMsg)
 		if err != nil{
 			fmt.Println("XDR Decode Position Error", errPos)
@@ -124,7 +130,7 @@ func (me *FgServer) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPAd
 		if x == 0.0 || y == 0.0 || z == 0.0 { // ignore while position is not settled
 			return
 		}
-		SenderPosition.Set (x, y, z);
+		//SenderPosition.Set (x, y, z);
 		
 		/* SenderOrientation.Set (
 			XDR_decode<float> (PosMsg->orientation[X]),
@@ -139,15 +145,15 @@ func (me *FgServer) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPAd
 	} 
 	
 	// Add Client to list if its not known
-	senderInList := me.SenderIsKnown(MsgHdr.Callsign())
+	senderInList := me.SenderIsKnown(header.Callsign())
 	fmt.Println ("  <<  senderInList", senderInList)
 	if senderInList == SENDER_UNKNOWN { 
 		// unknown, add to the list
-		if MsgHdr.MsgId != flightgear.POS_DATA_ID {
+		if header.Type != message.TYPE_POS {
 			return // ignore client until we have a valid position
 		}
 		//tempPosMsg := flightgear.T_PositionMsg{}
-		me.AddClient(SenderAddress, MsgHdr, PosMsg)
+		me.AddClient(SenderAddress, header, PosMsg)
 		
 	}else if senderInList == SENDER_DIFF_IP {
 		return // known, but different IP => ignore
@@ -166,8 +172,8 @@ func (me *FgServer) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPAd
 	//CurrentPlayer = m_PlayerList.begin();
 	//while (CurrentPlayer != m_PlayerList.end())
 	//{ 
-	xCallsign := MsgHdr.Callsign()
-	xIsObserver :=  strings.ToLower(MsgHdr.Callsign())[0:3] ==  "obs"
+	xCallsign := header.Callsign()
+	xIsObserver :=  strings.ToLower(header.Callsign())[0:3] ==  "obs"
 	for loopCallsign, loopPlayer := range me.Players {
 		
 		//= ignore clients with errors
@@ -183,7 +189,7 @@ func (me *FgServer) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPAd
 				so use a clientID instead
 		*/
 		if loopCallsign == xCallsign { // alterative == CurrentPlayer.Callsign == xCallsign 
-			if MsgHdr.MsgId == flightgear.POS_DATA_ID 	{
+			if header.Type == message.TYPE_POS	{
 				loopPlayer.LastPos         = SenderPosition
 				loopPlayer.LastOrientation = SenderOrientation
 			}else{
@@ -191,7 +197,7 @@ func (me *FgServer) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPAd
 				SenderOrientation = loopPlayer.LastOrientation
 			}
 			//SendingPlayer = CurrentPlayer
-			loopPlayer.Timestamp = Timestamp
+			loopPlayer.Timestamp = timestamp
 			loopPlayer.PktsReceivedFrom++
 			//CurrentPlayer++;
 			continue; // don't send packet back to sender
@@ -200,7 +206,7 @@ func (me *FgServer) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPAd
 		//      origin is an observer, but do send
 		//      chat messages anyway
 		//      FIXME: MAGIC = SFGF!
-		if xIsObserver && MsgHdr.MsgId != flightgear.CHAT_MSG_ID {
+		if xIsObserver && header.Type != message.TYPE_CHAT {
 			return
 		}
 		
@@ -217,7 +223,7 @@ func (me *FgServer) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPAd
 		if loopPlayer.IsLocal {
 			//SendChatMessages (CurrentPlayer);
 			//m_DataSocket->sendto (Msg, Bytes, 0, &CurrentPlayer->Address);
-			_, err := me.DataSocket.WriteToUDP(Msg, loopPlayer.Address)
+			_, err := me.DataSocket.WriteToUDP(xdr_bytes, loopPlayer.Address)
 			if err != nil {
 				// TODO ?
 			}
@@ -240,13 +246,13 @@ func (me *FgServer) HandlePacket(Msg []byte, Bytes int, SenderAddress *net.UDPAd
 	DeleteMessageQueue ();
 	*/
 	SendingPlayer := NewFG_Player() // placleholder 
-	me.SendToRelays (Msg, Bytes, SendingPlayer)
+	me.SendToRelays (xdr_bytes, Bytes, SendingPlayer)
 	
 } // FgServer::HandlePacket ( char* sMsg[MAX_PACKET_SIZE] )
 
 
 
-func (me *FgServer) PacketIsValid(	Bytes int, MsgHdr flightgear.T_MsgHdr, SenderAddress *net.UDPAddr ) bool {
+func (me *FgServer) PacketIsValid(	Bytes int, MsgHdr message.HeaderMsg, SenderAddress *net.UDPAddr ) bool {
 
 	var ErrorMsg string
 
@@ -261,7 +267,7 @@ func (me *FgServer) PacketIsValid(	Bytes int, MsgHdr flightgear.T_MsgHdr, Sender
 	}
 	
 	//= Check magic
-	if MsgHdr.Magic != flightgear.MSG_MAGIC && MsgHdr.Magic != RELAY_MAGIC {
+	if MsgHdr.Magic != message.MSG_MAGIC && MsgHdr.Magic != RELAY_MAGIC {
 		ErrorMsg  = SenderAddress.String();
 		ErrorMsg += " BAD magic number: "
 		//ErrorMsg += MsgHdr.Magic // TODO
@@ -272,7 +278,7 @@ func (me *FgServer) PacketIsValid(	Bytes int, MsgHdr flightgear.T_MsgHdr, Sender
 	}
 	
 	// Check Protocol Version
-	if MsgHdr.Version != flightgear.PROTO_VER {
+	if MsgHdr.Version != message.PROTOCOL_VER {
 		ErrorMsg  = SenderAddress.String()
 		ErrorMsg += " BAD protocol version! Should be "
 		// TODO bitshift
@@ -288,10 +294,10 @@ func (me *FgServer) PacketIsValid(	Bytes int, MsgHdr flightgear.T_MsgHdr, Sender
 		me.AddBadClient(SenderAddress, ErrorMsg, true);
 		return false
 	} 
-	
-	if MsgHdr.MsgId == flightgear.POS_DATA_ID {
-		lenny := uint32( unsafe.Sizeof(MsgHdr) + unsafe.Sizeof(&flightgear.T_PositionMsg{}) )
-		if MsgHdr.MsgLen < lenny {
+	/*
+	if MsgHdr.Type == message.TYPE_POS {
+		lenny := uint32( unsafe.Sizeof(&message.HeaderMsg) + unsafe.Sizeof(&message.PositionMsg{}) )
+		if MsgHdr < lenny {
 			ErrorMsg  = SenderAddress.String()
 			ErrorMsg += " Client sends insufficient position data, "
 			ErrorMsg += fmt.Sprintf( "should be %d", lenny)
@@ -299,6 +305,6 @@ func (me *FgServer) PacketIsValid(	Bytes int, MsgHdr flightgear.T_MsgHdr, Sender
 			me.AddBadClient (SenderAddress, ErrorMsg, true);
 			return false
 		}
-	}
+	}*/
 	return true
 } // FgServer::PacketIsValid ()
