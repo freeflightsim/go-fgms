@@ -1,5 +1,5 @@
 /*
-Package message - Message definitions and XDR decoding
+Message definitions and XDR decoding
 
 
 	This is ported from

@@ -11,6 +11,7 @@ import(
 import(
 	"github.com/davecgh/go-xdr/xdr"
 	"github.com/FreeFlightSim/go-fgms/flightgear"
+	"github.com/FreeFlightSim/go-fgms/message"
 )
 
 
@@ -106,7 +107,7 @@ func (me *FgServer) SendToCrossfeed(Msg []byte, Bytes int, SenderAddress *net.UD
 		fmt.Println("XDR Decode Error in SendToCrossfeed - Should never happen?", err)
 		return
 	}
-	MsgHdr.Magic = RELAY_MAGIC
+	MsgHdr.Magic = message.RELAY_MAGIC
 	
 	encoded, err := xdr.Marshal(MsgHdr)
 	if err != nil {

@@ -12,7 +12,7 @@ import (
 
 
 
-// Decode the XDR packet
+// Decode the Header part of packet
 func DecodeHeader(xdr_enc []byte)(HeaderMsg, []byte, error) {
 
 	var header HeaderMsg
@@ -29,6 +29,13 @@ func DecodeHeader(xdr_enc []byte)(HeaderMsg, []byte, error) {
 	if header.Version != PROTOCOL_VER {
 		return header, remainingBytes, errors.New("Invalid protocol version")
 	}
+	switch header.Magic {
+		case MSG_MAGIC:  fallthrough
+		case RELAY_MAGIC:  fallthrough
+		default:
+			return header, remainingBytes, errors.New("Invalid Magic")
+	}
+
 	//if header.Type != TYPE_POS {
 	//	return header, errors.New("Not a position error")
 	//}

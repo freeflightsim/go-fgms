@@ -23,7 +23,7 @@ import(
 //------------------------------------------------------------------------
 
 // Handle client connections
-func (me *FgServer) HandlePacket(xdr_bytes []byte, Bytes int, SenderAddress *net.UDPAddr){
+func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, address *net.UDPAddr){
 	
 	//T_MsgHdr*       MsgHdr;
 	//var MsgHdr message.T_MsgHdr
@@ -55,7 +55,7 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, Bytes int, SenderAddress *net
 		fmt.Println("XDR Decode Error", err)
 		return
 	}
-	fmt.Println("remain=", len(remainingBytes), SenderAddress, header)
+	fmt.Println("remain=", len(remainingBytes), address, header)
 	
 	//MsgMagic  = XDR_decode<uint32_t> (MsgHdr->Magic);
 	//MsgId     = XDR_decode<uint32_t> (MsgHdr->MsgId);
@@ -86,18 +86,18 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, Bytes int, SenderAddress *net
 	//	me.BlackListRejected++
 	//	return
 	//}
-	
+	me.PacketsInvalid++
 	// Check packet is valid
-	fmt.Println (" > checkvalid")
-	if !me.PacketIsValid(Bytes, header, SenderAddress) {
-		me.PacketsInvalid++
-		fmt.Println ("  <<  NO checkvalid")
-		return
-	} 
-	fmt.Println ("  <<  YES checkvalid")
+	//fmt.Println (" > checkvalid")
+	//if !me.PacketIsValid(length, header, address) {
+
+	//	fmt.Println ("  <<  NO checkvalid")
+	//	return
+	//}
+	//fmt.Println ("  <<  YES checkvalid")
 	
-	if header.Magic == RELAY_MAGIC { // not a local client
-		if !me.IsKnownRelay(SenderAddress) {
+	if header.Magic == message.RELAY_MAGIC { // not a local client
+		if !me.IsKnownRelay(address) {
 			me.UnknownRelay++ 
 			return
 		}else{
@@ -153,7 +153,7 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, Bytes int, SenderAddress *net
 			return // ignore client until we have a valid position
 		}
 		//tempPosMsg := flightgear.T_PositionMsg{}
-		me.AddClient(SenderAddress, header, PosMsg)
+		me.AddClient(address, header, PosMsg)
 		
 	}else if senderInList == SENDER_DIFF_IP {
 		return // known, but different IP => ignore
@@ -246,19 +246,19 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, Bytes int, SenderAddress *net
 	DeleteMessageQueue ();
 	*/
 	SendingPlayer := NewFG_Player() // placleholder 
-	me.SendToRelays (xdr_bytes, Bytes, SendingPlayer)
+	me.SendToRelays (xdr_bytes, length, SendingPlayer)
 	
 } // FgServer::HandlePacket ( char* sMsg[MAX_PACKET_SIZE] )
 
 
 
-func (me *FgServer) PacketIsValid(	Bytes int, MsgHdr message.HeaderMsg, SenderAddress *net.UDPAddr ) bool {
+func (me *FgServer) DEADPacketIsValid(length int, header message.HeaderMsg, SenderAddress *net.UDPAddr ) bool {
 
 	var ErrorMsg string
 
 	// Check header Packet size
-	s := int(unsafe.Sizeof(MsgHdr))
-	if Bytes <  s {
+	s := int(unsafe.Sizeof(header))
+	if length <  s {
 		ErrorMsg  = SenderAddress.String()
 		ErrorMsg += " packet size is too small!"
 		fmt.Println("ERROR: PacketIsValid()", ErrorMsg)
@@ -267,7 +267,7 @@ func (me *FgServer) PacketIsValid(	Bytes int, MsgHdr message.HeaderMsg, SenderAd
 	}
 	
 	//= Check magic
-	if MsgHdr.Magic != message.MSG_MAGIC && MsgHdr.Magic != RELAY_MAGIC {
+	if header.Magic != message.MSG_MAGIC && header.Magic != message.RELAY_MAGIC {
 		ErrorMsg  = SenderAddress.String();
 		ErrorMsg += " BAD magic number: "
 		//ErrorMsg += MsgHdr.Magic // TODO
@@ -278,9 +278,9 @@ func (me *FgServer) PacketIsValid(	Bytes int, MsgHdr message.HeaderMsg, SenderAd
 	}
 	
 	// Check Protocol Version
-	if MsgHdr.Version != message.PROTOCOL_VER {
-		ErrorMsg  = SenderAddress.String()
-		ErrorMsg += " BAD protocol version! Should be "
+	//if MsgHdr.Version != message.PROTOCOL_VER {
+	//	ErrorMsg  = SenderAddress.String()
+	//	ErrorMsg += " BAD protocol version! Should be "
 		// TODO bitshift
 		//converter*    tmp;
 		//tmp = (converter*) (& PROTO_VER);
@@ -290,10 +290,10 @@ func (me *FgServer) PacketIsValid(	Bytes int, MsgHdr message.HeaderMsg, SenderAd
 		//tmp = (converter*) (& MsgHdr->Version);
 		//ErrorMsg += NumToStr (tmp->Low, 0);
 		//ErrorMsg += "." + NumToStr (tmp->High, 0);
-		fmt.Println("ERROR: PacketIsValid()", ErrorMsg)
-		me.AddBadClient(SenderAddress, ErrorMsg, true);
-		return false
-	} 
+	//	fmt.Println("ERROR: PacketIsValid()", ErrorMsg)
+	//	me.AddBadClient(SenderAddress, ErrorMsg, true);
+	//	return false
+	//}
 	/*
 	if MsgHdr.Type == message.TYPE_POS {
 		lenny := uint32( unsafe.Sizeof(&message.HeaderMsg) + unsafe.Sizeof(&message.PositionMsg{}) )

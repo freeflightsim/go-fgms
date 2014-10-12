@@ -583,7 +583,7 @@ func (me *FgServer) SenderIsKnown(senderCallsign string) int {
 //////////////////////////////////////////////////////////////////////
 //  Insert a new client to internal list
 //func (me *FgServer) AddClient(Sender *net.UDPAddr, MsgHdr flightgear.T_MsgHdr, PosMsg flightgear.T_PositionMsg) {
-func (me *FgServer) AddClient(SenderAddress *net.UDPAddr, MsgHdr message.HeaderMsg, PosMsg message.PositionMsg) {
+func (me *FgServer) AddClient(SenderAddress *net.UDPAddr, header message.HeaderMsg, PosMsg message.PositionMsg) {
 	//time_t          Timestamp;
 	//uint32_t        MsgLen;
 	//uint32_t        MsgId;
@@ -603,10 +603,12 @@ func (me *FgServer) AddClient(SenderAddress *net.UDPAddr, MsgHdr message.HeaderM
 	//MsgLen              = XDR_decode<uint32_t> (MsgHdr->MsgLen);
 	//MsgMagic            = XDR_decode<uint32_t> (MsgHdr->Magic);
 	//IsLocal             = true;
-	log.Println (" ADD Client ", callsign, SenderAddress, IsLocal,  len(me.Players))
+
+	var callsign string = header.Callsign()
+
 	
-	IsLocal := MsgHdr.Magic != RELAY_MAGIC  // not a local client
-	var callsign string = MsgHdr.Callsign()
+	IsLocal := header.Magic != message.RELAY_MAGIC  // not a local client
+	log.Println (" ADD Client ", callsign, SenderAddress, IsLocal,  len(me.Players))
 	
 
 	
