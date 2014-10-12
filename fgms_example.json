@@ -25,9 +25,7 @@
     ],
 
 	"crossfeeds": [
-		{"host": "not_exist.geo.uk.com", "port": 5055, "comment": "foo"},
-		{"host": "lssm.geo.uk.com", "port": 5055, "comment": "bar"},
-		{"host": "localhost", "port": 5056, "comment": "bar"}
+		{"host": "127.0.0.1", "port": 3333, "comment": "geoffmcl-cf-client"}
     ],
     
 	"blacklists": [
