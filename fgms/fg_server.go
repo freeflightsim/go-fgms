@@ -18,7 +18,7 @@ import(
 
 	"github.com/FreeFlightSim/go-fgms/tracker"
 	"github.com/FreeFlightSim/go-fgms/message"
-	"github.com/FreeFlightSim/go-fgms/flightgear"
+	//"github.com/FreeFlightSim/go-fgms/flightgear"
 )
 
 
@@ -402,14 +402,12 @@ func (me *FgServer) SetConfig(conf Config) error {
 	// Read the list of crossfeeds
 
 	for _, cf := range conf.Crossfeeds {
-		//me.AddCrossfeed(cf.Host, cf.Port)
 		CrossFeed.Add(cf.Host, cf.Port)
 	}
 
 
 	 // read the list of blacklisted IPs
 	for _, bl := range conf.Blacklists {
-		//me.AddBlacklist(blackList)
 		Blacklist.Add(bl)
 	}
 
