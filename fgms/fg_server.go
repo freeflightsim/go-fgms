@@ -87,11 +87,11 @@ type FgServer struct {
 	Relays map[string]*net.UDPConn
 	
 	
-	Crossfeeds map[string]*UDP_Conn //*net.UDPConn
-	CrossFeedFailed int
-	CrossFeedSent int
-	MT_CrossFeedFailed int
-	MT_CrossFeedSent int
+	//Crossfeeds map[string]*UDP_Conn //*net.UDPConn
+	//CrossFeedFailed int
+	//CrossFeedSent int
+	//MT_CrossFeedFailed int
+	//MT_CrossFeedSent int
 
 	
 	IsTracked bool
@@ -144,7 +144,7 @@ func NewFgServer() *FgServer {
 	//ob.RelayMap = make(map[string]string)
 	ob.Relays = make(map[string]*net.UDPConn, 0)
 	//ob.Crossfeeds = make(map[string]*net.UDPConn, 0)
-	ob.Crossfeeds = make(map[string]*UDP_Conn, 0)
+	//ob.Crossfeeds = make(map[string]*UDP_Conn, 0)
 	
 	ob.BlackList = make(map[string]bool)
 		

@@ -8,15 +8,10 @@ import(
 	"time"
 )
 
-import(
-	//"github.com/davecgh/go-xdr/xdr"
-	//"github.com/FreeFlightSim/go-fgms/flightgear"
-	//"github.com/FreeFlightSim/go-fgms/message"
-)
 
 type crossfeed struct {
 	Chan chan []byte
-	Hosts map[string]*UDP_Conn //*net.UDPConn
+	Hosts map[string]*UDP_Conn
 	Failed int
 	Sent int
 	MT_Failed int
@@ -25,16 +20,20 @@ type crossfeed struct {
 
 var CrossFeed *crossfeed
 
+// auto initialize
 func init() {
 	CrossFeed = new(crossfeed)
 	CrossFeed.Chan = make(chan []byte)
 	CrossFeed.Hosts = make(map[string]*UDP_Conn)
+
+	go CrossFeed.StartCheckTimer()
 	go CrossFeed.Listen()
-	fmt.Println("init ###################")
+
+	//fmt.Println("init ###################")
 }
 
+// add a host
 func (me *crossfeed) Add(addr string, port int){
-	log.Println("> Add Crossfeed ================= ", addr, port)
 
 	conn := NewUDPConn(addr, port)
 	me.Hosts[conn.Url] = conn
@@ -42,18 +41,16 @@ func (me *crossfeed) Add(addr string, port int){
 	go me.InitConn(conn)
 }
 
-// Attempt to connect and setup a Crossfeed Connection
+// Attempt to connect and setup a Connection
 // Should dns fail, address not exist or not able to connect
 // the connection witll be marked as conn.Active = false with conn.LastError
 func (me *crossfeed) InitConn( conn *UDP_Conn){
-
-	log.Println("> InitSetupCrossfeed = ", conn.Url )
 
 	if conn.Active {
 		return // we need to define when its inactive, eg connection dropped
 	}
 
-	//= resolve with UDP address
+	// get ip address
 	udp_addr, err := net.ResolveUDPAddr("udp4", conn.Url)
 	if err != nil {
 		conn.Active = false
@@ -62,7 +59,7 @@ func (me *crossfeed) InitConn( conn *UDP_Conn){
 		return
 	}
 
-	//= open socket and listen
+	//= open socket
 	var err_listen error
 	conn.Sock, err_listen = net.Dial("udp4", udp_addr.String())
 	if err_listen != nil {
@@ -71,11 +68,29 @@ func (me *crossfeed) InitConn( conn *UDP_Conn){
 		log.Println("\tFAIL: Crossfeed FAIL to Open:  ", conn.Url, udp_addr, err_listen)
 		return
 	}
+
+	// all good
 	conn.Active = true
 	conn.LastError = ""
 	log.Println("\tOK:   Crossfeed Added -  ", conn.Url, udp_addr, err_listen)
+}
 
-} // FgServer::AddCrossfeed()
+// Starts a timer to check servers that are down  every 60 secs
+// this is started in Loop() as a goroutine go me.StartCrossfeedCheckTimer()
+func (me *crossfeed) StartCheckTimer(){
+
+	ticker := time.NewTicker(time.Millisecond * 10000)
+	go func() {
+		for _ = range ticker.C {
+			for _, conn := range me.Hosts {
+				if conn.Active == false {
+					log.Println("> Attempt Reconnect Crossfeed = ", conn.Url )
+					go me.InitConn(conn)
+				}
+			}
+		}
+	}()
+}
 
 
 func (me *crossfeed) Listen(){
@@ -88,7 +103,7 @@ func (me *crossfeed) Listen(){
 					//if (CurrentCrossfeed->Address.getIP() != SenderAddress.getIP()) ?? But same address different port ??
 					_, err := cf.Sock.Write(xdr_bytes)
 					if err != nil {
-						fmt.Println(err)
+						fmt.Println("Crossfeed error", err)
 						me.Failed++
 					}else {
 						me.Sent++
@@ -106,7 +121,7 @@ func (me *crossfeed) Listen(){
 
 
 
-
+/*
 func (me *FgServer) AddCrossfeed( host_name string, port int){
 
 	log.Println("> Add Crossfeed = ", host_name, port)
@@ -119,10 +134,12 @@ func (me *FgServer) AddCrossfeed( host_name string, port int){
 	go me.InitSetupCrossfeed(conn)
 
 }
+*/
 
 // Attempt to connect and setup a Crossfeed Connection
 // Should dns fail, address not exist or not able to connect
 // the connection witll be marked as conn.Active = false with conn.LastError
+/*
 func (me *FgServer) InitSetupCrossfeed( conn *UDP_Conn){
 
 	log.Println("> InitSetupCrossfeed = ", conn.Url )
@@ -154,10 +171,11 @@ func (me *FgServer) InitSetupCrossfeed( conn *UDP_Conn){
 	log.Println("\tOK:   Crossfeed Added -  ", conn.Url, udp_addr, err_listen)
 
 } // FgServer::AddCrossfeed()
-
+*/
 
 //= Starts a timer to check servers that are down ie Active = false (currently every 60 secs)
 // this is started in Loop() as a goroutine go me.StartCrossfeedCheckTimer()
+/*
 func (me *FgServer) StartCrossfeedCheckTimer(){
 	
 	ticker := time.NewTicker(time.Millisecond * 60000)
@@ -172,7 +190,7 @@ func (me *FgServer) StartCrossfeedCheckTimer(){
 		}
 	}()
 }	
-
+*/
 
 
 
@@ -182,6 +200,7 @@ func (me *FgServer) StartCrossfeedCheckTimer(){
 	mainly used for testing and debugging, and crossfeed.fgx.ch
 	http://gitorious.org/fgms/fgms-0-x/blobs/master/src/server/FgServer.cxx#line1154
 */
+/*
 func (me *FgServer) SendToCrossfeed(xdr_bytes []byte, sender_address *net.UDPAddr){
 	//return
 	//T_MsgHdr*       MsgHdr;
@@ -226,4 +245,4 @@ func (me *FgServer) SendToCrossfeed(xdr_bytes []byte, sender_address *net.UDPAdd
 	//fmt.Println("crossfeeds", me.Crossfeeds, me.CrossFeedSent, me.CrossFeedFailed)
 	//MsgHdr->Magic = MsgMagic;  // restore the magic value ? umm not used now ?
 } // FgServer::SendToCrossfeed ()
-
+*/
