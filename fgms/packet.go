@@ -99,6 +99,8 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, sender_address *n
 	var player *FG_Player
 	var position message.PositionMsg
 	var exists bool
+	var remBytes []byte
+	var err_pos error
 
 	// Check if entry exists
 	player, exists = me.Players[callsign]
@@ -121,14 +123,13 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, sender_address *n
 	//    Store senders position
 	//////////////////////////////////////////////////
 
-	//var PosMsg message.PositionMsg
 	if header.Type == message.TYPE_POS	{
 
-		position, remBytes, errPos := message.DecodePosition(remainingBytes)
+		position, remBytes, err_pos = message.DecodePosition(remainingBytes)
 		if err != nil{
-			fmt.Println("XDR Decode Position Error", errPos)
+			fmt.Println("XDR Decode Position Error", err_pos)
 			return
-		}else if 1 == 2 {
+		}else {
 			fmt.Println("remain2=", len(remBytes))
 		}
 

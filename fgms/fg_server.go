@@ -584,10 +584,11 @@ func (me *FgServer) AddClient(header message.HeaderMsg, position message.Positio
 	//IsLocal             = true;
 
 	var callsign string = header.Callsign()
-
-	
+	//fmt.Println("==============================================")
+	//fmt.Println("call=", callsign, "mod=")
 	//IsLocal := header.Magic != message.RELAY_MAGIC  // not a local client
-
+	//fmt.Println(header)
+	//fmt.Println(position)
 	
 
 	
@@ -595,8 +596,10 @@ func (me *FgServer) AddClient(header message.HeaderMsg, position message.Positio
 	client.Callsign  = callsign
 	//NewPlayer.Passwd    = "test" //MsgHdr->Passwd;
 	client.ModelName = position.Model()
-	client.Aircraft = filepath.Base(client.ModelName)
+	s := filepath.Base(client.ModelName)
+	client.Aircraft = s[0:len(s)-len(filepath.Ext(s))]
 
+	//fmt.Println("call=", callsign, "mod=", client.ModelName, position.Model(), position.ModelBytes)
 	client.Timestamp = Now()
 	client.JoinTime  = client.Timestamp
 	//NewPlayer.Origin    = Sender.getHost () TODO

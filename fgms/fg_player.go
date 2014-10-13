@@ -8,7 +8,7 @@ import (
 type FG_Player struct {
 	
 	//Origin string
-	Address *net.UDPAddr    
+	Address *net.UDPAddr  `json:"-"`
 	//Conn *net.UDPConn
 	
 	Callsign string `json:"callsign"`
@@ -19,16 +19,16 @@ type FG_Player struct {
 	JoinTime int64 // epoch
 	Timestamp int64 // epoch
 	
-	LastPos Point3D
-	LastOrientation Point3D
+	LastPos Point3D `json:"-"`
+	LastOrientation Point3D `json:"-"`
 	
 	IsLocal bool
 	
-	Error string //;    // in case of errors
-	HasErrors bool
+	Error string `json:"-"`
+	HasErrors bool `json:"-"`
 	
 	ClientID int
-	LastRelayedToInactive int64 
+	LastRelayedToInactive int64  `json:"-"`
 	
 	// Packets recieved from client 
 	PktsReceivedFrom uint  
