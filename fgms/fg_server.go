@@ -407,10 +407,11 @@ func (me *FgServer) SetConfig(conf Config) error {
 	}
 
 
-	// read the list of blacklisted IPs
-	//for _, blackList := range conf.Blacklists {
-	//	me.AddBlacklist(blackList)
-	//}
+	 // read the list of blacklisted IPs
+	for _, bl := range conf.Blacklists {
+		//me.AddBlacklist(blackList)
+		Blacklist.Add(bl)
+	}
 
 	return nil
 }

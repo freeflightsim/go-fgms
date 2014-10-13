@@ -54,8 +54,7 @@ func (me *crossfeed) InitConn( conn *UDP_Conn){
 	udp_addr, err := net.ResolveUDPAddr("udp4", conn.Url)
 	if err != nil {
 		conn.Active = false
-		conn.LastError = "Could nto resolve IP address"
-		log.Println("\tFAIL: Crossfeed to resolve UDP address:  ", conn.Url, err)
+		conn.LastError = "Could not resolve IP address"
 		return
 	}
 
@@ -64,22 +63,20 @@ func (me *crossfeed) InitConn( conn *UDP_Conn){
 	conn.Sock, err_listen = net.Dial("udp4", udp_addr.String())
 	if err_listen != nil {
 		conn.Active = false
-		conn.LastError = "Couldnt open UDP port"
-		log.Println("\tFAIL: Crossfeed FAIL to Open:  ", conn.Url, udp_addr, err_listen)
+		conn.LastError = "Could not open UDP port"
 		return
 	}
 
 	// all good
 	conn.Active = true
 	conn.LastError = ""
-	log.Println("\tOK:   Crossfeed Added -  ", conn.Url, udp_addr, err_listen)
 }
 
 // Starts a timer to check servers that are down  every 60 secs
 // this is started in Loop() as a goroutine go me.StartCrossfeedCheckTimer()
 func (me *crossfeed) StartCheckTimer(){
 
-	ticker := time.NewTicker(time.Millisecond * 10000)
+	ticker := time.NewTicker(time.Second * 60) // TODO roll back
 	go func() {
 		for _ = range ticker.C {
 			for _, conn := range me.Hosts {
@@ -92,15 +89,15 @@ func (me *crossfeed) StartCheckTimer(){
 	}()
 }
 
-
+// Listen for xdr packets from channel, and send to xrossfeeds
 func (me *crossfeed) Listen(){
-	fmt.Println("Listen---------------")
+	fmt.Println("Crossfeed: Listening")
 	for {
 		select {
 		case xdr_bytes := <- me.Chan:
+			// Got data from channel
 			for _, cf := range me.Hosts {
 				if cf.Active {
-					//if (CurrentCrossfeed->Address.getIP() != SenderAddress.getIP()) ?? But same address different port ??
 					_, err := cf.Sock.Write(xdr_bytes)
 					if err != nil {
 						fmt.Println("Crossfeed error", err)
@@ -109,140 +106,8 @@ func (me *crossfeed) Listen(){
 						me.Sent++
 					}
 				}
-				//CurrentCrossfeed++;
 			}
 		}
 	}
-	fmt.Println("DONEEE")
 }
 
-
-
-
-
-
-/*
-func (me *FgServer) AddCrossfeed( host_name string, port int){
-
-	log.Println("> Add Crossfeed = ", host_name, port)
-
-	// Create object
-	conn := NewUDPConn(host_name, port)
-	me.Crossfeeds[conn.Url] = conn
-
-	// Go check and setup
-	go me.InitSetupCrossfeed(conn)
-
-}
-*/
-
-// Attempt to connect and setup a Crossfeed Connection
-// Should dns fail, address not exist or not able to connect
-// the connection witll be marked as conn.Active = false with conn.LastError
-/*
-func (me *FgServer) InitSetupCrossfeed( conn *UDP_Conn){
-
-	log.Println("> InitSetupCrossfeed = ", conn.Url )
-
-	if conn.Active {
-		return // we need to define when its inactive, eg connection dropped
-	}
-
-	//= resolve with UDP address
-	udp_addr, err := net.ResolveUDPAddr("udp4", conn.Url)
-	if err != nil {
-		conn.Active = false
-		conn.LastError = "Could nto resolve IP address"
-		log.Println("\tFAIL: Crossfeed to resolve UDP address:  ", conn.Url, err)
-		return
-	}
-
-	//= open socket and listen
-	var err_listen error
-	conn.Sock, err_listen = net.Dial("udp4", udp_addr.String())
-	if err_listen != nil {
-		conn.Active = false
-		conn.LastError = "Couldnt open UDP port"
-		log.Println("\tFAIL: Crossfeed FAIL to Open:  ", conn.Url, udp_addr, err_listen)
-		return
-	}
-	conn.Active = true
-	conn.LastError = ""
-	log.Println("\tOK:   Crossfeed Added -  ", conn.Url, udp_addr, err_listen)
-
-} // FgServer::AddCrossfeed()
-*/
-
-//= Starts a timer to check servers that are down ie Active = false (currently every 60 secs)
-// this is started in Loop() as a goroutine go me.StartCrossfeedCheckTimer()
-/*
-func (me *FgServer) StartCrossfeedCheckTimer(){
-	
-	ticker := time.NewTicker(time.Millisecond * 60000)
-    go func() {
-		for _ = range ticker.C {	
-			for _, conn := range me.Crossfeeds {			
-				if conn.Active == false {
-					log.Println("> Attempt Reconnect Crossfeed = ", conn.Url )
-					go me.InitSetupCrossfeed(conn)
-				}
-			}
-		}
-	}()
-}	
-*/
-
-
-
-
-/*   Send message to all crossfeed servers.
-	Crossfeed servers receive all traffic without condition,
-	mainly used for testing and debugging, and crossfeed.fgx.ch
-	http://gitorious.org/fgms/fgms-0-x/blobs/master/src/server/FgServer.cxx#line1154
-*/
-/*
-func (me *FgServer) SendToCrossfeed(xdr_bytes []byte, sender_address *net.UDPAddr){
-	//return
-	//T_MsgHdr*       MsgHdr;
-	//uint32_t        MsgMagic;
-	//int             sent;
-	
-	//MsgHdr    = (T_MsgHdr *) Msg;
-	//MsgMagic  = MsgHdr->Magic;
-	//MsgHdr->Magic = XDR_encode<uint32_t> (RELAY_MAGIC);
-	
-	// Not sure what is happening, but we create another payload, by unmarshalling Msg again ?
-	//var MsgHdr flightgear.T_MsgHdr
-	//_, err := xdr.Unmarshal(Msg, &MsgHdr)
-	//if err != nil {
-	//	fmt.Println("XDR Decode Error in SendToCrossfeed - Should never happen?", err)
-	//	return
-	//}
-	//MsgHdr.Magic = message.RELAY_MAGIC
-	
-	//encoded, err := xdr.Marshal(MsgHdr)
-	//if err != nil {
-	//	fmt.Println("XDR Encode Error in SendToCrossfeed - Should never happen?", err)
-	//	return
-	//}
-	//mT_RelayListIt CurrentCrossfeed = m_CrossfeedList.begin();
-	//while (CurrentCrossfeed != m_CrossfeedList.end())
-	//{
-
-	for _, cf := range me.Crossfeeds {
-		if cf.Active {
-			//if (CurrentCrossfeed->Address.getIP() != SenderAddress.getIP()) ?? But same address different port ??
-			_, err := cf.Sock.Write(xdr_bytes)
-			if err != nil {
-				fmt.Println(err)
-				me.CrossFeedFailed++
-			}else {
-				me.CrossFeedSent++
-			}
-		}
-		//CurrentCrossfeed++;
-	}
-	//fmt.Println("crossfeeds", me.Crossfeeds, me.CrossFeedSent, me.CrossFeedFailed)
-	//MsgHdr->Magic = MsgMagic;  // restore the magic value ? umm not used now ?
-} // FgServer::SendToCrossfeed ()
-*/
