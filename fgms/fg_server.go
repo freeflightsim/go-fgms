@@ -497,6 +497,7 @@ func (me *FgServer) AddBadClient(Sender *net.UDPAddr , ErrorMsg string, IsLocal 
 func (me *FgServer) Loop() {
 
 	//== Startup Telnet Listener
+	/*
 	go func(lisTel net.Listener){
 		for {
 			conna, erra := lisTel.Accept() 
@@ -507,11 +508,11 @@ func (me *FgServer) Loop() {
 		}
 	}(me.Telnet.Listen)
 	log.Println("# Listening Telnet > ")
-	
+	*/
 	
 	
 	//== Start loop to check ocassinally crossfeed server conentions
-	go me.StartCrossfeedCheckTimer()
+	//go me.StartCrossfeedCheckTimer()
 
 	
 	//== Startup UDP listener
@@ -541,39 +542,20 @@ func (me *FgServer) Loop() {
 //////////////////////////////////////////////////////////////////////
 // Look if we know the sending client
 // return - 0: Sender is unknown  - 1: Sender is known - 2: Sender is known, but has a different IP
-func (me *FgServer) SenderIsKnown(senderCallsign string) int {
+/*
+func (me *FgServer) DEADSenderIsKnown(header message.HeaderMsg, address *net.UDPAddr) int {
 
-	//addr := SenderAddress.String()
+	player, found := me.Players[header.Callsign()]
 
-	_, found := me.Players[senderCallsign]
-	fmt.Println("Find=", senderCallsign, "found=",found)
-	//for _, player := range me.PlayerList {
-	//	if player.Callsign == SenderCallsign {
-	//		//if player.
-	//	}
-	//	
-	//}
-	if found {
+	if found == false {
+		return SENDER_UNKNOWN
+	}
+	if player.Address.String() == address.String() {
 		return SENDER_KNOWN
 	}
-	/* mT_PlayerListIt CurrentPlayer;
-	for (CurrentPlayer = m_PlayerList.begin();
-	CurrentPlayer != m_PlayerList.end();
-	CurrentPlayer++)
-	{
-	if (CurrentPlayer->Callsign == SenderCallsign){
-		if CurrentPlayer->Address.getIP() == SenderAddress.getIP() {
-			return 1 // Sender is known
-		}
-		// Same callsign, but different IP.
-		// Quietly ignore this packet.
-		return 2
-		}
-	} */
-	// Sender is unkown
-	return SENDER_UNKNOWN
+	return SENDER_DIFF_IP
 } // FgServer::SenderIsKnown ()
-
+*/
 
 
 

@@ -13,7 +13,7 @@ import(
 )
 
 import(
-	"github.com/davecgh/go-xdr/xdr"
+	//"github.com/davecgh/go-xdr/xdr"
 
 	"github.com/FreeFlightSim/go-fgms/message"
 	//"github.com/FreeFlightSim/go-fgms/flightgear"
@@ -33,7 +33,7 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, address *net.UDPA
 	//uint32_t        MsgId;
 	//uint32_t        MsgMagic;
 	//Timestamp time.Time
-	timestamp := Now()
+
 	
 	var SenderPosition Point3D
 	var SenderOrientation Point3D
@@ -48,30 +48,20 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, address *net.UDPA
 	
 	//fmt.Println("MSG=", len(Msg))
 	//var header message.HeaderMsg
-	header, remainingBytes, err := message.DecodeHeader(xdr_bytes)
 
-	//remainingBytes, err := xdr.Unmarshal(Msg, &MsgHdr)
+
+	// Decode header message, exit if error
+	header, remainingBytes, err := message.DecodeHeader(xdr_bytes)
 	if err != nil{
-		fmt.Println("XDR Decode Error", err)
+		fmt.Println("XDR header error", err)
 		return
 	}
-	fmt.Println("remain=", len(remainingBytes), address, header)
-	
-	//MsgMagic  = XDR_decode<uint32_t> (MsgHdr->Magic);
-	//MsgId     = XDR_decode<uint32_t> (MsgHdr->MsgId);
-	//fmt.Println( "Magic/ID", MsgHdr.Magic, MsgHdr.Version, MsgHdr.MsgId, MsgHdr.Callsign, MsgHdr.ReplyAddress, MsgHdr.ReplyPort )
-	
-	//fmt.Println ("=magic=", flightgear.MSG_MAGIC == MsgHdr.Magic) //WORKS
-	//fmt.Println ("=proto=", flightgear.PROTO_VER == MsgHdr.Version) //WORKS
-	//fmt.Println ("=ID=", MsgHdr.MsgId)
-	//cs := "" //string(MsgHdr.Callsign[0]) + string(MsgHdr.Callsign[1]) + string(MsgHdr.Callsign[2]) + string(MsgHdr.Callsign[3]) + string(MsgHdr.Callsign[4]) + string(MsgHdr.Callsign[5]) + string(MsgHdr.Callsign[6]) + string(MsgHdr.Callsign[7])
-	//for _, ele := range MsgHdr.Callsign{
-	//	if ele != 0 {
-	//		cs += string(ele)
-	//	}
-	//}    
-	//fmt.Println ("Header=", MsgHdr.Callsign())
-	
+	fmt.Println("remain=", len(remainingBytes), address.String())
+
+	me.PacketsInvalid++
+
+	timestamp := Now()
+
 
 	//------------------------------------------------------
 	// First of all, send packet to all crossfeed servers.
@@ -86,16 +76,7 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, address *net.UDPA
 	//	me.BlackListRejected++
 	//	return
 	//}
-	me.PacketsInvalid++
-	// Check packet is valid
-	//fmt.Println (" > checkvalid")
-	//if !me.PacketIsValid(length, header, address) {
 
-	//	fmt.Println ("  <<  NO checkvalid")
-	//	return
-	//}
-	//fmt.Println ("  <<  YES checkvalid")
-	
 	if header.Magic == message.RELAY_MAGIC { // not a local client
 		if !me.IsKnownRelay(address) {
 			me.UnknownRelay++ 
@@ -104,29 +85,58 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, address *net.UDPA
 			me.RelayMagic++ // bump relay magic packet
 		}
 	}
-	
+
+	callsign := header.Callsign()
+
+	var player *FG_Player
+	var exists bool
+
+	// Check if entry exists
+	player, exists = me.Players[callsign]
+
+	if exists == false &&  header.Type  != message.TYPE_POS {
+		// ignore until a position message
+		return
+	}
+	if exists == true && player.Address.String() != address.String() {
+		// sender has same callsign but different address, do ignore
+		return
+	}
+
+	if exists == false {
+		// create new player
+		player = new(FG_Player)
+		player.Address = address
+		player.Callsign = callsign
+		me.Players[callsign] = player
+	}
+
+
+
+
 	//////////////////////////////////////////////////
 	//    Store senders position
 	//////////////////////////////////////////////////
-	var PosMsg message.PositionMsg
+
+	//var PosMsg message.PositionMsg
 	if header.Type == message.TYPE_POS	{
 		me.PositionData++
-
-		remainingBytes2, errPos := xdr.Unmarshal(remainingBytes, &PosMsg)
+		position, remBytes, errPos := message.DecodePosition(remainingBytes)
+		//remainingBytes2, errPos := xdr.Unmarshal(remainingBytes, &PosMsg)
 		if err != nil{
 			fmt.Println("XDR Decode Position Error", errPos)
 			return
 		}
 		if 1 == 2 {
-			fmt.Println("remain2=", len(remainingBytes2), PosMsg.Model)
+			fmt.Println("remain2=", len(remBytes), position.Model)
 		}
 		//PosMsg = (T_PositionMsg *) (Msg + sizeof(T_MsgHdr));
 		//double x = XDR_decode64<double> (PosMsg->position[X]);
 		//double y = XDR_decode64<double> (PosMsg->position[Y]);
 		//double z = XDR_decode64<double> (PosMsg->position[Z]);
-		x := PosMsg.Position[X]
-		y := PosMsg.Position[Y]
-		z := PosMsg.Position[Z]
+		x := position.Position[X]
+		y := position.Position[Y]
+		z := position.Position[Z]
 		if x == 0.0 || y == 0.0 || z == 0.0 { // ignore while position is not settled
 			return
 		}
@@ -138,26 +148,13 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, address *net.UDPA
 			XDR_decode<float> (PosMsg->orientation[Z])
 		)*/
 		//TODO Wrong TYPE wtf!
-		//SenderOrientation.Set(PosMsg.Orientation[X], PosMsg.Orientation[Y],	PosMsg.Orientation[Z])
+		//SenderOrientation.Set(PosMsg.Orientations[X], PosMsg.Orientation[Y],	PosMsg.Orientation[Z])
 		SenderOrientation.Set(0,0,0)
 	} else {
 		me.NotPosData++
 	} 
 	
-	// Add Client to list if its not known
-	senderInList := me.SenderIsKnown(header.Callsign())
-	fmt.Println ("  <<  senderInList", senderInList)
-	if senderInList == SENDER_UNKNOWN { 
-		// unknown, add to the list
-		if header.Type != message.TYPE_POS {
-			return // ignore client until we have a valid position
-		}
-		//tempPosMsg := flightgear.T_PositionMsg{}
-		me.AddClient(address, header, PosMsg)
-		
-	}else if senderInList == SENDER_DIFF_IP {
-		return // known, but different IP => ignore
-	}
+
 	
 	//////////////////////////////////////////
 	//
