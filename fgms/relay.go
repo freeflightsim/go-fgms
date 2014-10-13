@@ -124,8 +124,9 @@ func (me *relays) Send(Msg []byte, Bytes int , sending_player *FG_Player){
 func (me *relays) Listen(){
 	fmt.Println("Relays: Listening")
 	for {
-		select {
-		case relay_data := <- me.Chan:
+		//select {
+		//case relay_data := <- me.Chan:
+		relay_data := <- me.Chan
 			// Got data from channel
 			now := Now()
 			UpdateInactive := (now - relay_data.Client.LastRelayedToInactive) > UPDATE_INACTIVE_PERIOD
@@ -147,6 +148,6 @@ func (me *relays) Listen(){
 				//CurrentRelay++;
 			}
 		}
-		}
+		//}
 	}
 }
