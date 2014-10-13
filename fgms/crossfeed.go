@@ -1,4 +1,3 @@
-
 package fgms
 
 import(
@@ -7,7 +6,6 @@ import(
 	"net"
 	"time"
 )
-
 
 type crossfeed struct {
 	Chan chan []byte
@@ -22,14 +20,13 @@ var CrossFeed *crossfeed
 
 // auto initialize
 func init() {
+
 	CrossFeed = new(crossfeed)
 	CrossFeed.Chan = make(chan []byte)
 	CrossFeed.Hosts = make(map[string]*UDP_Conn)
 
 	go CrossFeed.StartCheckTimer()
 	go CrossFeed.Listen()
-
-	//fmt.Println("init ###################")
 }
 
 // add a host
@@ -38,13 +35,13 @@ func (me *crossfeed) Add(addr string, port int){
 	conn := NewUDPConn(addr, port)
 	me.Hosts[conn.Url] = conn
 
-	go me.InitConn(conn)
+	go me.InitializeConn(conn)
 }
 
 // Attempt to connect and setup a Connection
 // Should dns fail, address not exist or not able to connect
 // the connection witll be marked as conn.Active = false with conn.LastError
-func (me *crossfeed) InitConn( conn *UDP_Conn){
+func (me *crossfeed) InitializeConn( conn *UDP_Conn){
 
 	if conn.Active {
 		return // we need to define when its inactive, eg connection dropped
@@ -70,6 +67,7 @@ func (me *crossfeed) InitConn( conn *UDP_Conn){
 	// all good
 	conn.Active = true
 	conn.LastError = ""
+	log.Println("Crossfeed: Connected to ", conn.Url )
 }
 
 // Starts a timer to check servers that are down  every 60 secs
@@ -82,7 +80,7 @@ func (me *crossfeed) StartCheckTimer(){
 			for _, conn := range me.Hosts {
 				if conn.Active == false {
 					log.Println("> Attempt Reconnect Crossfeed = ", conn.Url )
-					go me.InitConn(conn)
+					go me.InitializeConn(conn)
 				}
 			}
 		}
