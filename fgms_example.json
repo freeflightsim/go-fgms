@@ -17,10 +17,6 @@
 
 
 	"relays": [
-		{"host": "mpserver01.flightgear.org", "port": 5000, "comment": "Oliver Schroeder, Berlin, Germany"},
-		{"host": "mpserver02.flightgear.org", "port": 5000, "comment": ""},
-		{"host": "mpserver03.flightgear.org", "port": 5000, "comment": ""},
-		{"host": "i_no_exists.flightgear.org", "port": 5000, "comment": ""},
 		{"host": "mpserver14.flightgear.org", "port": 5000, "comment": "FGx Zurich"}
     ],
 
@@ -29,9 +25,6 @@
     ],
     
 	"blacklists": [
-	    "192.168.50.1550",
-		"ido.no.exist",
-		"m2.daffodil.uk.com",
 		"122.12.12.12"
     ]
 }

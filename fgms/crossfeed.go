@@ -19,7 +19,7 @@ type crossfeed struct {
 var CrossFeed *crossfeed
 
 // auto initialize
-func init() {
+func InitCrossfeed() {
 
 	CrossFeed = new(crossfeed)
 	CrossFeed.Chan = make(chan []byte)
@@ -27,6 +27,7 @@ func init() {
 
 	go CrossFeed.StartCheckTimer()
 	go CrossFeed.Listen()
+	log.Println("InitBlacklist")
 }
 
 // add a host

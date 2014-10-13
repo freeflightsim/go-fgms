@@ -33,20 +33,20 @@ func main(){
 	}
 
 	// Initialize the beest
-	var server *fgms.FgServer
+	//var server *fgms.FgServer
 
-	server = fgms.NewFgServer()
+	//server = fgms.NewFgServer()
+	log.Println("main=", fgms.Server)
+	fgms.SetConfig(config)
 
-	server.SetConfig(config)
-
-	err_init := server.Init()
-	if err_init != nil {
+	//err_init := server.Init()
+	//if err_init != nil {
 		//Servant.CloseTracker()
-		log.Println("INIT Error", err_init)
-		return
-	}
+	//	log.Println("INIT Error", err_init)
+	//	return
+	//}
 
-	server.Loop()
+	fgms.Server.Start()
 	/*
 	I = Servant.Loop();
 	if (I != 0)

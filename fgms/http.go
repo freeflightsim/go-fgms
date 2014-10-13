@@ -11,7 +11,7 @@ import (
 )
 
 
-func init() {
+func InitHttp() {
 	r := mux.NewRouter()
 	r.HandleFunc("/flights.json", JsonFlightsHandler)
 	//r.HandleFunc("/products", ProductsHandler)

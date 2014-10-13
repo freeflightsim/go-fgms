@@ -12,11 +12,11 @@ type blacklist struct {
 var Blacklist blacklist
 
 
-func init(){
-
+func InitBlackList(){
+	log.Println("InInitBlackList>>>>>>>>>>>>>>>")
 	Blacklist = blacklist{}
 	Blacklist.Hosts = make(map[string]bool, 0)
-
+	//log.Println("InitBlacklist")
 }
 
 

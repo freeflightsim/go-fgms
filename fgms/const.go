@@ -18,9 +18,10 @@ const UPDATE_INACTIVE_PERIOD  = 1
 const MAX_TELNETS             = 5
 
 
-
+/*
 const (
 	SENDER_UNKNOWN  = 0
 	SENDER_KNOWN
 	SENDER_DIFF_IP  // Not sure this is used
 )
+*/

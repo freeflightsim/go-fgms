@@ -65,7 +65,7 @@ type FgServer struct {
 	//wp                  = fopen("wp.txt", "w");
 
 	//= maybe this could be a slice
-	//BlackList map[string]bool
+	BlackList *blacklist
 	BlackListRejected uint64
 
 	//RelayList map[string]*net.UDPConn
@@ -118,28 +118,40 @@ type FgServer struct {
 	//pthread_mutex_init( &m_PlayerMutex, 0 );
 } 
 
+var Server *FgServer
 
+func init(){
 
-// Construct and return pointer to new FgServer instance
-func NewFgServer() *FgServer {
-	ob := new(FgServer)
-	
-	ob.Players = make(map[string]*FG_Player)
+	InitBlackList()
+	InitCrossfeed()
+	InitHttp()
+
+	//fmt.Println("AUTO SERVER")
+	Server = new(FgServer)
+
+	//Server.BlackList = blacklist{}
+	//Server.BlackList.Hosts = make(map[string]bool, 0)
+
+	Server.Players = make(map[string]*FG_Player)
 	//ob.PlayerList = make([]*FG_Player, 0)
 		
 	//ob.RelayList = make([]*NetAddress, 0)
 	//ob.RelayMap = make(map[string]string)
-	ob.Relays = make(map[string]*net.UDPConn, 0)
+	Server.Relays = make(map[string]*net.UDPConn, 0)
 	//ob.Crossfeeds = make(map[string]*net.UDPConn, 0)
 	//ob.Crossfeeds = make(map[string]*UDP_Conn, 0)
 	
 	//ob.BlackList = make(map[string]bool)
-		
-	ob.Telnet = NewTelnetServer()
-	
-	ob.MessageList = make([]message.ChatMsg, 0)
-		
-	return ob
+
+	Server.Telnet = NewTelnetServer()
+
+	Server.MessageList = make([]message.ChatMsg, 0)
+
+	//Server.Init()
+
+	//InitBlacklist()
+	//InitCrossfeed()
+	//InitHttp()
 }
 
 
@@ -228,7 +240,7 @@ func (me *FgServer) Init() error {
 	//{
 	//  netInit ();
 	//}
-
+	fmt.Println("Server.INIT()")
 	if me.ReinitData {
 		if me.DataSocket != nil {
 			//delete m_DataSocket;
@@ -243,6 +255,7 @@ func (me *FgServer) Init() error {
 			log.Panicf("Fatal error starting UDP server: %s", erru)
 			return err
 		}
+		fmt.Println("SOCKET INIT------------------------------")
 		me.ReinitData = false
 	}
 
@@ -335,10 +348,14 @@ func (me *FgServer) Init() error {
 
 // Read a config file and set internal variables accordingly.
 
+func SetConfig(conf Config){
+	Server.SetConfig(conf)
+}
+
 func (me *FgServer) SetConfig(conf Config) error {
 
-
-// Server Name
+	fmt.Println("Server.SetConfig()", conf.Server, me)
+	// Server Name
 	me.SetServerName(conf.Server.Name)
 
 	// Address
@@ -379,6 +396,9 @@ func (me *FgServer) SetConfig(conf Config) error {
 		}
 	}
 	*/
+	if true == true {
+		return nil
+	}
 
 	// Read the list of relays
 	for _, relay := range conf.Relays {
@@ -387,7 +407,6 @@ func (me *FgServer) SetConfig(conf Config) error {
 	}
 
 	// Read the list of crossfeeds
-
 	for _, cf := range conf.Crossfeeds {
 		CrossFeed.Add(cf.Host, cf.Port)
 	}
@@ -474,10 +493,8 @@ func (me *FgServer) AddBadClient(Sender *net.UDPAddr , ErrorMsg string, IsLocal 
 
 
 
-
-
 // Main Loop
-func (me *FgServer) Loop() {
+func (me *FgServer) Start() {
 
 	//== Startup Telnet Listener
 	/*
@@ -496,12 +513,12 @@ func (me *FgServer) Loop() {
 	
 	//== Start loop to check ocassinally crossfeed server conentions
 	//go me.StartCrossfeedCheckTimer()
-
+	me.Init()
 	
 	//== Startup UDP listener
 	count := 0
 	buffer := make([]byte, MAX_PACKET_SIZE)
-	log.Println("# Listening UDP > ", )
+	log.Println("# Listening UDP > ", me.DataSocket)
 	for {
 		length, raddr, err := me.DataSocket.ReadFromUDP(buffer)
 		if err != nil {
