@@ -393,9 +393,9 @@ func (me *FgServer) SetConfig(conf Config) error {
 		}
 	}
 	*/
-	if true == true {
-		return nil
-	}
+	//if true == true {
+	//	return nil
+	//}
 
 	// Read the list of relays
 	for _, relay := range conf.Relays {
@@ -562,50 +562,32 @@ func (me *FgServer) DEADSenderIsKnown(header message.HeaderMsg, address *net.UDP
 //////////////////////////////////////////////////////////////////////
 //  Insert a new client to internal list
 //func (me *FgServer) AddClient(Sender *net.UDPAddr, MsgHdr flightgear.T_MsgHdr, PosMsg flightgear.T_PositionMsg) {
-func (me *FgServer) AddClient(header message.HeaderMsg, position message.PositionMsg, address *net.UDPAddr, ) {
-	//time_t          Timestamp;
-	//uint32_t        MsgLen;
-	//uint32_t        MsgId;
-	//uint32_t        MsgMagic;
-	//string          Message;
-	//string          Origin;
-	//T_MsgHdr*       MsgHdr;
-	//T_PositionMsg*  PosMsg;
-	//FG_Player       NewPlayer;
-	//bool    IsLocal;
+func (me *FgServer) AddClient(header *message.HeaderMsg, position *message.PositionMsg, address *net.UDPAddr, ) *FG_Player {
 
-	//Timestamp           = time(0);
-	//MsgHdr              = (T_MsgHdr *) Msg;
-	//var MsgHdr &flightgear.T_MsgTdr{}
-	//PosMsg              = (T_PositionMsg *) (Msg + sizeof(T_MsgHdr));
-	//MsgId               = XDR_decode<uint32_t> (MsgHdr->MsgId);
-	//MsgLen              = XDR_decode<uint32_t> (MsgHdr->MsgLen);
-	//MsgMagic            = XDR_decode<uint32_t> (MsgHdr->Magic);
-	//IsLocal             = true;
 
 	var callsign string = header.Callsign()
-	//fmt.Println("==============================================")
-	//fmt.Println("call=", callsign, "mod=")
-	//IsLocal := header.Magic != message.RELAY_MAGIC  // not a local client
-	//fmt.Println(header)
-	//fmt.Println(position)
-	
 
-	
 	client := new(FG_Player)
+
+	me.MaxClientID++
+	client.ClientID = me.MaxClientID
+	client.Address = address
+	client.IsLocal = header.Magic != message.RELAY_MAGIC
+
+	client.Timestamp = Now()
+	client.JoinTime  = client.Timestamp
+
 	client.Callsign  = callsign
-	//NewPlayer.Passwd    = "test" //MsgHdr->Passwd;
+	//client.Passwd    = "test" //MsgHdr->Passwd;
+
+	//NewPlayer.Origin    = Sender.getHost () TODO
+
 	client.ModelName = position.Model()
 	s := filepath.Base(client.ModelName)
 	client.Aircraft = s[0:len(s)-len(filepath.Ext(s))]
 
-	//fmt.Println("call=", callsign, "mod=", client.ModelName, position.Model(), position.ModelBytes)
-	client.Timestamp = Now()
-	client.JoinTime  = client.Timestamp
-	//NewPlayer.Origin    = Sender.getHost () TODO
-	client.HasErrors = false
-	// NewPlayer.Address   = Sender
-	client.IsLocal = header.Magic != message.RELAY_MAGIC
+
+
 
 	//NewPlayer.LastPos.Clear()
 	//NewPlayer.LastOrientation.Clear()
@@ -630,14 +612,13 @@ func (me *FgServer) AddClient(header message.HeaderMsg, position message.Positio
 	client.LastOrientation.Set( float64(position.Orientation[X]), float64(position.Orientation[Y]), float64(position.Orientation[Z]))
 	
 	//NewPlayer.ModelName = PosMsg.ModelString()
-	me.MaxClientID++
-	client.ClientID = me.MaxClientID
-	client.Address = address
+
 	//pthread_mutex_lock (& m_PlayerMutex)
 	//m_PlayerList.push_back (NewPlayer)
 	//pthread_mutex_unlock (& m_PlayerMutex);
 	
 	// Add to Map, and increment counters
+
 	me.Players[callsign] = client
 	me.NumCurrentClients++
 	if me.NumCurrentClients > me.NumMaxClients {
@@ -682,6 +663,7 @@ func (me *FgServer) AddClient(header message.HeaderMsg, position message.Positio
 		}
 	} */
 	log.Println (" ADD Client ", callsign, address.String(), client.IsLocal,  len(me.Players))
+	return client
 	/*
 	SG_LOG (SG_SYSTEMS, SG_INFO, Message
 		<< NewPlayer.Callsign << " "

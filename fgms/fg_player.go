@@ -3,6 +3,8 @@ package fgms
 import (
 	"net"
 	//"path/filepath"
+
+	"github.com/freeflightsim/go-fgms/message"
 )
 
 type FG_Player struct {
@@ -44,10 +46,9 @@ type FG_Player struct {
 
 
 // Returns the /model/747.400/AIRCRAFT.xml part
-//func (me *FG_Player) Aircraft() string {
-//	s := me.ModelName
-//	return filepath.Base(s) // ? TO CHECK
-//}
+func (me *FG_Player) UpdatePosition(position *message.PositionMsg)  {
+
+}
 
 
 // Creates a new FG_Player object with timestamp set

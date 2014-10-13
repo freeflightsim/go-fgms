@@ -129,7 +129,7 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, sender_address *n
 		if err != nil{
 			fmt.Println("XDR Decode Position Error", err_pos)
 			return
-		}else {
+		}else if 1 == 2 {
 			fmt.Println("remain2=", len(remBytes))
 		}
 
@@ -137,16 +137,8 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, sender_address *n
 			return // ignore while position is not settled
 		}
 		me.PositionData++
-		fmt.Println(me.PositionData, sender_address.String())
-		//if 1 == 2 {
-		//	fmt.Println("remain2=", len(remBytes), position.Model)
-		//}
-		//if exists == false {
-			// update new player first time
-			//player.ModelName = position.Model()
-			//player.Aircraft = filepath.Base(player.ModelName)
 
-		//}
+
 
 		//PosMsg = (T_PositionMsg *) (Msg + sizeof(T_MsgHdr));
 		//double x = XDR_decode64<double> (PosMsg->position[X]);
@@ -173,8 +165,15 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, sender_address *n
 
 	// Create new player
 	if exists == false {
-		me.AddClient(header, position, sender_address)
+		player = me.AddClient(&header, &position, sender_address)
 	}
+
+	fmt.Println( callsign, position.Position[X], position.Position[Y])
+	//pp := Point3D{position.Position[X], position.Position[Y], position.Position[Z]}
+	//xp := SG_CartToGeod(pp)
+	//fmt.Println( callsign, xp.X, xp.Y, xp.Z)
+	player.UpdatePosition(position)
+
 	//////////////////////////////////////////
 	//
 	//      send the packet to all clients.
