@@ -5,7 +5,8 @@ import(
 	//"bytes"
 	"fmt"
 	"log"
-	"net"		
+	"net"
+	"path/filepath"
 	//"strings"
 	//"strconv"
 	//"time"
@@ -457,7 +458,7 @@ func (me *FgServer) AddBadClient(Sender *net.UDPAddr , ErrorMsg string, IsLocal 
 	//////////////////////////////////////////////////
 	fmt.Println("BADCLIENT", Sender)
 	me.MaxClientID++
-	NewPlayer := NewFG_Player()
+	NewPlayer := new(FG_Player)
 	NewPlayer.Callsign      = "* Bad Client *"
 	NewPlayer.ModelName     = "* unknown *"
 	//NewPlayer.Timestamp     = time(0);
@@ -565,7 +566,7 @@ func (me *FgServer) DEADSenderIsKnown(header message.HeaderMsg, address *net.UDP
 //////////////////////////////////////////////////////////////////////
 //  Insert a new client to internal list
 //func (me *FgServer) AddClient(Sender *net.UDPAddr, MsgHdr flightgear.T_MsgHdr, PosMsg flightgear.T_PositionMsg) {
-func (me *FgServer) AddClient(SenderAddress *net.UDPAddr, header message.HeaderMsg, PosMsg message.PositionMsg) {
+func (me *FgServer) AddClient(header message.HeaderMsg, position message.PositionMsg, address *net.UDPAddr, ) {
 	//time_t          Timestamp;
 	//uint32_t        MsgLen;
 	//uint32_t        MsgId;
@@ -589,21 +590,23 @@ func (me *FgServer) AddClient(SenderAddress *net.UDPAddr, header message.HeaderM
 	var callsign string = header.Callsign()
 
 	
-	IsLocal := header.Magic != message.RELAY_MAGIC  // not a local client
-	log.Println (" ADD Client ", callsign, SenderAddress, IsLocal,  len(me.Players))
+	//IsLocal := header.Magic != message.RELAY_MAGIC  // not a local client
+
 	
 
 	
-	NewPlayer := NewFG_Player()
-	NewPlayer.Callsign  = callsign
+	client := new(FG_Player)
+	client.Callsign  = callsign
 	//NewPlayer.Passwd    = "test" //MsgHdr->Passwd;
-	NewPlayer.ModelName = PosMsg.Model()
-	//NewPlayer.Timestamp = time.Now().Unix()
-	//NewPlayer.JoinTime  = NewPlayer.Timestamp
+	client.ModelName = position.Model()
+	client.Aircraft = filepath.Base(client.ModelName)
+
+	client.Timestamp = Now()
+	client.JoinTime  = client.Timestamp
 	//NewPlayer.Origin    = Sender.getHost () TODO
-	NewPlayer.HasErrors = false
+	client.HasErrors = false
 	// NewPlayer.Address   = Sender
-	NewPlayer.IsLocal   = IsLocal
+	client.IsLocal = header.Magic != message.RELAY_MAGIC
 
 	//NewPlayer.LastPos.Clear()
 	//NewPlayer.LastOrientation.Clear()
@@ -618,32 +621,32 @@ func (me *FgServer) AddClient(SenderAddress *net.UDPAddr, header message.HeaderM
 		XDR_decode64<double> (PosMsg->position[Y]),
 		XDR_decode64<double> (PosMsg->position[Z])
 	); */
-	NewPlayer.LastPos.Set( PosMsg.Position[X], PosMsg.Position[Y], PosMsg.Position[Z])
+	client.LastPos.Set( position.Position[X], position.Position[Y], position.Position[Z])
 	 
 	/*NewPlayer.LastOrientation.Set (
 		XDR_decode<float> (PosMsg->orientation[X]),
 		XDR_decode<float> (PosMsg->orientation[Y]),
 		XDR_decode<float> (PosMsg->orientation[Z])
 	);*/
-	NewPlayer.LastOrientation.Set( float64(PosMsg.Orientation[X]), float64(PosMsg.Orientation[Y]), float64(PosMsg.Orientation[Z]))
+	client.LastOrientation.Set( float64(position.Orientation[X]), float64(position.Orientation[Y]), float64(position.Orientation[Z]))
 	
 	//NewPlayer.ModelName = PosMsg.ModelString()
 	me.MaxClientID++
-	NewPlayer.ClientID = me.MaxClientID
-	NewPlayer.Address = SenderAddress
+	client.ClientID = me.MaxClientID
+	client.Address = address
 	//pthread_mutex_lock (& m_PlayerMutex)
 	//m_PlayerList.push_back (NewPlayer)
 	//pthread_mutex_unlock (& m_PlayerMutex);
 	
 	// Add to Map, and increment counters
-	me.Players[callsign] = NewPlayer
+	me.Players[callsign] = client
 	me.NumCurrentClients++
 	if me.NumCurrentClients > me.NumMaxClients {
 		me.NumMaxClients = me.NumCurrentClients
 	}
 	
 	var Message string = ""
-	if 1 ==2 && IsLocal {
+	if 1 ==2 && client.IsLocal {
 		Message  = "Welcome to "
 		Message += me.ServerName
 		//me.CreateChatMessage (NewPlayer.ClientID , Message)
@@ -658,9 +661,9 @@ func (me *FgServer) AddClient(SenderAddress *net.UDPAddr, header message.HeaderM
 		if me.IsTracked {
 			Message += "This server is tracked."
 		}
-		me.CreateChatMessage (NewPlayer.ClientID , Message)
+		me.CreateChatMessage (client.ClientID , Message)
 		//me.UpdateTracker(NewPlayer.Callsign, NewPlayer.Passwd, NewPlayer.ModelName, NewPlayer.Timestamp, tracker.CONNECT)
-		 me.UpdateTracker(NewPlayer, tracker.CONNECT)
+		 me.UpdateTracker(client, tracker.CONNECT)
 		
 	}
 	/* Message  = NewPlayer.Callsign;
@@ -679,6 +682,7 @@ func (me *FgServer) AddClient(SenderAddress *net.UDPAddr, header message.HeaderM
 		Origin = Relay->second;
 		}
 	} */
+	log.Println (" ADD Client ", callsign, address.String(), client.IsLocal,  len(me.Players))
 	/*
 	SG_LOG (SG_SYSTEMS, SG_INFO, Message
 		<< NewPlayer.Callsign << " "

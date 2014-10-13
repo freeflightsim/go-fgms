@@ -137,9 +137,9 @@ func (me *FgServer) HandleTelnetData(conn net.Conn){
 		//Message += NumToStr (CurrentPlayer.LastPos[Z], 6)+" ";
 		//
 		// http://golang.org/pkg/strconv/#FormatFloat
-		Message += strconv.FormatFloat( CurrentPlayer.LastPos.X(), 'f', 6, 32)  + " "
-		Message += strconv.FormatFloat( CurrentPlayer.LastPos.Y(), 'f', 6, 32)  + " "
-		Message += strconv.FormatFloat( CurrentPlayer.LastPos.Z(), 'f', 6, 32)  + " "
+		Message += strconv.FormatFloat( CurrentPlayer.LastPos.X, 'f', 6, 32)  + " "
+		Message += strconv.FormatFloat( CurrentPlayer.LastPos.Y, 'f', 6, 32)  + " "
+		Message += strconv.FormatFloat( CurrentPlayer.LastPos.Z, 'f', 6, 32)  + " "
 		
 		//= Lat/Lon/Alt
 		//Message += NumToStr (PlayerPosGeod[Lat], 6)+" ";
@@ -153,9 +153,9 @@ func (me *FgServer) HandleTelnetData(conn net.Conn){
 		//Message += NumToStr (CurrentPlayer.LastOrientation[Y], 6)+" ";
 		//Message += NumToStr (CurrentPlayer.LastOrientation[Z], 6)+" ";
 		
-		Message += strconv.FormatFloat( CurrentPlayer.LastOrientation.X(), 'f', 6, 32)  + " "
-		Message += strconv.FormatFloat( CurrentPlayer.LastOrientation.Y(), 'f', 6, 32)  + " "
-		Message += strconv.FormatFloat( CurrentPlayer.LastOrientation.Z(), 'f', 6, 32)  + " "
+		Message += strconv.FormatFloat( CurrentPlayer.LastOrientation.X, 'f', 6, 32)  + " "
+		Message += strconv.FormatFloat( CurrentPlayer.LastOrientation.Y, 'f', 6, 32)  + " "
+		Message += strconv.FormatFloat( CurrentPlayer.LastOrientation.Z, 'f', 6, 32)  + " "
 		
 		//Message += CurrentPlayer.ModelName;
 		Message += CurrentPlayer.ModelName

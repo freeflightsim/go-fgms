@@ -46,50 +46,50 @@ const ( X = 0
 )
 const ( Lat = 0 
 		Lon = 1
-		Alt = 1
+		Alt = 2
 )
 
 
 type Point3D struct {
-	_x float64 
-	_y float64 
-	_z float64 
+	X float64
+	Y float64
+	Z float64
 }
-func (me *Point3D) X() float64 { return me._x}
-func (me *Point3D) Y() float64 { return me._y}
-func (me *Point3D) Z() float64 { return me._z}
+//func (me *Point3D) X() float64 { return me._x}
+//func (me *Point3D) Y() float64 { return me._y}
+//func (me *Point3D) Z() float64 { return me._z}
 
-func (me *Point3D) Lat() float64 { return me._x}
-func (me *Point3D) Lon() float64 { return me._y}
-func (me *Point3D) Alt() float64 { return me._z}
-func (me *Point3D) SetLat(lat float64) { me._x = lat}
-func (me *Point3D) SetLon(lon float64) { me._y = lon}
-func (me *Point3D) SetAlt(alt float64) { me._z = alt}
+func (me *Point3D) Lat() float64 { return me.X }
+func (me *Point3D) Lon() float64 { return me.Y }
+func (me *Point3D) Alt() float64 { return me.Z }
+//func (me *Point3D) SetLat(lat float64) { me._x = lat}
+//func (me *Point3D) SetLon(lon float64) { me._y = lon}
+//func (me *Point3D) SetAlt(alt float64) { me._z = alt}
  
  // returns values to 6 digits with a space between
 func (me *Point3D) ToSpacedString() string {	
-	Message := strconv.FormatFloat( me.X(), 'f', 6, 32)  + " "
-	Message += strconv.FormatFloat( me.Y(), 'f', 6, 32)  + " "
-	Message += strconv.FormatFloat( me.Z(), 'f', 6, 32)
+	Message := strconv.FormatFloat( me.X, 'f', 6, 32)  + " "
+	Message += strconv.FormatFloat( me.Y, 'f', 6, 32)  + " "
+	Message += strconv.FormatFloat( me.Z, 'f', 6, 32)
 	return Message
 }
 			
 
 func (me *Point3D) Set(x, y, z float64){
-	me._x = x
-	me._y = y
-	me._z = z
+	me.X = x
+	me.Y = y
+	me.X = z
 }
 func (me *Point3D) Clear(){
-	me._x = 0
-	me._y = 0
-	me._z = 0
+	me.X = 0
+	me.Y = 0
+	me.Z = 0
 }
 
 
 func (me *Point3D) Length () float64 {
 	//return (sqrt ((m_X * m_X) + (m_Y * m_Y) + (m_Z * m_Z)));
-	return math.Sqrt( (me.X() * me.X()) + (me.Y() * me.Y()) + (me.Z() * me.Z()) )
+	return math.Sqrt( (me.X * me.X) + (me.Y * me.Y) + (me.Z * me.Z) )
 }
 
 
@@ -97,7 +97,7 @@ func (me *Point3D) Length () float64 {
 
 func Point3DSubract(p1, p2 Point3D) Point3D{
 	
-	return Point3D{p1.X() - p2.X(), p1.Y() - p2.Y(), p1.Z() - p2.Z()}  
+	return Point3D{p1.X - p2.X, p1.Y - p2.Y, p1.Z - p2.Z}
 	
 }
 
@@ -147,9 +147,9 @@ func SG_CartToGeod ( CartPoint Point3D ) Point3D {
 	//double x = CartPoint[X];
 	//double y = CartPoint[Y];
 	//double z = CartPoint[Z];
-	x := CartPoint.X()
-	y := CartPoint.Y()
-	z := CartPoint.Z()
+	x := CartPoint.X
+	y := CartPoint.Y
+	z := CartPoint.Z
 	
 	//double XXpYY = x*x+y*y;
 	var XXpYY float64 = (x * x) + (y * y)
@@ -189,15 +189,15 @@ func SG_CartToGeod ( CartPoint Point3D ) Point3D {
 	
 	var GeodPoint Point3D
 	//GeodPoint[Lon] = (2*atan2(y, x+sqrtXXpYY)) * SG_RADIANS_TO_DEGREES;
-	GeodPoint.SetLon( (2 * math.Atan2(y, x + sqrtXXpYY)) * SG_RADIANS_TO_DEGREES )
+	GeodPoint.Y = (2 * math.Atan2(y, x + sqrtXXpYY)) * SG_RADIANS_TO_DEGREES
 	
 	//double sqrtDDpZZ = sqrt(D*D+z*z);
 	var sqrtDDpZZ float64 = math.Sqrt( D * D + z * z)
 	//GeodPoint[Lat] = (2*atan2(z, D+sqrtDDpZZ)) * SG_RADIANS_TO_DEGREES;
-	GeodPoint.SetLat( (2* math.Atan2(z, D + sqrtDDpZZ)) * SG_RADIANS_TO_DEGREES )
+	GeodPoint.X = (2* math.Atan2(z, D + sqrtDDpZZ)) * SG_RADIANS_TO_DEGREES
 	
 	//GeodPoint[Alt] = ((k+e2-1)*sqrtDDpZZ/k) * SG_METER_TO_FEET;
-	GeodPoint.SetAlt( ((k + e2 - 1) * sqrtDDpZZ / k) * SG_METER_TO_FEET )
+	GeodPoint.Z =  ((k + e2 - 1) * sqrtDDpZZ / k) * SG_METER_TO_FEET
 	return GeodPoint
 } // sgCartToGeod()
 

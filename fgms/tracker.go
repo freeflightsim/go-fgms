@@ -102,7 +102,7 @@ func (me *FgServer) UpdateTracker( player *FG_Player, messType int) int {
 		Message += " "
 		Message += player.Passwd
 		Message += " "
-		Message += player.Aircraft()
+		Message += player.Aircraft
 		Message += " "
 		//Message += TimeStr
 		Message += TimeStr
@@ -129,7 +129,7 @@ func (me *FgServer) UpdateTracker( player *FG_Player, messType int) int {
 		Message += " "
 		Message += player.Passwd
 		Message += " "
-		Message += player.Aircraft()
+		Message += player.Aircraft
 		Message += " "
 		Message += TimeStr
 		// queue the message

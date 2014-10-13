@@ -4,7 +4,7 @@ package fgms
 import(
 	//"bytes"
 	"fmt"
-	//"log"
+	//"path/filepath"
 	"net"		
 	"strings"
 	//"strconv"
@@ -35,8 +35,8 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, address *net.UDPA
 	//Timestamp time.Time
 
 	
-	var SenderPosition Point3D
-	var SenderOrientation Point3D
+	//var SenderPosition Point3D
+	//var SenderOrientation Point3D
 	//Point3D         PlayerPosGeod;
 	//mT_PlayerListIt CurrentPlayer;
 	//mT_PlayerListIt SendingPlayer;
@@ -89,6 +89,7 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, address *net.UDPA
 	callsign := header.Callsign()
 
 	var player *FG_Player
+	var position message.PositionMsg
 	var exists bool
 
 	// Check if entry exists
@@ -103,14 +104,7 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, address *net.UDPA
 		return
 	}
 
-	if exists == false {
-		// create new player
-		player = new(FG_Player)
-		player.Address = address
-		player.Callsign = callsign
-		player.IsLocal = header.Magic != message.RELAY_MAGIC
-		me.Players[callsign] = player
-	}
+
 
 
 
@@ -121,26 +115,39 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, address *net.UDPA
 
 	//var PosMsg message.PositionMsg
 	if header.Type == message.TYPE_POS	{
-		me.PositionData++
+
 		position, remBytes, errPos := message.DecodePosition(remainingBytes)
-		//remainingBytes2, errPos := xdr.Unmarshal(remainingBytes, &PosMsg)
 		if err != nil{
 			fmt.Println("XDR Decode Position Error", errPos)
 			return
+		}else {
+			fmt.Println("remain2=", len(remBytes))
 		}
-		if 1 == 2 {
-			fmt.Println("remain2=", len(remBytes), position.Model)
+
+		if position.Position[X] == 0.0 || position.Position[Y] == 0.0 || position.Position[Z] == 0.0 {
+			return // ignore while position is not settled
 		}
+		me.PositionData++
+
+		//if 1 == 2 {
+		//	fmt.Println("remain2=", len(remBytes), position.Model)
+		//}
+		//if exists == false {
+			// update new player first time
+			//player.ModelName = position.Model()
+			//player.Aircraft = filepath.Base(player.ModelName)
+
+		//}
+
 		//PosMsg = (T_PositionMsg *) (Msg + sizeof(T_MsgHdr));
 		//double x = XDR_decode64<double> (PosMsg->position[X]);
 		//double y = XDR_decode64<double> (PosMsg->position[Y]);
 		//double z = XDR_decode64<double> (PosMsg->position[Z]);
-		x := position.Position[X]
-		y := position.Position[Y]
-		z := position.Position[Z]
-		if x == 0.0 || y == 0.0 || z == 0.0 { // ignore while position is not settled
-			return
-		}
+		//x := position.Position[X]
+		//y := position.Position[Y]
+		//z := position.Position[Z]
+		//fmt.Println("xyz", x,y,z)
+
 		//SenderPosition.Set (x, y, z);
 		
 		/* SenderOrientation.Set (
@@ -150,13 +157,15 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, address *net.UDPA
 		)*/
 		//TODO Wrong TYPE wtf!
 		//SenderOrientation.Set(PosMsg.Orientations[X], PosMsg.Orientation[Y],	PosMsg.Orientation[Z])
-		SenderOrientation.Set(0,0,0)
+		//SenderOrientation.Set(0,0,0)
 	} else {
 		me.NotPosData++
-	} 
-	
+	}
 
-	
+	// Create new player
+	if exists == false {
+		me.AddClient(header, position, address)
+	}
 	//////////////////////////////////////////
 	//
 	//      send the packet to all clients.
@@ -170,8 +179,8 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, address *net.UDPA
 	//CurrentPlayer = m_PlayerList.begin();
 	//while (CurrentPlayer != m_PlayerList.end())
 	//{ 
-	xCallsign := header.Callsign()
-	xIsObserver :=  strings.ToLower(header.Callsign())[0:3] ==  "obs"
+	//xCallsign := header.Callsign()
+	xIsObserver :=  strings.ToLower(callsign)[0:3] ==  "obs"
 	for loopCallsign, loopPlayer := range me.Players {
 		
 		//= ignore clients with errors
@@ -186,14 +195,17 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, address *net.UDPA
 				address of Relay and not the client's!
 				so use a clientID instead
 		*/
-		if loopCallsign == xCallsign { // alterative == CurrentPlayer.Callsign == xCallsign 
+		if loopCallsign == callsign { // alterative == CurrentPlayer.Callsign == xCallsign
 			if header.Type == message.TYPE_POS	{
-				loopPlayer.LastPos         = SenderPosition
-				loopPlayer.LastOrientation = SenderOrientation
-			}else{
-				SenderPosition    = loopPlayer.LastPos
-				SenderOrientation = loopPlayer.LastOrientation
-			}
+				// Update this players position
+				//player.LastPos.Set( position.Position[X], position.Position[Y], position.Position[Z])
+				//player.LastOrientation.Set( float64(position.Orientation[X]), float64(position.Orientation[Y]), float64(position.Orientation[Z]))
+				loopPlayer.LastPos.Set( position.Position[X], position.Position[Y], position.Position[Z])
+				loopPlayer.LastOrientation.Set( float64(position.Orientation[X]), float64(position.Orientation[Y]), float64(position.Orientation[Z]))
+			}//else{
+				//SenderPosition    = loopPlayer.LastPos
+				//SenderOrientation = loopPlayer.LastOrientation
+			//}
 			//SendingPlayer = CurrentPlayer
 			loopPlayer.Timestamp = timestamp
 			loopPlayer.PktsReceivedFrom++
@@ -209,13 +221,13 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, address *net.UDPA
 		}
 		
 		// Do not send packet to clients which  are out of reach.
-		if xIsObserver == false && int(Distance(SenderPosition, loopPlayer.LastPos)) > me.PlayerIsOutOfReach {
+		//if xIsObserver == false && int(Distance(SenderPosition, loopPlayer.LastPos)) > me.PlayerIsOutOfReach {
 			//if ((Distance (SenderPosition, CurrentPlayer->LastPos) > m_PlayerIsOutOfReach)
 			//&&  (CurrentPlayer->Callsign.compare (0, 3, "obs", 3) != 0))
 			//{
 			//CurrentPlayer++ 
-			continue
-		} 
+			//continue
+		//}
 		
 		//  only send packet to local clients
 		if loopPlayer.IsLocal {
@@ -243,8 +255,8 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, address *net.UDPA
 	}
 	DeleteMessageQueue ();
 	*/
-	SendingPlayer := NewFG_Player() // placleholder 
-	me.SendToRelays (xdr_bytes, length, SendingPlayer)
+	//SendingPlayer := NewFG_Player() // placleholder
+	//me.SendToRelays (xdr_bytes, length, SendingPlayer)
 	
 } // FgServer::HandlePacket ( char* sMsg[MAX_PACKET_SIZE] )
 

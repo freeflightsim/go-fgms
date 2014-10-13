@@ -2,7 +2,7 @@ package fgms
 
 import (
 	"net"
-	"path/filepath"
+	//"path/filepath"
 )
 
 type FG_Player struct {
@@ -14,6 +14,7 @@ type FG_Player struct {
 	Callsign string // But this is also key so maybe unneeded ?
 	Passwd string
 	ModelName string
+	Aircraft string
 	
 	JoinTime int64 // epoch
 	Timestamp int64 // epoch
@@ -43,14 +44,14 @@ type FG_Player struct {
 
 
 // Returns the /model/747.400/AIRCRAFT.xml part
-func (me *FG_Player) Aircraft() string {
-	s := me.ModelName
-	return filepath.Base(s) // ? TO CHECK  
-}
+//func (me *FG_Player) Aircraft() string {
+//	s := me.ModelName
+//	return filepath.Base(s) // ? TO CHECK
+//}
 
 
 // Creates a new FG_Player object with timestamp set
-func NewFG_Player() *FG_Player {
+func DEADNewFG_Player() *FG_Player {
 	ob := new(FG_Player)
 	ob.Timestamp = Now()
 	ob.JoinTime  = ob.Timestamp
