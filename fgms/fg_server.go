@@ -11,14 +11,10 @@ import(
 	//"strconv"
 	//"time"
 	//"unsafe"
-)
-
-import(
-	//"github.com/davecgh/go-xdr/xdr"
 
 	"github.com/FreeFlightSim/go-fgms/tracker"
 	"github.com/FreeFlightSim/go-fgms/message"
-	//"github.com/FreeFlightSim/go-fgms/flightgear"
+
 )
 
 
@@ -26,14 +22,6 @@ import(
 // Main Server
 type FgServer struct {
 
-	/*typedef union
-	{
-		uint32_t    complete;
-		int16_t     High;
-		int16_t     Low;
-	} converter; 
-	converter*    tmp; 
-	*/
 
 	//ServerVersion *Version
 	
@@ -42,7 +30,6 @@ type FgServer struct {
 	ReinitData bool
 
 	Listening bool
-
 
 	ServerName  string `json:"server_name"`
 	BindAddress string `json:"address"`
@@ -78,7 +65,7 @@ type FgServer struct {
 	//wp                  = fopen("wp.txt", "w");
 
 	//= maybe this could be a slice
-	BlackList map[string]bool
+	//BlackList map[string]bool
 	BlackListRejected uint64
 
 	//RelayList map[string]*net.UDPConn
@@ -146,7 +133,7 @@ func NewFgServer() *FgServer {
 	//ob.Crossfeeds = make(map[string]*net.UDPConn, 0)
 	//ob.Crossfeeds = make(map[string]*UDP_Conn, 0)
 	
-	ob.BlackList = make(map[string]bool)
+	//ob.BlackList = make(map[string]bool)
 		
 	ob.Telnet = NewTelnetServer()
 	

@@ -4,10 +4,10 @@ package fgms
 import(
 	"fmt"
 	"time"
+
+	"github.com/FreeFlightSim/go-fgms/message"
 )
- import(
-	"github.com/FreeFlightSim/go-fgms/flightgear"
-)
+
 //= Returns an int64 with epoch (should be UTC ?)
 func Now() int64{
 	//time.UTC().unix() ??
@@ -17,8 +17,8 @@ func Now() int64{
 // pete FAIL FAIL FAIL's 
 func GetProtocolVersionString() string {
 	//return "1.1"
-	major := flightgear.PROTO_VER >> 16
-	minor := flightgear.PROTO_VER & 0xffff
+	major := message.PROTOCOL_VER >> 16
+	minor := message.PROTOCOL_VER & 0xffff
 	return fmt.Sprintf("%d.%d", major, minor) 
 }
 
