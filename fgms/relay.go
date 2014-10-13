@@ -112,3 +112,24 @@ func (me *relays) Send(Msg []byte, Bytes int , sending_player *FG_Player){
 	//MsgHdr->Magic = XDR_encode<uint32_t> (MsgMagic);  // restore the magic value
 } // FgServer::SendToRelays ()
 
+// Listen for xdr packets from channel, and send to xrossfeeds
+func (me *relays) Listen(){
+	fmt.Println("Relays: Listening")
+	for {
+		select {
+		case xdr_bytes := <- me.Chan:
+			// Got data from channel
+		for _, cf := range me.Hosts {
+			if cf.Active {
+				_, err := cf.Sock.Write(xdr_bytes)
+				if err != nil {
+					fmt.Println("Crossfeed error", err)
+					me.Failed++
+				}else {
+					me.Sent++
+				}
+			}
+		}
+		}
+	}
+}
