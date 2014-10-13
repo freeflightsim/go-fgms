@@ -9,7 +9,7 @@ import(
 	"strings"
 	//"strconv"
 	//"time"
-	"unsafe"
+	//"unsafe"
 )
 
 import(
@@ -56,7 +56,7 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, address *net.UDPA
 		fmt.Println("XDR header error", err)
 		return
 	}
-	fmt.Println("remain=", len(remainingBytes), address.String())
+	//fmt.Println("remain=", len(remainingBytes), address.String(), header.Callsign())
 
 	me.PacketsInvalid++
 
@@ -121,7 +121,7 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, address *net.UDPA
 		if err != nil{
 			fmt.Println("XDR Decode Position Error", errPos)
 			return
-		}else {
+		}else if 1 == 2 {
 			fmt.Println("remain2=", len(remBytes))
 		}
 

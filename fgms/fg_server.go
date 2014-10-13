@@ -87,7 +87,7 @@ type FgServer struct {
 	Relays map[string]*net.UDPConn
 	
 	
-	Crossfeeds map[string]*FG_Conn //*net.UDPConn
+	Crossfeeds map[string]*UDP_Conn //*net.UDPConn
 	CrossFeedFailed int
 	CrossFeedSent int
 	MT_CrossFeedFailed int
@@ -144,7 +144,7 @@ func NewFgServer() *FgServer {
 	//ob.RelayMap = make(map[string]string)
 	ob.Relays = make(map[string]*net.UDPConn, 0)
 	//ob.Crossfeeds = make(map[string]*net.UDPConn, 0)
-	ob.Crossfeeds = make(map[string]*FG_Conn, 0)
+	ob.Crossfeeds = make(map[string]*UDP_Conn, 0)
 	
 	ob.BlackList = make(map[string]bool)
 		
@@ -168,39 +168,34 @@ func (me *FgServer) SetBindAddress(addr string){
 }
 
 func (me *FgServer) SetDataPort(port int){
-	log.Println("> SetDataPort=", port)
 	me.ListenPort = port
 	me.ReinitData = true
 }
 
 func (me *FgServer) SetTelnetPort(port int){
-	log.Println("> SetTelnetPort=", port)
 	me.Telnet.Port = port
 	me.Telnet.Reinit = true
 }
 
 // Set nautical miles two players must be apart to be out of reach
 func (me *FgServer) SetOutOfReach(nm int){
-	log.Println("> SetOutOfReach=", nm, " nm")
 	me.PlayerIsOutOfReach = nm
 }
 
 // Set time in seconds. if no packet arrives from a client
 // within this time, the connection is dropped.  
 func (me *FgServer) SetPlayerExpires(secs int){
-	log.Println("> SetPlayerExpires=", secs, " secs")
 	me.PlayerExpires = secs
 }
 
 // Set if we are running as a Hubserver
 func (me *FgServer) SetHub(am_hub bool){
-	log.Println("> SetHub=", am_hub)
 	me.IamHUB = am_hub
 }
 
 // Set the logfile - TODO LOg FIle writing etc
 func (me *FgServer) SetLogfile( log_file_name string){
-	log.Println("> SetLogfile=", log_file_name)
+	//log.Println("> SetLogfile=", log_file_name)
 	me.LogFileName = log_file_name
 	//TODO after research of simgear
 }

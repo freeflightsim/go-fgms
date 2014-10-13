@@ -3,8 +3,6 @@ package message
 
 import (
 	"errors"
-	//"fmt"
-	//"time"
 
 	"github.com/davecgh/go-xdr/xdr"
 )
