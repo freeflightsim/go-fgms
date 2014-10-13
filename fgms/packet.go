@@ -108,6 +108,7 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, address *net.UDPA
 		player = new(FG_Player)
 		player.Address = address
 		player.Callsign = callsign
+		player.IsLocal = header.Magic != message.RELAY_MAGIC
 		me.Players[callsign] = player
 	}
 

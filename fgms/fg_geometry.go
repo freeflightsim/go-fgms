@@ -41,12 +41,12 @@ const (
 
 
 const ( X = 0 
-		Y 
-		Z 
+		Y = 1
+		Z = 2
 )
 const ( Lat = 0 
-		Lon 
-		Alt
+		Lon = 1
+		Alt = 1
 )
 
 
