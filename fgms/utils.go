@@ -24,15 +24,13 @@ func GetProtocolVersionString() string {
 
 
 // TODO There has Got to be a better way
-/*
+// Should the bytes be a pointer ?
 func BytesToString(bites []byte) string{
-	cs := ""
-	for _, ele := range bites {
-		if ele == 0 {
-			return cs
+	for n, b := range bites {
+		if b == 0 {
+			return string(bites[:n])
 		}
-		cs += string(ele)
 	}
-	return cs   
+	return string(bites[:])
 }
-*/
+

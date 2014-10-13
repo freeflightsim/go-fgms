@@ -11,10 +11,10 @@ type FG_Player struct {
 	Address *net.UDPAddr    
 	//Conn *net.UDPConn
 	
-	Callsign string // But this is also key so maybe unneeded ?
-	Passwd string
+	Callsign string `json:"callsign"`
+	//Passwd string
 	ModelName string
-	Aircraft string
+	Aircraft string `json:"model"`
 	
 	JoinTime int64 // epoch
 	Timestamp int64 // epoch

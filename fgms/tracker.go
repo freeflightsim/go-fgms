@@ -100,7 +100,7 @@ func (me *FgServer) UpdateTracker( player *FG_Player, messType int) int {
 		Message  = "CONNECT "
 		Message += player.Callsign
 		Message += " "
-		Message += player.Passwd
+		//Message += player.Passwd
 		Message += " "
 		Message += player.Aircraft
 		Message += " "
@@ -127,7 +127,7 @@ func (me *FgServer) UpdateTracker( player *FG_Player, messType int) int {
 		Message  = "DISCONNECT "
 		Message += player.Callsign
 		Message += " "
-		Message += player.Passwd
+		//Message += player.Passwd
 		Message += " "
 		Message += player.Aircraft
 		Message += " "
@@ -164,7 +164,7 @@ func (me *FgServer) UpdateTracker( player *FG_Player, messType int) int {
 			Message =  "POSITION "
 			Message += CurrentPlayer.Callsign
 			Message += " "
-			Message += CurrentPlayer.Passwd;
+			//Message += CurrentPlayer.Passwd;
 			Message += " "
 			//Message += NumToStr (PlayerPosGeod[Lat], 6)+" " //lat
 			//Message += NumToStr (PlayerPosGeod[Lon], 6)+" " //lon

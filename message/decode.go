@@ -49,3 +49,12 @@ func DecodePosition(xdr_enc []byte)(PositionMsg, []byte, error) {
 
 	return position, remainingBytes, nil
 }
+
+func BytesToString(bites []byte) string{
+	for n, b := range bites {
+		if b == 0 {
+			return string(bites[:n])
+		}
+	}
+	return string(bites[:])
+}

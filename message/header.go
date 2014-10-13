@@ -1,6 +1,10 @@
 
 package message
 
+import (
+
+)
+
 type HeaderMsg struct {
 
 	// Magic Value
@@ -27,5 +31,5 @@ type HeaderMsg struct {
 
 // returns Callsign as string
 func (me *HeaderMsg) Callsign() string{
-	return string(me.CallsignBytes[:])
+	return BytesToString(me.CallsignBytes[:])
 }

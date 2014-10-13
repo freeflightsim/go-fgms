@@ -34,3 +34,4 @@ const (
 	MAX_MODEL_NAME_LEN 	= 96
 	MAX_PROPERTY_LEN   	= 52
 )
+

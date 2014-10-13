@@ -56,6 +56,6 @@ type PositionMsg struct{
 // Returns the Model as a string
 
 func (me *PositionMsg) Model() string{
-	return string(me.ModelBytes[:])
+	return BytesToString(me.ModelBytes[:])
 
 }
