@@ -7,7 +7,7 @@ import (
 	"unsafe"
 )
 import(
-	"github.com/FreeFlightSim/go-fgms/flightgear"
+	"github.com/FreeFlightSim/go-fgms/message"
 )
 
 /*  Create a chat message and put it into the internal message queue
@@ -23,8 +23,8 @@ func (me *FgServer) CreateChatMessage(ID int, Msg string){
 	//char*           Message;
 	//int             len =  sizeof(T_MsgHdr) + sizeof(T_ChatMsg);
 	
-	var MsgHdr flightgear.T_MsgHdr
-	var ChatMsg flightgear.T_ChatMsg
+	var MsgHdr message.HeaderMsg
+	var ChatMsg message.ChatMsg
 	
 	var NextBlockPosition uint  = 0
 	var Message []byte //char*           Message;
@@ -33,9 +33,9 @@ func (me *FgServer) CreateChatMessage(ID int, Msg string){
 	
 	fmt.Println(NextBlockPosition, lenny, Message)
 	
-	MsgHdr.Magic            = flightgear.MSG_MAGIC
-	MsgHdr.Version          = flightgear.PROTO_VER
-	MsgHdr.MsgId            = flightgear.CHAT_MSG_ID
+	MsgHdr.Magic            = message.MSG_MAGIC
+	MsgHdr.Version          = message.PROTOCOL_VER
+	MsgHdr.Type            = message.TYPE_CHAT
 	//MsgHdr.MsgLen           = XDR_encode<uint32_t> (len);
 	
 	// Depreciated
@@ -79,7 +79,7 @@ func (me *FgServer) CreateChatMessage(ID int, Msg string){
 		
 		idx++
 		
-		if idx == flightgear.MAX_CHAT_MSG_LEN - 1 {
+		if idx == message.MAX_CHAT_MSG_LEN - 1 {
 			// this message is too long so send this part ?
 			me.MessageList = append(me.MessageList, ChatMsg)
 		}

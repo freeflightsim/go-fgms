@@ -97,7 +97,7 @@ type FgServer struct {
 	IsTracked bool
 	Tracker *tracker.FG_Tracker
 
-	MessageList []flightgear.T_ChatMsg
+	MessageList []message.ChatMsg
 
 	//UpdateSecs          = DEF_UPDATE_SECS;
 	// clear stats - should show what type of packet was received
@@ -150,7 +150,7 @@ func NewFgServer() *FgServer {
 		
 	ob.Telnet = NewTelnetServer()
 	
-	ob.MessageList = make([]flightgear.T_ChatMsg, 0)
+	ob.MessageList = make([]message.ChatMsg, 0)
 		
 	return ob
 }
