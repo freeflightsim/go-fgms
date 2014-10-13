@@ -63,6 +63,7 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, address *net.UDPA
 	timestamp := Now()
 
 
+
 	//------------------------------------------------------
 	// First of all, send packet to all crossfeed servers.
 	//SendToCrossfeed (Msg, Bytes, SenderAddress); ?? SHould then be send pre vaildation ?
@@ -262,59 +263,3 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, address *net.UDPA
 
 
 
-func (me *FgServer) DEADPacketIsValid(length int, header message.HeaderMsg, SenderAddress *net.UDPAddr ) bool {
-
-	var ErrorMsg string
-
-	// Check header Packet size
-	s := int(unsafe.Sizeof(header))
-	if length <  s {
-		ErrorMsg  = SenderAddress.String()
-		ErrorMsg += " packet size is too small!"
-		fmt.Println("ERROR: PacketIsValid()", ErrorMsg)
-		me.AddBadClient(SenderAddress, ErrorMsg, true)
-		return false
-	}
-	
-	//= Check magic
-	if header.Magic != message.MSG_MAGIC && header.Magic != message.RELAY_MAGIC {
-		ErrorMsg  = SenderAddress.String();
-		ErrorMsg += " BAD magic number: "
-		//ErrorMsg += MsgHdr.Magic // TODO
-		//fmt.Println("TODO: Handle Wrong Magic")
-		fmt.Println("ERROR: PacketIsValid()", ErrorMsg)
-		me.AddBadClient(SenderAddress, ErrorMsg, true)
-		return false
-	}
-	
-	// Check Protocol Version
-	//if MsgHdr.Version != message.PROTOCOL_VER {
-	//	ErrorMsg  = SenderAddress.String()
-	//	ErrorMsg += " BAD protocol version! Should be "
-		// TODO bitshift
-		//converter*    tmp;
-		//tmp = (converter*) (& PROTO_VER);
-		//ErrorMsg += NumToStr (tmp->High, 0);
-		//ErrorMsg += "." + NumToStr (tmp->Low, 0);
-		//ErrorMsg += " but is ";
-		//tmp = (converter*) (& MsgHdr->Version);
-		//ErrorMsg += NumToStr (tmp->Low, 0);
-		//ErrorMsg += "." + NumToStr (tmp->High, 0);
-	//	fmt.Println("ERROR: PacketIsValid()", ErrorMsg)
-	//	me.AddBadClient(SenderAddress, ErrorMsg, true);
-	//	return false
-	//}
-	/*
-	if MsgHdr.Type == message.TYPE_POS {
-		lenny := uint32( unsafe.Sizeof(&message.HeaderMsg) + unsafe.Sizeof(&message.PositionMsg{}) )
-		if MsgHdr < lenny {
-			ErrorMsg  = SenderAddress.String()
-			ErrorMsg += " Client sends insufficient position data, "
-			ErrorMsg += fmt.Sprintf( "should be %d", lenny)
-			ErrorMsg += fmt.Sprintf(" is: %d", MsgHdr.MsgLen)
-			me.AddBadClient (SenderAddress, ErrorMsg, true);
-			return false
-		}
-	}*/
-	return true
-} // FgServer::PacketIsValid ()
