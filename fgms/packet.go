@@ -181,7 +181,7 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, sender_address *n
 		//      chat messages anyway
 		//      FIXME: MAGIC = SFGF!
 		if isObserver && header.Type != message.TYPE_CHAT {
-			return
+			continue
 		}
 		
 		// Do not send packet to clients which  are out of reach.
@@ -221,7 +221,7 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, sender_address *n
 	*/
 	//SendingPlayer := NewFG_Player() // placleholder
 	//me.SendToRelays (xdr_bytes, length, player)
-	Relays.Chan <- xdr_bytes
+	Relays.Chan <- RelayData{Bytes: xdr_bytes, Client: player}
 	
 } // FgServer::HandlePacket ( char* sMsg[MAX_PACKET_SIZE] )
 

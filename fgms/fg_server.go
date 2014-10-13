@@ -399,8 +399,8 @@ func (me *FgServer) SetConfig(conf Config) error {
 
 	// Read the list of relays
 	for _, relay := range conf.Relays {
-		//me.AddRelay(relay.Host, relay.Port)
-		fmt.Println(relay)
+		Relays.Add(relay.Host, relay.Port)
+		//fmt.Println(relay)
 	}
 
 	// Read the list of crossfeeds

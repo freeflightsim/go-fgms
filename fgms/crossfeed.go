@@ -71,8 +71,8 @@ func (me *crossfeed) InitializeConn( conn *UDP_Conn){
 	log.Println("Crossfeed: Connected to ", conn.Url )
 }
 
-// Starts a timer to check servers that are down  every 60 secs
-// this is started in Loop() as a goroutine go me.StartCrossfeedCheckTimer()
+// Starts a timer to reconnect to servers that are down  every 60 secs
+// this is started as a goroutine
 func (me *crossfeed) StartCheckTimer(){
 
 	ticker := time.NewTicker(time.Second * 60) // TODO roll back
