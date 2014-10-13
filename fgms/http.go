@@ -27,3 +27,5 @@ func JsonFlightsHandler(resp http.ResponseWriter, req *http.Request){
 
 	resp.Write( []byte("Yes") )
 }
+
+

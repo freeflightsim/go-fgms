@@ -25,13 +25,13 @@
     ],
 
 	"crossfeeds": [
-		{"host": "127.0.0.1", "port": 3333, "comment": "geoffmcl-cf-client"},
-		{"host": "127.0.0.1", "port": 3336, "comment": "geoffmcl-cf-client"}
+		{"host": "127.0.0.1", "port": 3333, "comment": "geoffmcl-cf-client"}
     ],
     
 	"blacklists": [
-		"123.123.123.123",
-		"sa12.12.12.12",
+	    "192.168.50.1550",
+		"ido.no.exist",
+		"m2.daffodil.uk.com",
 		"122.12.12.12"
     ]
 }

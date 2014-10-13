@@ -49,6 +49,11 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, sender_address *n
 	//fmt.Println("MSG=", len(Msg))
 	//var header message.HeaderMsg
 
+	if Blacklist.Contains(sender_address){
+		me.BlackListRejected++
+		fmt.Println("Blacklisted")
+		return
+	}
 
 	// Decode header message, exit if error
 	header, remainingBytes, err := message.DecodeHeader(xdr_bytes)
@@ -131,7 +136,7 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, sender_address *n
 			return // ignore while position is not settled
 		}
 		me.PositionData++
-		fmt.Println(me.PositionData)
+		fmt.Println(me.PositionData, sender_address.String())
 		//if 1 == 2 {
 		//	fmt.Println("remain2=", len(remBytes), position.Model)
 		//}
