@@ -71,7 +71,7 @@ type FgServer struct {
 	//RelayList map[string]*net.UDPConn
 	//RelayMap map[string]*net.UDPConn
 	//RelayList []*NetAddress
-	Relays map[string]*net.UDPConn
+	//Relays map[string]*net.UDPConn
 	
 	
 	//Crossfeeds map[string]*UDP_Conn //*net.UDPConn
@@ -134,7 +134,7 @@ func SetupServer(){
 		
 	//ob.RelayList = make([]*NetAddress, 0)
 	//ob.RelayMap = make(map[string]string)
-	Server.Relays = make(map[string]*net.UDPConn, 0)
+	//Server.Relays = make(map[string]*net.UDPConn, 0)
 	//ob.Crossfeeds = make(map[string]*net.UDPConn, 0)
 	//ob.Crossfeeds = make(map[string]*UDP_Conn, 0)
 	

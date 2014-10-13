@@ -2,21 +2,11 @@ package fgms
 
 
 import(
-	//"bytes"
 	"fmt"
-	//"path/filepath"
-	"net"		
+	"net"
 	"strings"
-	//"strconv"
-	//"time"
-	//"unsafe"
-)
-
-import(
-	//"github.com/davecgh/go-xdr/xdr"
 
 	"github.com/freeflightsim/go-fgms/message"
-	//"github.com/FreeFlightSim/go-fgms/flightgear"
 )
 
 
@@ -87,7 +77,7 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, sender_address *n
 	//}
 
 	if header.Magic == message.RELAY_MAGIC { // not a local client
-		if !me.IsKnownRelay(sender_address) {
+		if !Relays.IsKnown(sender_address) {
 			me.UnknownRelay++ 
 			return
 		}else{
@@ -111,19 +101,12 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, sender_address *n
 		return
 	}
 	if exists == true && player.Address.String() != sender_address.String() {
-		// sender has same callsign but different address, do ignore
+		// sender has same callsign but different address, so ignore
 		return
 	}
 
 
-
-
-
-
-	//////////////////////////////////////////////////
-	//    Store senders position
-	//////////////////////////////////////////////////
-
+	// Decode position packer
 	if header.Type == message.TYPE_POS	{
 
 		position, remBytes, err_pos = message.DecodePosition(remainingBytes)
@@ -138,28 +121,6 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, sender_address *n
 			return // ignore while position is not settled
 		}
 		me.PositionData++
-
-
-
-		//PosMsg = (T_PositionMsg *) (Msg + sizeof(T_MsgHdr));
-		//double x = XDR_decode64<double> (PosMsg->position[X]);
-		//double y = XDR_decode64<double> (PosMsg->position[Y]);
-		//double z = XDR_decode64<double> (PosMsg->position[Z]);
-		//x := position.Position[X]
-		//y := position.Position[Y]
-		//z := position.Position[Z]
-		//fmt.Println("xyz", x,y,z)
-
-		//SenderPosition.Set (x, y, z);
-		
-		/* SenderOrientation.Set (
-			XDR_decode<float> (PosMsg->orientation[X]),
-			XDR_decode<float> (PosMsg->orientation[Y]),
-			XDR_decode<float> (PosMsg->orientation[Z])
-		)*/
-		//TODO Wrong TYPE wtf!
-		//SenderOrientation.Set(PosMsg.Orientations[X], PosMsg.Orientation[Y],	PosMsg.Orientation[Z])
-		//SenderOrientation.Set(0,0,0)
 	} else {
 		me.NotPosData++
 	}
@@ -170,11 +131,8 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, sender_address *n
 	}
 
 	fmt.Println( callsign, position.Position[X], position.Position[Y])
-	//pp := Point3D{position.Position[X], position.Position[Y], position.Position[Z]}
-	//xp := SG_CartToGeod(pp)
-	//fmt.Println( callsign, xp.X, xp.Y, xp.Z)
 	player.UpdatePosition(&position)
-	//player.Timestamp = timestamp
+	player.Timestamp = Now()
 	player.PktsReceivedFrom++
 
 	//////////////////////////////////////////
@@ -185,17 +143,12 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, sender_address *n
 	//      is not already there, add it to the list
 	//
 	//////////////////////////////////////////////////
-	// MsgHdr->Magic = XDR_encode<uint32_t> (MSG_MAGIC);
-	//SendingPlayer = m_PlayerList.end();
-	//CurrentPlayer = m_PlayerList.begin();
-	//while (CurrentPlayer != m_PlayerList.end())
-	//{ 
-	//xCallsign := header.Callsign()
-	xIsObserver :=  strings.ToLower(callsign)[0:3] ==  "obs"
-	for _, loopPlayer := range me.Players {
+
+	isObserver :=  strings.ToLower(callsign)[0:3] ==  "obs"
+	for _, lp := range me.Players {
 		
 		//= ignore clients with errors
-		if loopPlayer.HasErrors {
+		if lp.HasErrors {
 			continue // Umm is this locked out forever ?
 		}
 		
@@ -227,7 +180,7 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, sender_address *n
 		//      origin is an observer, but do send
 		//      chat messages anyway
 		//      FIXME: MAGIC = SFGF!
-		if xIsObserver && header.Type != message.TYPE_CHAT {
+		if isObserver && header.Type != message.TYPE_CHAT {
 			return
 		}
 		
@@ -241,14 +194,14 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, sender_address *n
 		//}
 		
 		//  only send packet to local clients
-		if loopPlayer.IsLocal {
+		if lp.IsLocal && lp != player {
 			//SendChatMessages (CurrentPlayer);
 			//m_DataSocket->sendto (Msg, Bytes, 0, &CurrentPlayer->Address);
-			_, err := me.DataSocket.WriteToUDP(xdr_bytes, loopPlayer.Address)
+			_, err := me.DataSocket.WriteToUDP(xdr_bytes, player.Address)
 			if err != nil {
 				// TODO ?
 			}
-			loopPlayer.PktsSentTo++
+			lp.PktsSentTo++
 			me.PktsForwarded++
 		}
 		//CurrentPlayer++; 
@@ -267,7 +220,8 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, sender_address *n
 	DeleteMessageQueue ();
 	*/
 	//SendingPlayer := NewFG_Player() // placleholder
-	//me.SendToRelays (xdr_bytes, length, SendingPlayer)
+	//me.SendToRelays (xdr_bytes, length, player)
+	Relays.Chan <- xdr_bytes
 	
 } // FgServer::HandlePacket ( char* sMsg[MAX_PACKET_SIZE] )
 
