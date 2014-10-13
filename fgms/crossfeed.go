@@ -18,8 +18,8 @@ type crossfeed struct {
 
 var CrossFeed *crossfeed
 
-// auto initialize
-func InitCrossfeed() {
+
+func SetupCrossfeed() {
 
 	CrossFeed = new(crossfeed)
 	CrossFeed.Chan = make(chan []byte)

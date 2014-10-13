@@ -12,8 +12,8 @@ type blacklist struct {
 var Blacklist blacklist
 
 
-func InitBlackList(){
-	log.Println("InInitBlackList>>>>>>>>>>>>>>>")
+func SetupBlackList(){
+	//log.Println("InInitBlackList>>>>>>>>>>>>>>>")
 	Blacklist = blacklist{}
 	Blacklist.Hosts = make(map[string]bool, 0)
 	//log.Println("InitBlacklist")

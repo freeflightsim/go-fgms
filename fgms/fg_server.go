@@ -120,11 +120,8 @@ type FgServer struct {
 
 var Server *FgServer
 
-func init(){
+func SetupServer(){
 
-	InitBlackList()
-	InitCrossfeed()
-	InitHttp()
 
 	//fmt.Println("AUTO SERVER")
 	Server = new(FgServer)
