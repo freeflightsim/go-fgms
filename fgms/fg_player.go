@@ -2,7 +2,7 @@ package fgms
 
 import (
 	"net"
-	//"path/filepath"
+
 
 	"github.com/freeflightsim/go-fgms/message"
 )
@@ -18,8 +18,8 @@ type FG_Player struct {
 	ModelName string
 	Aircraft string `json:"model"`
 	
-	JoinTime int64 // epoch
-	Timestamp int64 // epoch
+	JoinTime int64
+	Timestamp int64
 	
 	LastPos Point3D `json:"-"`
 	LastOrientation Point3D `json:"-"`
