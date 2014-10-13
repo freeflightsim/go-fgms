@@ -3,7 +3,7 @@ package fgms
 
 
 import(
-	"github.com/FreeFlightSim/go-fgms/tracker"
+	"github.com/freeflightsim/go-fgms/tracker"
 )
 //  Add a tracking server
 //  int -1 for fail or SUCCESS

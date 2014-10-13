@@ -15,7 +15,7 @@ import(
 import(
 	//"github.com/davecgh/go-xdr/xdr"
 
-	"github.com/FreeFlightSim/go-fgms/message"
+	"github.com/freeflightsim/go-fgms/message"
 	//"github.com/FreeFlightSim/go-fgms/flightgear"
 )
 
@@ -49,8 +49,8 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, sender_address *n
 	//fmt.Println("MSG=", len(Msg))
 	//var header message.HeaderMsg
 
-	if Blacklist.Contains(sender_address){
-		me.BlackListRejected++
+	if Blacklist.IsBlackListed(sender_address){
+		//me.BlackListRejected++
 		fmt.Println("Blacklisted")
 		return
 	}
@@ -59,13 +59,14 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, sender_address *n
 	header, remainingBytes, err := message.DecodeHeader(xdr_bytes)
 	if err != nil{
 		fmt.Println("XDR header error", err)
+		me.PacketsInvalid++
 		return
 	}
 	//fmt.Println("remain=", len(remainingBytes), address.String(), header.Callsign())
+	me.PacketsReceived++
 
-	me.PacketsInvalid++
 
-	timestamp := Now()
+	//timestamp := Now()
 
 	CrossFeed.Chan <- xdr_bytes
 
@@ -172,7 +173,9 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, sender_address *n
 	//pp := Point3D{position.Position[X], position.Position[Y], position.Position[Z]}
 	//xp := SG_CartToGeod(pp)
 	//fmt.Println( callsign, xp.X, xp.Y, xp.Z)
-	player.UpdatePosition(position)
+	player.UpdatePosition(&position)
+	//player.Timestamp = timestamp
+	player.PktsReceivedFrom++
 
 	//////////////////////////////////////////
 	//
@@ -189,7 +192,7 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, sender_address *n
 	//{ 
 	//xCallsign := header.Callsign()
 	xIsObserver :=  strings.ToLower(callsign)[0:3] ==  "obs"
-	for loopCallsign, loopPlayer := range me.Players {
+	for _, loopPlayer := range me.Players {
 		
 		//= ignore clients with errors
 		if loopPlayer.HasErrors {
@@ -203,23 +206,23 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, sender_address *n
 				address of Relay and not the client's!
 				so use a clientID instead
 		*/
-		if loopCallsign == callsign { // alterative == CurrentPlayer.Callsign == xCallsign
-			if header.Type == message.TYPE_POS	{
+		//if loopCallsign == callsign { // alterative == CurrentPlayer.Callsign == xCallsign
+			//if header.Type == message.TYPE_POS	{
 				// Update this players position
 				//player.LastPos.Set( position.Position[X], position.Position[Y], position.Position[Z])
 				//player.LastOrientation.Set( float64(position.Orientation[X]), float64(position.Orientation[Y]), float64(position.Orientation[Z]))
-				loopPlayer.LastPos.Set( position.Position[X], position.Position[Y], position.Position[Z])
-				loopPlayer.LastOrientation.Set( float64(position.Orientation[X]), float64(position.Orientation[Y]), float64(position.Orientation[Z]))
-			}//else{
+			//	loopPlayer.LastPos.Set( position.Position[X], position.Position[Y], position.Position[Z])
+			//	loopPlayer.LastOrientation.Set( float64(position.Orientation[X]), float64(position.Orientation[Y]), float64(position.Orientation[Z]))
+			//}//else{
 				//SenderPosition    = loopPlayer.LastPos
 				//SenderOrientation = loopPlayer.LastOrientation
 			//}
 			//SendingPlayer = CurrentPlayer
-			loopPlayer.Timestamp = timestamp
-			loopPlayer.PktsReceivedFrom++
+			//loopPlayer.Timestamp = timestamp
+			//loopPlayer.PktsReceivedFrom++
 			//CurrentPlayer++;
-			continue; // don't send packet back to sender
-		}
+			//continue; // don't send packet back to sender
+		//}
 		///     do not send packets to clients if the
 		//      origin is an observer, but do send
 		//      chat messages anyway

@@ -11,7 +11,7 @@ import(
 	//"io/ioutil"
 	//"encoding/json"
 
-	"github.com/FreeFlightSim/go-fgms/fgms"
+	"github.com/freeflightsim/go-fgms/fgms"
 )
 
 

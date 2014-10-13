@@ -6,7 +6,8 @@ import (
 )
 
 type blacklist struct {
-	Hosts map[string]bool // we could use slice, but usign map instead for ocnvenience
+	Hosts map[string]bool
+	Rejected int64
 }
 
 var Blacklist blacklist
@@ -38,13 +39,16 @@ func (me *blacklist) Add(host_name string) {
 
 
 // Check if the client is black listed. true if blacklisted
-func (me *blacklist) Contains(address *net.UDPAddr) bool {
+func (me *blacklist) IsBlackListed(address *net.UDPAddr) bool {
 
 	host, _, err := net.SplitHostPort(address.String())
 	if err != nil {
 		return false // ??
 	}
 	_, found := Blacklist.Hosts[host]
+	if found {
+		me.Rejected++
+	}
 	return found
 
 }

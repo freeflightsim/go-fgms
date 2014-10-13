@@ -5,7 +5,7 @@ import(
 	"fmt"
 	"time"
 
-	"github.com/FreeFlightSim/go-fgms/message"
+	"github.com/freeflightsim/go-fgms/message"
 )
 
 //= Returns an int64 with epoch (should be UTC ?)

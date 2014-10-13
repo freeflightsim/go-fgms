@@ -12,8 +12,8 @@ import(
 	//"time"
 	//"unsafe"
 
-	"github.com/FreeFlightSim/go-fgms/tracker"
-	"github.com/FreeFlightSim/go-fgms/message"
+	"github.com/freeflightsim/go-fgms/tracker"
+	"github.com/freeflightsim/go-fgms/message"
 
 )
 
@@ -65,8 +65,8 @@ type FgServer struct {
 	//wp                  = fopen("wp.txt", "w");
 
 	//= maybe this could be a slice
-	BlackList *blacklist
-	BlackListRejected uint64
+	//BlackList *blacklist
+	//BlackListRejected uint64
 
 	//RelayList map[string]*net.UDPConn
 	//RelayMap map[string]*net.UDPConn
@@ -602,14 +602,14 @@ func (me *FgServer) AddClient(header *message.HeaderMsg, position *message.Posit
 		XDR_decode64<double> (PosMsg->position[Y]),
 		XDR_decode64<double> (PosMsg->position[Z])
 	); */
-	client.LastPos.Set( position.Position[X], position.Position[Y], position.Position[Z])
+	//client.LastPos.Set( position.Position[X], position.Position[Y], position.Position[Z])
 	 
 	/*NewPlayer.LastOrientation.Set (
 		XDR_decode<float> (PosMsg->orientation[X]),
 		XDR_decode<float> (PosMsg->orientation[Y]),
 		XDR_decode<float> (PosMsg->orientation[Z])
 	);*/
-	client.LastOrientation.Set( float64(position.Orientation[X]), float64(position.Orientation[Y]), float64(position.Orientation[Z]))
+	//client.LastOrientation.Set( float64(position.Orientation[X]), float64(position.Orientation[Y]), float64(position.Orientation[Z]))
 	
 	//NewPlayer.ModelName = PosMsg.ModelString()
 

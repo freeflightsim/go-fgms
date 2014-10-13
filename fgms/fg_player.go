@@ -3,7 +3,6 @@ package fgms
 import (
 	"net"
 
-
 	"github.com/freeflightsim/go-fgms/message"
 )
 
@@ -15,7 +14,7 @@ type FG_Player struct {
 	
 	Callsign string `json:"callsign"`
 	//Passwd string
-	ModelName string
+	ModelName string `json:"model_name"`
 	Aircraft string `json:"model"`
 	
 	JoinTime int64
@@ -45,17 +44,17 @@ type FG_Player struct {
 
 
 
-// Returns the /model/747.400/AIRCRAFT.xml part
+// Update Current Pos
 func (me *FG_Player) UpdatePosition(position *message.PositionMsg)  {
-
+	me.LastPos.Set( position.Position[X], position.Position[Y], position.Position[Z])
+	me.LastOrientation.Set( float64(position.Orientation[X]), float64(position.Orientation[Y]), float64(position.Orientation[Z]))
 }
 
+func (me *FG_Player) LatLonAlt() (float64, float64, float64)  {
+	//pp := Point3D{position.Position[X], position.Position[Y], position.Position[Z]}
+	xp := SG_CartToGeod(me.LastPos)
+	return xp.X, xp.Y, xp.Z
+	//fmt.Println( callsign, xp.X, xp.Y, xp.Z)
 
-// Creates a new FG_Player object with timestamp set
-func DEADNewFG_Player() *FG_Player {
-	ob := new(FG_Player)
-	ob.Timestamp = Now()
-	ob.JoinTime  = ob.Timestamp
-	return ob
 }
 

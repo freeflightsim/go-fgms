@@ -7,7 +7,7 @@ import (
 	"unsafe"
 )
 import(
-	"github.com/FreeFlightSim/go-fgms/message"
+	"github.com/freeflightsim/go-fgms/message"
 )
 
 /*  Create a chat message and put it into the internal message queue
