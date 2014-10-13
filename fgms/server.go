@@ -38,7 +38,7 @@ type FgServer struct {
 	
 
 	//PlayerList []*FG_Player
-	Players map[string]*FG_Player
+	Players map[string]*Player
 	//PlayerList map[string]*FG_Player
 	PlayerExpires int
 	
@@ -56,31 +56,6 @@ type FgServer struct {
 	IsParent bool
 	MaxClientID int
 
-
-	
-	//tmp                   = (converter*) (& PROTO_VER);
-	//ProtoMinorVersion   = tmp->High;
-	//ProtoMajorVersion   = tmp->Low;
-	//LogFileName         = DEF_SERVER_LOG; // "FgServer.log";
-	//wp                  = fopen("wp.txt", "w");
-
-	//= maybe this could be a slice
-	//BlackList *blacklist
-	//BlackListRejected uint64
-
-	//RelayList map[string]*net.UDPConn
-	//RelayMap map[string]*net.UDPConn
-	//RelayList []*NetAddress
-	//Relays map[string]*net.UDPConn
-	
-	
-	//Crossfeeds map[string]*UDP_Conn //*net.UDPConn
-	//CrossFeedFailed int
-	//CrossFeedSent int
-	//MT_CrossFeedFailed int
-	//MT_CrossFeedSent int
-
-	
 	IsTracked bool
 	Tracker *tracker.FG_Tracker
 
@@ -115,40 +90,19 @@ type FgServer struct {
 	TrackerConnect int
 	TrackerDisconnect int
 	TrackerPostion int // Tracker messages queued
-	//pthread_mutex_init( &m_PlayerMutex, 0 );
+
 } 
 
 var Server *FgServer
 
 func SetupServer(){
 
-
-	//fmt.Println("AUTO SERVER")
 	Server = new(FgServer)
-
-	//Server.BlackList = blacklist{}
-	//Server.BlackList.Hosts = make(map[string]bool, 0)
-
-	Server.Players = make(map[string]*FG_Player)
-	//ob.PlayerList = make([]*FG_Player, 0)
-		
-	//ob.RelayList = make([]*NetAddress, 0)
-	//ob.RelayMap = make(map[string]string)
-	//Server.Relays = make(map[string]*net.UDPConn, 0)
-	//ob.Crossfeeds = make(map[string]*net.UDPConn, 0)
-	//ob.Crossfeeds = make(map[string]*UDP_Conn, 0)
-	
-	//ob.BlackList = make(map[string]bool)
-
+	Server.Players = make(map[string]*Player)
 	Server.Telnet = NewTelnetServer()
 
 	Server.MessageList = make([]message.ChatMsg, 0)
 
-	//Server.Init()
-
-	//InitBlacklist()
-	//InitCrossfeed()
-	//InitHttp()
 }
 
 
@@ -393,21 +347,16 @@ func (me *FgServer) SetConfig(conf Config) error {
 		}
 	}
 	*/
-	//if true == true {
-	//	return nil
-	//}
 
 	// Read the list of relays
 	for _, relay := range conf.Relays {
 		Relays.Add(relay.Host, relay.Port)
-		//fmt.Println(relay)
 	}
 
 	// Read the list of crossfeeds
 	for _, cf := range conf.Crossfeeds {
 		CrossFeed.Add(cf.Host, cf.Port)
 	}
-
 
 	 // read the list of blacklisted IPs
 	for _, bl := range conf.Blacklists {
@@ -456,7 +405,7 @@ func (me *FgServer) AddBadClient(Sender *net.UDPAddr , ErrorMsg string, IsLocal 
 	//////////////////////////////////////////////////
 	fmt.Println("BADCLIENT", Sender)
 	me.MaxClientID++
-	NewPlayer := new(FG_Player)
+	NewPlayer := new(Player)
 	NewPlayer.Callsign      = "* Bad Client *"
 	NewPlayer.ModelName     = "* unknown *"
 	//NewPlayer.Timestamp     = time(0);
@@ -536,38 +485,18 @@ func (me *FgServer) Start() {
 }
 
 
-//////////////////////////////////////////////////////////////////////
-// Look if we know the sending client
-// return - 0: Sender is unknown  - 1: Sender is known - 2: Sender is known, but has a different IP
-/*
-func (me *FgServer) DEADSenderIsKnown(header message.HeaderMsg, address *net.UDPAddr) int {
-
-	player, found := me.Players[header.Callsign()]
-
-	if found == false {
-		return SENDER_UNKNOWN
-	}
-	if player.Address.String() == address.String() {
-		return SENDER_KNOWN
-	}
-	return SENDER_DIFF_IP
-} // FgServer::SenderIsKnown ()
-*/
-
-
-
 
 
 
 //////////////////////////////////////////////////////////////////////
 //  Insert a new client to internal list
 //func (me *FgServer) AddClient(Sender *net.UDPAddr, MsgHdr flightgear.T_MsgHdr, PosMsg flightgear.T_PositionMsg) {
-func (me *FgServer) AddClient(header *message.HeaderMsg, position *message.PositionMsg, address *net.UDPAddr, ) *FG_Player {
+func (me *FgServer) AddPlayer(header *message.HeaderMsg, position *message.PositionMsg, address *net.UDPAddr, ) *Player {
 
 
 	var callsign string = header.Callsign()
 
-	client := new(FG_Player)
+	client := new(Player)
 
 	me.MaxClientID++
 	client.ClientID = me.MaxClientID

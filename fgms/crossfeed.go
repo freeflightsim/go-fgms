@@ -92,21 +92,21 @@ func (me *crossfeed) StartCheckTimer(){
 func (me *crossfeed) Listen(){
 	fmt.Println("Crossfeed: Listening")
 	for {
-		select {
-		case xdr_bytes := <- me.Chan:
-			// Got data from channel
-			for _, cf := range me.Hosts {
-				if cf.Active {
-					_, err := cf.Sock.Write(xdr_bytes)
-					if err != nil {
-						fmt.Println("Crossfeed error", err)
-						me.Failed++
-					}else {
-						me.Sent++
-					}
+
+		xdr_bytes := <- me.Chan
+
+		for _, cf := range me.Hosts {
+			if cf.Active {
+				_, err := cf.Sock.Write(xdr_bytes)
+				if err != nil {
+					fmt.Println("Crossfeed error", err)
+					me.Failed++
+				}else {
+					me.Sent++
 				}
 			}
 		}
+
 	}
 }
 

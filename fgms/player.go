@@ -6,7 +6,7 @@ import (
 	"github.com/freeflightsim/go-fgms/message"
 )
 
-type FG_Player struct {
+type Player struct {
 	
 	//Origin string
 	Address *net.UDPAddr  `json:"-"`
@@ -45,16 +45,15 @@ type FG_Player struct {
 
 
 // Update Current Pos
-func (me *FG_Player) UpdatePosition(position *message.PositionMsg)  {
+func (me *Player) UpdatePosition(position *message.PositionMsg)  {
 	me.LastPos.Set( position.Position[X], position.Position[Y], position.Position[Z])
 	me.LastOrientation.Set( float64(position.Orientation[X]), float64(position.Orientation[Y]), float64(position.Orientation[Z]))
 }
 
-func (me *FG_Player) LatLonAlt() (float64, float64, float64)  {
-	//pp := Point3D{position.Position[X], position.Position[Y], position.Position[Z]}
+// return Geod positions
+func (me *Player) LatLonAlt() (float64, float64, float64)  {
 	xp := SG_CartToGeod(me.LastPos)
 	return xp.X, xp.Y, xp.Z
-	//fmt.Println( callsign, xp.X, xp.Y, xp.Z)
 
 }
 

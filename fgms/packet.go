@@ -87,7 +87,7 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, sender_address *n
 
 	callsign := header.Callsign()
 
-	var player *FG_Player
+	var player *Player
 	var position message.PositionMsg
 	var exists bool
 	var remBytes []byte
@@ -127,7 +127,7 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, sender_address *n
 
 	// Create new player
 	if exists == false {
-		player = me.AddClient(&header, &position, sender_address)
+		player = me.AddPlayer(&header, &position, sender_address)
 	}
 
 	fmt.Println( callsign, position.Position[X], position.Position[Y])
@@ -185,15 +185,15 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, sender_address *n
 		}
 		
 		// Do not send packet to clients which  are out of reach.
-		//if xIsObserver == false && int(Distance(SenderPosition, loopPlayer.LastPos)) > me.PlayerIsOutOfReach {
+		if isObserver == false && int(Distance(player.LastPos, lp.LastPos)) > me.PlayerIsOutOfReach {
 			//if ((Distance (SenderPosition, CurrentPlayer->LastPos) > m_PlayerIsOutOfReach)
 			//&&  (CurrentPlayer->Callsign.compare (0, 3, "obs", 3) != 0))
 			//{
 			//CurrentPlayer++ 
-			//continue
-		//}
+			continue
+		}
 		
-		//  only send packet to local clients
+		// only send packet to local clients
 		if lp.IsLocal && lp != player {
 			//SendChatMessages (CurrentPlayer);
 			//m_DataSocket->sendto (Msg, Bytes, 0, &CurrentPlayer->Address);
@@ -221,7 +221,7 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, sender_address *n
 	*/
 	//SendingPlayer := NewFG_Player() // placleholder
 	//me.SendToRelays (xdr_bytes, length, player)
-	Relays.Chan <- RelayData{Bytes: xdr_bytes, Client: player}
+	Relays.Chan <- RelayData{Bytes: xdr_bytes, Player: player}
 	
 } // FgServer::HandlePacket ( char* sMsg[MAX_PACKET_SIZE] )
 

@@ -45,7 +45,7 @@ func (me *FgServer) AddTracker(host string, port int, isTracked bool){
 
 // Updates the remote tracker  ?
 //func (me *FgServer) UpdateTracker(Callsign string, Passwd string, Modelname string, Timestamp int64, messType int) int {
-func (me *FgServer) UpdateTracker( player *FG_Player, messType int) int {
+func (me *FgServer) UpdateTracker( player *Player, messType int) int {
 	//#ifndef NO_TRACKER_PORT
 	//char            TimeStr[100];
 	//mT_PlayerListIt CurrentPlayer;

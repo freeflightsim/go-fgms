@@ -10,7 +10,7 @@ import(
 
 type RelayData struct {
 	Bytes []byte
-	Client *FG_Player
+	Player *Player
 }
 
 type relays struct {
@@ -75,64 +75,20 @@ func (me *relays) IsKnown(address *net.UDPAddr) bool{
 
 
 
-// ---------------------------------------------------------
 
-// Send message to all relay servers
-/*
-func (me *relays) Send(Msg []byte, Bytes int , sending_player *FG_Player){
 
-	//T_MsgHdr*       MsgHdr;
-	//uint32_t        MsgMagic;
-	var PktsForwarded uint = 0
-	//mT_RelayListIt  CurrentRelay;
-	//time_t          Now;
-
-	if !sending_player.IsLocal && !Server.IamHUB {
-		return
-	}
-	//Now   = time (0);
-	now := Now()
-	//MsgHdr    = (T_MsgHdr *) Msg;
-	//MsgMagic  = XDR_decode<uint32_t> (MsgHdr->Magic);
-	//MsgHdr->Magic = XDR_encode<uint32_t> (RELAY_MAGIC);
-	UpdateInactive := (now - sending_player.LastRelayedToInactive) > UPDATE_INACTIVE_PERIOD
-	if UpdateInactive {
-		sending_player.LastRelayedToInactive = now
-	}
-	//CurrentRelay = m_RelayList.begin();
-	//while (CurrentRelay != m_RelayList.end())
-	for idx, host := range me.Hosts {
-		if UpdateInactive { //|| IsInRange(*relay, *SendingPlayer) {
-			fmt.Println("relay to=", idx, host)
-			//if (CurrentRelay->Address.getIP() != SendingPlayer->Address.getIP())
-			//{
-			//  m_DataSocket->sendto(Msg, Bytes, 0, &CurrentRelay->Address);
-			//host.WriteToUDP(Msg, sending_player.Address)
-			host.Sock.Write(xdr_bytes)
-			me.PktsForwarded++
-			// }
-			//}
-			//CurrentRelay++;
-		}
-	}
-	sending_player.PktsForwarded += PktsForwarded
-	//MsgHdr->Magic = XDR_encode<uint32_t> (MsgMagic);  // restore the magic value
-} // FgServer::SendToRelays ()
-*/
-
-// Listen for xdr packets from channel, and send to xrossfeeds
+// Listen on channel and send to relays
 func (me *relays) Listen(){
-	fmt.Println("Relays: Listening")
+
 	for {
-		//select {
-		//case relay_data := <- me.Chan:
+		// Got data from channel
 		relay_data := <- me.Chan
-			// Got data from channel
-			now := Now()
-			UpdateInactive := (now - relay_data.Client.LastRelayedToInactive) > UPDATE_INACTIVE_PERIOD
-			if UpdateInactive {
-				relay_data.Client.LastRelayedToInactive = now
-			}
+
+		now := Now()
+		UpdateInactive := (now - relay_data.Player.LastRelayedToInactive) > UPDATE_INACTIVE_PERIOD
+		if UpdateInactive {
+			relay_data.Player.LastRelayedToInactive = now
+		}
 
 		for _, host := range me.Hosts {
 			if UpdateInactive { //|| IsInRange(*relay, *SendingPlayer) {
@@ -148,6 +104,5 @@ func (me *relays) Listen(){
 				//CurrentRelay++;
 			}
 		}
-		//}
 	}
 }
