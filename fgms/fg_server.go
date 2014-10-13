@@ -400,16 +400,16 @@ func (me *FgServer) SetConfig(conf Config) error {
 	}
 
 	// Read the list of crossfeeds
-	if true == false {
-		for _, cf := range conf.Crossfeeds {
-			me.AddCrossfeed(cf.Host, cf.Port)
-		}
+
+	for _, cf := range conf.Crossfeeds {
+		me.AddCrossfeed(cf.Host, cf.Port)
 	}
 
+
 	// read the list of blacklisted IPs
-	for _, blackList := range conf.Blacklists {
-		me.AddBlacklist(blackList)
-	}
+	//for _, blackList := range conf.Blacklists {
+	//	me.AddBlacklist(blackList)
+	//}
 
 	return nil
 }
@@ -523,7 +523,7 @@ func (me *FgServer) Loop() {
 		}else {
 			count++
 			//log.Printf("<%s> %q", raddr, buf[:length])
-			log.Println("count", count, raddr, length)
+			//log.Println("count", count, raddr, length)
 			//log.Println(buf[:length])
 			//Msg []byte, Bytes int, SenderAddress *NetAddress){
 			me.HandlePacket( buffer[:length], length, raddr)

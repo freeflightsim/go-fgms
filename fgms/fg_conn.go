@@ -14,7 +14,7 @@ type UDP_Conn struct{
 	Ip string
 	Active bool
 	LastError string
-	Sock *net.UDPConn
+	Sock net.Conn
 }
 
 

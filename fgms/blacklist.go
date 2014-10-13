@@ -9,7 +9,7 @@ import (
 // AddBlAdds an IP to the blacklist after a succesful go DNS lookup
 func (me *FgServer) AddBlacklist(host_name string) {
 	
-	log.Println("> Add Blacklist = ", host_name)
+	//log.Println("> Add Blacklist = ", host_name)
 	
 	// Do Checks in background
 	go func(host_name string){

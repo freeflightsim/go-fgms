@@ -23,7 +23,7 @@ import(
 //------------------------------------------------------------------------
 
 // Handle client connections
-func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, address *net.UDPAddr){
+func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, sender_address *net.UDPAddr){
 	
 	//T_MsgHdr*       MsgHdr;
 	//var MsgHdr message.T_MsgHdr
@@ -62,8 +62,8 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, address *net.UDPA
 
 	timestamp := Now()
 
-
-
+	me.SendToCrossfeed(xdr_bytes, sender_address)
+	//Crossfeeds.Chan <- xdr_bytes
 	//------------------------------------------------------
 	// First of all, send packet to all crossfeed servers.
 	//SendToCrossfeed (Msg, Bytes, SenderAddress); ?? SHould then be send pre vaildation ?
@@ -79,7 +79,7 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, address *net.UDPA
 	//}
 
 	if header.Magic == message.RELAY_MAGIC { // not a local client
-		if !me.IsKnownRelay(address) {
+		if !me.IsKnownRelay(sender_address) {
 			me.UnknownRelay++ 
 			return
 		}else{
@@ -100,7 +100,7 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, address *net.UDPA
 		// ignore until a position message
 		return
 	}
-	if exists == true && player.Address.String() != address.String() {
+	if exists == true && player.Address.String() != sender_address.String() {
 		// sender has same callsign but different address, do ignore
 		return
 	}
@@ -165,7 +165,7 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, address *net.UDPA
 
 	// Create new player
 	if exists == false {
-		me.AddClient(header, position, address)
+		me.AddClient(header, position, sender_address)
 	}
 	//////////////////////////////////////////
 	//

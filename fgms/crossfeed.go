@@ -9,90 +9,10 @@ import(
 )
 
 import(
-	"github.com/davecgh/go-xdr/xdr"
-	"github.com/FreeFlightSim/go-fgms/flightgear"
-	"github.com/FreeFlightSim/go-fgms/message"
+	//"github.com/davecgh/go-xdr/xdr"
+	//"github.com/FreeFlightSim/go-fgms/flightgear"
+	//"github.com/FreeFlightSim/go-fgms/message"
 )
-
-
-
-
-
-
-
-type Crossfeed struct {
-	Hosts map[string]*UDP_Conn //*net.UDPConn
-	Failed int
-	Sent int
-	MT_Failed int
-	MT_Sent int
-	Chan chan []byte
-}
-
-var Crossfeeds *Crossfeed
-
-func init(){
-
-	Crossfeeds = new(Crossfeed)
-	Crossfeeds.Chan = make(chan []byte)
-	fmt.Println("Init corssfeeds #######################")
-}
-
-// Adds a new crossfeed server into internal list then call init in thread
-func (me *Crossfeed) Add( host_name string, port int) {
-
-	conn := NewUDPConn(host_name, port)
-	Crossfeeds.Hosts[conn.Url] = conn
-	go me.InitSetupCrossfeed(conn)
-
-}
-// Attempt to connect and setup a Crossfeed Connection
-// Should dns fail, address not exist or not able to connect
-// the connection witll be marked as conn.Active = false with conn.LastError
-func (me *Crossfeed) InitSetupCrossfeed( conn *UDP_Conn){
-
-	log.Println("> InitSetupCrossfeed = ", conn.Url )
-
-	if conn.Active {
-		return // we need to define when its inactive, eg connection dropped
-	}
-
-	//= resolve with UDP address
-	udp_addr, err := net.ResolveUDPAddr("udp", conn.Url)
-	if err != nil {
-		conn.Active = false
-		conn.LastError = "Could nto resolve IP address"
-		log.Println("\tFAIL: Crossfeed to resolve UDP address:  ", conn.Url, err)
-		return
-	}
-
-	//= open socket and listen
-	var err_listen error
-	conn.Sock, err_listen = net.ListenUDP("udp", udp_addr)
-	if err_listen != nil {
-		conn.Active = false
-		conn.LastError = "Couldnt open UDP port"
-		log.Println("\tFAIL: Crossfeed FAIL to Open:  ", conn.Url, udp_addr, err_listen)
-		return
-	}
-	conn.Active = true
-	conn.LastError = ""
-	log.Println("\tOK:   Crossfeed Added -  ", conn.Url, udp_addr, err_listen)
-
-} // FgServer::AddCrossfeed()
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 func (me *FgServer) AddCrossfeed( host_name string, port int){
@@ -120,7 +40,7 @@ func (me *FgServer) InitSetupCrossfeed( conn *UDP_Conn){
 	}
 
 	//= resolve with UDP address
-	udp_addr, err := net.ResolveUDPAddr("udp", conn.Url)
+	udp_addr, err := net.ResolveUDPAddr("udp4", conn.Url)
 	if err != nil {
 		conn.Active = false
 		conn.LastError = "Could nto resolve IP address"
@@ -130,7 +50,7 @@ func (me *FgServer) InitSetupCrossfeed( conn *UDP_Conn){
 
 	//= open socket and listen
 	var err_listen error
-	conn.Sock, err_listen = net.ListenUDP("udp", udp_addr)
+	conn.Sock, err_listen = net.Dial("udp4", udp_addr.String())
 	if err_listen != nil {
 		conn.Active = false
 		conn.LastError = "Couldnt open UDP port"
@@ -170,8 +90,8 @@ func (me *FgServer) StartCrossfeedCheckTimer(){
 	mainly used for testing and debugging, and crossfeed.fgx.ch
 	http://gitorious.org/fgms/fgms-0-x/blobs/master/src/server/FgServer.cxx#line1154
 */
-func (me *FgServer) SendToCrossfeed(Msg []byte, Bytes int, SenderAddress *net.UDPAddr){
-
+func (me *FgServer) SendToCrossfeed(xdr_bytes []byte, sender_address *net.UDPAddr){
+	//return
 	//T_MsgHdr*       MsgHdr;
 	//uint32_t        MsgMagic;
 	//int             sent;
@@ -181,33 +101,37 @@ func (me *FgServer) SendToCrossfeed(Msg []byte, Bytes int, SenderAddress *net.UD
 	//MsgHdr->Magic = XDR_encode<uint32_t> (RELAY_MAGIC);
 	
 	// Not sure what is happening, but we create another payload, by unmarshalling Msg again ?
-	var MsgHdr flightgear.T_MsgHdr
-	_, err := xdr.Unmarshal(Msg, &MsgHdr)
-	if err != nil {
-		fmt.Println("XDR Decode Error in SendToCrossfeed - Should never happen?", err)
-		return
-	}
-	MsgHdr.Magic = message.RELAY_MAGIC
+	//var MsgHdr flightgear.T_MsgHdr
+	//_, err := xdr.Unmarshal(Msg, &MsgHdr)
+	//if err != nil {
+	//	fmt.Println("XDR Decode Error in SendToCrossfeed - Should never happen?", err)
+	//	return
+	//}
+	//MsgHdr.Magic = message.RELAY_MAGIC
 	
-	encoded, err := xdr.Marshal(MsgHdr)
-	if err != nil {
-		fmt.Println("XDR Encode Error in SendToCrossfeed - Should never happen?", err)
-		return
-	}
+	//encoded, err := xdr.Marshal(MsgHdr)
+	//if err != nil {
+	//	fmt.Println("XDR Encode Error in SendToCrossfeed - Should never happen?", err)
+	//	return
+	//}
 	//mT_RelayListIt CurrentCrossfeed = m_CrossfeedList.begin();
 	//while (CurrentCrossfeed != m_CrossfeedList.end())
 	//{
-	for _, loopCF := range me.Crossfeeds {
 
-		//if (CurrentCrossfeed->Address.getIP() != SenderAddress.getIP()) ?? But same address different port ??
-		_, err := loopCF.Sock.WriteToUDP(encoded, SenderAddress)
-		if err != nil {
-			me.CrossFeedFailed++
-		}else {
-			me.CrossFeedSent++
+	for _, cf := range me.Crossfeeds {
+		if cf.Active {
+			//if (CurrentCrossfeed->Address.getIP() != SenderAddress.getIP()) ?? But same address different port ??
+			_, err := cf.Sock.Write(xdr_bytes)
+			if err != nil {
+				fmt.Println(err)
+				me.CrossFeedFailed++
+			}else {
+				me.CrossFeedSent++
+			}
 		}
 		//CurrentCrossfeed++;
 	}
+	//fmt.Println("crossfeeds", me.Crossfeeds, me.CrossFeedSent, me.CrossFeedFailed)
 	//MsgHdr->Magic = MsgMagic;  // restore the magic value ? umm not used now ?
 } // FgServer::SendToCrossfeed ()
 
