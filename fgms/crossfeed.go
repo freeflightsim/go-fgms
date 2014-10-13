@@ -14,6 +14,98 @@ import(
 	//"github.com/FreeFlightSim/go-fgms/message"
 )
 
+type crossfeed struct {
+	Chan chan []byte
+	Hosts map[string]*UDP_Conn //*net.UDPConn
+	Failed int
+	Sent int
+	MT_Failed int
+	MT_Sent int
+}
+
+var CrossFeed *crossfeed
+
+func init() {
+	CrossFeed = new(crossfeed)
+	CrossFeed.Chan = make(chan []byte)
+	CrossFeed.Hosts = make(map[string]*UDP_Conn)
+	go CrossFeed.Listen()
+	fmt.Println("init ###################")
+}
+
+func (me *crossfeed) Add(addr string, port int){
+	log.Println("> Add Crossfeed ================= ", addr, port)
+
+	conn := NewUDPConn(addr, port)
+	me.Hosts[conn.Url] = conn
+
+	go me.InitConn(conn)
+}
+
+// Attempt to connect and setup a Crossfeed Connection
+// Should dns fail, address not exist or not able to connect
+// the connection witll be marked as conn.Active = false with conn.LastError
+func (me *crossfeed) InitConn( conn *UDP_Conn){
+
+	log.Println("> InitSetupCrossfeed = ", conn.Url )
+
+	if conn.Active {
+		return // we need to define when its inactive, eg connection dropped
+	}
+
+	//= resolve with UDP address
+	udp_addr, err := net.ResolveUDPAddr("udp4", conn.Url)
+	if err != nil {
+		conn.Active = false
+		conn.LastError = "Could nto resolve IP address"
+		log.Println("\tFAIL: Crossfeed to resolve UDP address:  ", conn.Url, err)
+		return
+	}
+
+	//= open socket and listen
+	var err_listen error
+	conn.Sock, err_listen = net.Dial("udp4", udp_addr.String())
+	if err_listen != nil {
+		conn.Active = false
+		conn.LastError = "Couldnt open UDP port"
+		log.Println("\tFAIL: Crossfeed FAIL to Open:  ", conn.Url, udp_addr, err_listen)
+		return
+	}
+	conn.Active = true
+	conn.LastError = ""
+	log.Println("\tOK:   Crossfeed Added -  ", conn.Url, udp_addr, err_listen)
+
+} // FgServer::AddCrossfeed()
+
+
+func (me *crossfeed) Listen(){
+	fmt.Println("Listen---------------")
+	for {
+		select {
+		case xdr_bytes := <- me.Chan:
+			for _, cf := range me.Hosts {
+				if cf.Active {
+					//if (CurrentCrossfeed->Address.getIP() != SenderAddress.getIP()) ?? But same address different port ??
+					_, err := cf.Sock.Write(xdr_bytes)
+					if err != nil {
+						fmt.Println(err)
+						me.Failed++
+					}else {
+						me.Sent++
+					}
+				}
+				//CurrentCrossfeed++;
+			}
+		}
+	}
+	fmt.Println("DONEEE")
+}
+
+
+
+
+
+
 
 func (me *FgServer) AddCrossfeed( host_name string, port int){
 

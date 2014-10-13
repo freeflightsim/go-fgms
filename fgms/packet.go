@@ -62,7 +62,9 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, sender_address *n
 
 	timestamp := Now()
 
-	me.SendToCrossfeed(xdr_bytes, sender_address)
+	CrossFeed.Chan <- xdr_bytes
+
+	//me.SendToCrossfeed(xdr_bytes, sender_address)
 	//Crossfeeds.Chan <- xdr_bytes
 	//------------------------------------------------------
 	// First of all, send packet to all crossfeed servers.
@@ -129,7 +131,7 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, sender_address *n
 			return // ignore while position is not settled
 		}
 		me.PositionData++
-
+		fmt.Println(me.PositionData)
 		//if 1 == 2 {
 		//	fmt.Println("remain2=", len(remBytes), position.Model)
 		//}
