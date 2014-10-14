@@ -10,55 +10,31 @@ import(
 )
 
 
-//------------------------------------------------------------------------
-
-// Handle client connections
+// Handle an incoming UDP packet
 func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, sender_address *net.UDPAddr){
 	
-	//T_MsgHdr*       MsgHdr;
-	//var MsgHdr message.T_MsgHdr
-	//T_PositionMsg*  PosMsg;
-	//var PosMsg flightgear.T_PositionMsg
-	
-	//uint32_t        MsgId;
-	//uint32_t        MsgMagic;
-	//Timestamp time.Time
-
-	
-	//var SenderPosition Point3D
-	//var SenderOrientation Point3D
-	//Point3D         PlayerPosGeod;
-	//mT_PlayerListIt CurrentPlayer;
-	//mT_PlayerListIt SendingPlayer;
-	//unsigned int    PktsForwarded = 0;
-	
-	//Timestamp = time.Now() //time(0);
-	//MsgHdr    = (T_MsgHdr *) Msg;
-	//MsgHdr :=  
-	
-	//fmt.Println("MSG=", len(Msg))
-	//var header message.HeaderMsg
-
+	// Check if sender is blacklisted
 	if Blacklist.IsBlackListed(sender_address){
-		//me.BlackListRejected++
-		fmt.Println("Blacklisted")
+		Blacklist.Rejected++
+		// TODO maybe add to a log
+		//fmt.Println("Blacklisted")
 		return
 	}
 
-	// Decode header message, exit if error
+	// Decode header message, ignore if error
 	header, remainingBytes, err := message.DecodeHeader(xdr_bytes)
 	if err != nil{
 		fmt.Println("XDR header error", err)
 		me.PacketsInvalid++
 		return
 	}
-	//fmt.Println("remain=", len(remainingBytes), address.String(), header.Callsign())
+	//fmt.Println("remain=", len(remainingBytes), sender_address.String(), header.Callsign())
 	me.PacketsReceived++
 
 
-	//timestamp := Now()
+	// Send packet out to crossfeeds via channel
+	Crossfeed.Chan <- xdr_bytes
 
-	CrossFeed.Chan <- xdr_bytes
 
 	//me.SendToCrossfeed(xdr_bytes, sender_address)
 	//Crossfeeds.Chan <- xdr_bytes
@@ -68,13 +44,6 @@ func (me *FgServer) HandlePacket(xdr_bytes []byte, length int, sender_address *n
 	//me.SendToCrossfeed(Msg, Bytes, SenderAddress)
 
 
-
-	//------------------------------------------------------
-	//=  Now do the local processing TODO
-	//if me.IsBlackListed(SenderAddress) {
-	//	me.BlackListRejected++
-	//	return
-	//}
 
 	if header.Magic == message.RELAY_MAGIC { // not a local client
 		if !Relays.IsKnown(sender_address) {

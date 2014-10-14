@@ -16,18 +16,20 @@ type crossfeed struct {
 	MT_Sent int
 }
 
-var CrossFeed *crossfeed
+
+var Crossfeed *crossfeed
 
 
+// initialise and setup the `CrossFeed`
 func SetupCrossfeed() {
 
-	CrossFeed = new(crossfeed)
-	CrossFeed.Chan = make(chan []byte)
-	CrossFeed.Hosts = make(map[string]*UDP_Conn)
+	Crossfeed = new(crossfeed)
+	Crossfeed.Chan = make(chan []byte)
+	Crossfeed.Hosts = make(map[string]*UDP_Conn)
 
-	go CrossFeed.StartCheckTimer()
-	go CrossFeed.Listen()
-	log.Println("InitBlacklist")
+	go Crossfeed.StartCheckTimer()
+	go Crossfeed.Listen()
+	//log.Println("InitBlacklist")
 }
 
 // add a host

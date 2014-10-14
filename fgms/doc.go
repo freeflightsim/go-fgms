@@ -1,8 +1,7 @@
 /*
-Package fgms - FG Multiplayer Server
+Package fgms - FlightGear Multiplayer Server
 
-	This is the main package for the fgms.
-	
+This is the udp relay server
 
 
 */

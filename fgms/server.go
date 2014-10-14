@@ -355,7 +355,7 @@ func (me *FgServer) SetConfig(conf Config) error {
 
 	// Read the list of crossfeeds
 	for _, cf := range conf.Crossfeeds {
-		CrossFeed.Add(cf.Host, cf.Port)
+		Crossfeed.Add(cf.Host, cf.Port)
 	}
 
 	 // read the list of blacklisted IPs

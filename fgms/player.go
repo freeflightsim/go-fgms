@@ -51,7 +51,7 @@ func (me *Player) UpdatePosition(position *message.PositionMsg)  {
 }
 
 // return Geod positions
-func (me *Player) LatLonAlt() (float64, float64, float64)  {
+func (me *Player) GetLatLonAlt() (float64, float64, float64)  {
 	xp := SG_CartToGeod(me.LastPos)
 	return xp.X, xp.Y, xp.Z
 

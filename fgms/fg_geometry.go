@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-
+// SimGear constants
 const ( 
 	SG_180 = 180.0
 	SG_PI = 3.1415926535
@@ -18,16 +18,17 @@ const (
 )
 
 /*
-   High-precision versions of the above produced with an arbitrary
-   precision calculator (the compiler might lose a few bits in the FPU
-   operations).  These are specified to 81 bits of mantissa, which is
-   higher than any FPU known to me:
+High-precision versions of the above produced with an arbitrary
+precision calculator (the compiler might lose a few bits in the FPU
+operations).  These are specified to 81 bits of mantissa, which is
+higher than any FPU known to me:
  */
 const (
 	SQUASH  = 0.9966471893352525192801545
 	STRETCH = 1.0033640898209764189003079
 	POLRAD  = 6356752.3142451794975639668
 )
+
 const (
 	// Radians To Nautical Miles 
 	SG_RAD_TO_NM  = 3437.7467707849392526
@@ -95,14 +96,14 @@ func (me *Point3D) Length () float64 {
 
 
 
-func Point3DSubract(p1, p2 Point3D) Point3D{
+func Point3DSubract(p1, p2 Point3D) Point3D {
 	
 	return Point3D{p1.X - p2.X, p1.Y - p2.Y, p1.Z - p2.Z}
 	
 }
 
 // Calculate distance of points
- func Distance ( P1, P2 Point3D) float32 {
+func Distance ( P1, P2 Point3D) float32 {
 	
 	//P = P1 - P2
 	var P Point3D
@@ -194,7 +195,7 @@ func SG_CartToGeod ( CartPoint Point3D ) Point3D {
 	//double sqrtDDpZZ = sqrt(D*D+z*z);
 	var sqrtDDpZZ float64 = math.Sqrt( D * D + z * z)
 	//GeodPoint[Lat] = (2*atan2(z, D+sqrtDDpZZ)) * SG_RADIANS_TO_DEGREES;
-	GeodPoint.X = (2* math.Atan2(z, D + sqrtDDpZZ)) * SG_RADIANS_TO_DEGREES
+	GeodPoint.X = (2 * math.Atan2(z, D + sqrtDDpZZ)) * SG_RADIANS_TO_DEGREES
 	
 	//GeodPoint[Alt] = ((k+e2-1)*sqrtDDpZZ/k) * SG_METER_TO_FEET;
 	GeodPoint.Z =  ((k + e2 - 1) * sqrtDDpZZ / k) * SG_METER_TO_FEET
