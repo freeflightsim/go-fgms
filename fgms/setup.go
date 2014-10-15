@@ -10,5 +10,7 @@ func init(){
 	SetupCrossfeed()
 	SetupRelays()
 	SetupHttp()
+
+	// Server must be last
 	SetupServer()
 }

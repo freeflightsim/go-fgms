@@ -17,7 +17,7 @@
 
 
 	"relays": [
-		{"host": "mpserver14.flightgear.org", "port": 5000, "comment": "FGx Zurich"}
+		{"host": "192.168.50.154", "port": 6000, "comment": "FGx Zurich"}
     ],
 
 	"crossfeeds": [
