@@ -45,10 +45,3 @@ Package main - FlightGear MulitPlyer in go
 		- UDP Proxy - https://gist.github.com/horsley/4707013
 */
 package main
-
-import(
-	"github.com/fgx/go-fgms/fgms"
-	"github.com/fgx/go-fgms/simgear"
-	"github.com/fgx/go-fgms/flightgear"
-	"github.com/fgx/go-fgms/tracker"
-)
