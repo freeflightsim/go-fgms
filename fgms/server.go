@@ -199,7 +199,7 @@ func (me *FgServer) Init() error {
 		}
 				
 		//=== UDP ===
-		addr, err := net.ResolveUDPAddr("udp", "192.168.50.5:5000")
+		addr, err := net.ResolveUDPAddr("udp", "127.0.0.1:5000")
 		var erru error
 		me.DataSocket, erru = net.ListenUDP("udp", addr)
 		if erru != nil {
